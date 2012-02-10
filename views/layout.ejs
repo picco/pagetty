@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head>
+  <title>Pagetty</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link rel="stylesheet" type="text/css" href="/css/style.css" />
+</head>
+<body>
+	<div id="header">
+		<div class="update-notification">
+			There are new items available. <a href="#" class="refresh-action">Refresh</a>
+		</div>
+		<!--<div class="content">blaa</div>-->
+	</div>
+  <div id="container" class="clearfix">
+  	<div id="context">
+			<div class="description description-top">
+				<h2 class="tk-museo">Top stories</h2>
+			</div>
+			<div class="description description-recent">
+				<h2 class="tk-museo">Recent stories</h2>
+			</div>
+  		<% for (var i in channels) { %>
+				<div class="description description-<%= channels[i]._id %>">
+					<h2 class="tk-museo"><a href="<%= channels[i].uri %>" target="_blank" class="name"><%= channels[i].name %></a></h2>
+					<a href="<%= channels[i].uri %>" target="_blank" class="uri"><%= channels[i].uri %></a>
+				</div>
+			<% } %>
+		</div>
+    <div id="channels" class="clearfix">
+			<div class="channel-items channel-items-top clearfix"><a name="#top"></a></div>
+			<div class="channel-items channel-items-recent clearfix"><a name="#recent"></a></div>
+		</div>
+		<div id="nav">
+			<div class="special clearfix">
+			  <a href="#top" class="special-top">Top</a>
+			  <a href="#recent" class="special-recent last">Recent</a>
+			</div>
+		  <ul>
+				<% for (var i in channels) { %>
+					<li><a href="#<%= channels[i]._id %>" class="channel" rel="<%= channels[i]._id %>"><%= channels[i].name %></a></li>
+				<% } %>
+			</ul>
+    </div>
+  </div>
+  <script type="text/javascript" src="/js/jquery.js"></script>
+  <script type="text/javascript" src="/js/client.js"></script>
+  <script type="text/javascript" src="/js/jquery.lazyload.min.js"></script>
+  <script type="text/javascript" src="/js/jquery.timeago.js"></script>
+	<script type="text/javascript" src="http://use.typekit.com/zwe5hmv.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+  <script type="text/javascript">
+    var channels = <%- channels_json %>;
+  </script>
+</body>
+</html>
