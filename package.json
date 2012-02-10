@@ -1,0 +1,15 @@
+{
+  "name": "pagetty",
+  "version": "1.0.1",
+  "dependencies": {
+    "each": "*",
+    "ejs": "*",
+    "express": "*",
+    "futures": "*",
+    "jquery": "*",
+    "jsdom": "*",
+    "mongodb": "*",
+    "request": "*"
+  }, 
+  "scripts": {"start": "node app.js"}
+}
