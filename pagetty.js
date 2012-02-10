@@ -5,7 +5,7 @@ var
   futures = require('futures'),
   sequence = futures.sequence(),
   mongodb = require('mongodb'),
-  db_connection = new mongodb.Db('pagetty_dev', new mongodb.Server('dbh86.mongolab.com', 27867)),
+  db_connection = new mongodb.Db('pagetty', new mongodb.Server('127.0.0.1', 27017)),
   db = false;
   db_channels = false;
   db_users = false;
@@ -21,7 +21,8 @@ pagetty.init = function(callback) {
       db = client;
       db_channels = new mongodb.Collection(db, 'channels');
       db_users = new mongodb.Collection(db, 'users');
-
+      callback();
+/*
       db_connection.authenticate('pagetty_dev', 'savisaar', function(err) {
         if (err) {
           console.log(err);
@@ -32,6 +33,7 @@ pagetty.init = function(callback) {
           callback();
         }
       });
+*/
     }
   });
 }
