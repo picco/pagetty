@@ -79,5 +79,5 @@ app.get('/ajax/update', function(req, res) {
 });
 
 pagetty.init(function () {
-  app.listen(80);
+  app.listen(8000);
 });
