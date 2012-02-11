@@ -1,8 +1,8 @@
 var
   pagetty = require('./pagetty.js');
 
-process.on('message', function(config) {
-  pagetty.init(config, function() {
+process.on('message', function(params) {
+  pagetty.init(params.config, function() {
     pagetty.loadChannelForUpdate(function(channel) {
       if (channel) {
         console.log('Channel loaded: ' + channel.name);
