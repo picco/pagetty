@@ -167,6 +167,6 @@
 
     window.setInterval(function() {
       striimer.updateChannels();
-    }, 5000);
+    }, 30000);
   });
 })(jQuery);
