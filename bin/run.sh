@@ -48,10 +48,10 @@ export NODE_CONFIG_DIR="$APP_PATH/config"
 echo ""
 echo "Forever processes"
 echo "================================================================================"
-forever -a -l "$APP_PATH/log/server.log" start "$APP_PATH/server.js"
+forever -l "$APP_PATH/log/server.log" start "$APP_PATH/server.js"
 
 if [ "$ENV" = "production" ]; then
-  forever -a -l "$APP_PATH/log/update.log" start "$APP_PATH/update.js"
+  forever -l "$APP_PATH/log/update.log" start "$APP_PATH/update.js"
 fi
 
 sleep 1
@@ -60,15 +60,4 @@ forever list
 echo ""
 echo "Server log"
 echo "================================================================================"
-tail --lines=20 "$APP_PATH/log/server.log"
-
-echo ""
-echo "Output log"
-echo "================================================================================"
-tail --lines=20 "$APP_PATH/log/server.out.log"
-
-echo ""
-echo "Error log"
-echo "================================================================================"
-tail --lines=20 "$APP_PATH/log/server.err.log"
-echo ""
+tail --lines=30 "$APP_PATH/log/server.log"
