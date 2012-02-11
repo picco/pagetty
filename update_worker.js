@@ -1,9 +1,10 @@
-var pagetty = require('./pagetty.js');
-
+var
+  config = require('config').server,
+  pagetty = require('./pagetty.js');
+console.dir(config);
 console.log('In child process.');
 
 pagetty.init(function() {
-  console.log('Pagetty initialized.');
   pagetty.loadChannelForUpdate(function(channel) {
     if (channel) {
       console.log('Channel loaded: ' + channel.name);
