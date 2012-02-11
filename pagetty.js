@@ -12,6 +12,7 @@ var
   pagetty = {};
 
 pagetty.init = function(config, callback) {
+  console.dir(config);
   db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
