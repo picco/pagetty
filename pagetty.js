@@ -12,7 +12,6 @@ var
   pagetty = {};
 
 pagetty.init = function(config, callback) {
-  console.dir(config);
   db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
@@ -24,18 +23,6 @@ pagetty.init = function(config, callback) {
       db_channels = new mongodb.Collection(db, 'channels');
       db_users = new mongodb.Collection(db, 'users');
       callback();
-/*
-      db_connection.authenticate('pagetty_dev', 'savisaar', function(err) {
-        if (err) {
-          console.log(err);
-          process.exit();
-        }
-        else {
-          console.log('Database authentication successful.');
-          callback();
-        }
-      });
-*/
     }
   });
 }
