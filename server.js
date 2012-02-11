@@ -9,15 +9,6 @@ var
   user = false,
   channels = [];
 
-console.dir(process.env);
-console.dir(config);
-
-/*
-console.dir(process.cwd());
-console.dir(process.env);
-console.dir(config);
-process.exit();
-*/
 app = express.createServer();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
