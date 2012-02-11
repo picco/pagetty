@@ -2,7 +2,7 @@
 
 ENV=$1
 BASE_PATH="/var/node"
-APP_PATH="$BASE_PATH/pagetty_$1"
+APP_PATH="$BASE_PATH/pagetty/$1"
 SERVER_SCRIPT="server.js"
 UPDATE_SCRIPT="update.js"
 
@@ -70,7 +70,9 @@ echo "Server log"
 echo "================================================================================"
 tail --lines=30 "$APP_PATH/log/server.log"
 
-echo ""
-echo "Update log"
-echo "================================================================================"
-tail --lines=30 "$APP_PATH/log/update.log"
+if [ "$ENV" = "production" ]; then
+  echo ""
+  echo "Update log"
+  echo "================================================================================"
+  tail --lines=30 "$APP_PATH/log/update.log"
+fi

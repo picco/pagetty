@@ -14,3 +14,5 @@ function update() {
 }
 
 update();
+
+console.log('Update process started.');
