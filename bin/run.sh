@@ -51,7 +51,7 @@ echo "==========================================================================
 forever -a -l "$APP_PATH/log/server.log" start "$APP_PATH/server.js"
 
 if [ "$ENV" = "production" ]; then
-  forever -a -l "$APP_PATH/log/server.log" start "$APP_PATH/update.js"
+  forever -a -l "$APP_PATH/log/update.log" start "$APP_PATH/update.js"
 fi
 
 sleep 1
@@ -60,15 +60,15 @@ forever list
 echo ""
 echo "Server log"
 echo "================================================================================"
-tail "$APP_PATH/log/server.log"
+tail --lines=20 "$APP_PATH/log/server.log"
 
 echo ""
 echo "Output log"
 echo "================================================================================"
-tail "$APP_PATH/log/server.out.log"
+tail --lines=20 "$APP_PATH/log/server.out.log"
 
 echo ""
 echo "Error log"
 echo "================================================================================"
-tail "$APP_PATH/log/server.err.log"
+tail --lines=20 "$APP_PATH/log/server.err.log"
 echo ""
