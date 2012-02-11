@@ -41,7 +41,7 @@ if [ "$2" = "stop" ]; then
   exit 1;
 fi
 
-npm rebuild
+npm install
 export NODE_ENV="$ENV"
 export NODE_CONFIG_DIR="$APP_PATH/config"
 
