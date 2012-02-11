@@ -41,6 +41,8 @@ if [ "$2" = "stop" ]; then
   exit 1;
 fi
 
+cd "$APP_PATH"
+
 if [ "$ENV" = "production" ]; then
   git pull
 fi
