@@ -2,6 +2,7 @@ const
   user_id = 'b8ac4a414a81f75ff0e2452cac001538';
 
 var
+  config = require('config').server,
   pagetty = require('./pagetty.js'),
   express = require('express'),
   futures = require('futures'),
@@ -78,6 +79,7 @@ app.get('/ajax/update', function(req, res) {
     });
 });
 
-pagetty.init(function () {
-  app.listen(8000);
+pagetty.init(config, function () {
+  console.log(config.port);
+  app.listen(config.port);
 });

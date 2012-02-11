@@ -5,13 +5,14 @@ var
   futures = require('futures'),
   sequence = futures.sequence(),
   mongodb = require('mongodb'),
-  db_connection = new mongodb.Db('pagetty', new mongodb.Server('127.0.0.1', 27017)),
+  db_connection = false,
   db = false;
   db_channels = false;
   db_users = false;
   pagetty = {};
 
-pagetty.init = function(callback) {
+pagetty.init = function(config, callback) {
+  db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
       console.log(error);
