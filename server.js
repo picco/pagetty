@@ -7,8 +7,17 @@ var
   express = require('express'),
   futures = require('futures'),
   user = false,
-  channels = [],
+  channels = [];
 
+console.dir(process.env);
+console.dir(config);
+
+/*
+console.dir(process.cwd());
+console.dir(process.env);
+console.dir(config);
+process.exit();
+*/
 app = express.createServer();
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
@@ -80,6 +89,6 @@ app.get('/ajax/update', function(req, res) {
 });
 
 pagetty.init(config, function () {
-  console.log(config.port);
+  console.log("Starting server on port " + config.port);
   app.listen(config.port);
 });
