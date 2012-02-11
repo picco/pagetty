@@ -3,8 +3,8 @@ var
   each = require('each'),
   request = require('request'),
   futures = require('futures'),
-  sequence = futures.sequence(),
   mongodb = require('mongodb'),
+  sequence = futures.sequence(),
   db_connection = false,
   db = false;
   db_channels = false;
