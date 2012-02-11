@@ -1,6 +1,7 @@
 var
   config = require('config').server,
   pagetty = require('./pagetty.js');
+console.dir(process.env);
 console.dir(config);
 console.log('In child process.');
 
