@@ -4,23 +4,28 @@ const
 var
   config = require('config').server,
   pagetty = require('./pagetty.js'),
+  hogan = require('hogan.js'),
+  hulk = require('hulk-hogan'),
   express = require('express'),
   futures = require('futures'),
   jade = require('jade'),
   mongoose = require('mongoose'),
+  mustache = require('mustache'),
+  _ = require('underscore'),
   Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId,
   user = false,
   channels = [];
 
 app = express.createServer();
-app.set('view engine', 'jade');
+app.set('view engine', 'hulk');
 app.set('views', __dirname + '/views');
 app.use(express.static(__dirname + '/public'));
 app.use(express.bodyParser());
 app.use(express.cookieParser());
 app.use(express.session({secret: "nõude"}));
-app.use(express.errorHandler({dump: true, stack: true}));
+app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+app.register('.hulk', hulk);
 app.dynamicHelpers({
   messages: require('express-messages')
 });
@@ -29,6 +34,13 @@ app.dynamicHelpers({
  * Get /
  */
 app.get('/', function(req, res) {
+  res.render('index');
+});
+
+/**
+ * Get /app
+ */
+app.get('/app', function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
   sequence
@@ -45,8 +57,7 @@ app.get('/', function(req, res) {
       });
     })
     .then(function(next, err) {
-      console.log('Sending back response to the user.');
-      res.render('index', {title: 'Pagetty', channels: channels, channels_json: JSON.stringify(channels)});
+      res.render('app', {title: 'Pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
     });
 });
 
@@ -70,7 +81,6 @@ app.get('/ajax/load/channels', function(req, res) {
       });
     })
     .then(function(next, err) {
-      console.log('Sending ajax/load/channels response.');
       res.send(channels)
     });
 });
@@ -97,10 +107,10 @@ app.get('/ajax/update', function(req, res) {
 });
 
 /**
- * Create new channel form.
+ * Get new channel form.
  */
-app.get('channel/add', function(req, res) {
-  res.send('hahaa');
+app.get('/channel/add', function(req, res) {
+  res.render('channel_add', {templates: ['channel_form', 'channel_form_component']});
 });
 
 /**
