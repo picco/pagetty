@@ -55,14 +55,14 @@ echo ""
 echo "Forever processes"
 echo "================================================================================"
 rm "$APP_PATH/log/server.log"
-forever -a -l "$APP_PATH/log/server.log" start "$APP_PATH/server.js"
+forever -w -a -l "$APP_PATH/log/server.log" start "$APP_PATH/server.js"
 
 if [ "$ENV" = "production" ]; then
   rm "$APP_PATH/log/update.log"
-  forever -a -l "$APP_PATH/log/update.log" start "$APP_PATH/update.js"
+  forever -w -a -l "$APP_PATH/log/update.log" start "$APP_PATH/update.js"
 fi
 
-sleep 1
+sleep 3
 forever list
 
 echo ""

@@ -6,17 +6,28 @@ var
   pagetty = require('./pagetty.js'),
   express = require('express'),
   futures = require('futures'),
+  jade = require('jade'),
+  mongoose = require('mongoose'),
+  Schema = mongoose.Schema,
+  ObjectId = Schema.ObjectId,
   user = false,
   channels = [];
 
 app = express.createServer();
+app.set('view engine', 'jade');
 app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
 app.use(express.static(__dirname + '/public'));
 app.use(express.bodyParser());
-app.use('/', express.errorHandler({dump: true, stack: true}));
-app.enable("jsonp callback");
+app.use(express.cookieParser());
+app.use(express.session({secret: "nõude"}));
+app.use(express.errorHandler({dump: true, stack: true}));
+app.dynamicHelpers({
+  messages: require('express-messages')
+});
 
+/**
+ * Get /
+ */
 app.get('/', function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
@@ -39,6 +50,9 @@ app.get('/', function(req, res) {
     });
 });
 
+/**
+ * Get /ajax/load/channels
+ */
 app.get('/ajax/load/channels', function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
@@ -61,6 +75,9 @@ app.get('/ajax/load/channels', function(req, res) {
     });
 });
 
+/**
+ * Get /ajax/update
+ */
 app.get('/ajax/update', function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
@@ -79,6 +96,35 @@ app.get('/ajax/update', function(req, res) {
     });
 });
 
+/**
+ * Create new channel form.
+ */
+app.get('channel/add', function(req, res) {
+  res.send('hahaa');
+});
+
+/**
+ * API, Create new channel callback.
+ */
+app.post('/api/channel', function(req, res) {
+  var channelModel = require('./models/channel.js');
+  var channel = new channelModel(req.body);
+
+  channel.save(function (err) {
+    if (err) {
+
+    }
+    else {
+
+    }
+    res.send({status: 'OKIDOKI'});
+    console.dir(err);
+  });
+});
+
+/**
+ * Initialize and start the server.
+ */
 pagetty.init(config, function () {
   console.log("Starting server on port " + config.port);
   app.listen(config.port);

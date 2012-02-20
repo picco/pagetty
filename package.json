@@ -6,11 +6,14 @@
     "each": "*",
     "ejs": "*",
     "express": "*",
+    "express-messages": "*",
     "futures": "*",
     "jquery": "*",
     "jsdom": "*",
     "mongodb": "*",
-    "request": "*"
+    "mongoose": "*",
+    "request": "*",
+    "underscore": "*"
   },
   "scripts": {"start": "node app.js"}
 }

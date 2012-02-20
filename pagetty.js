@@ -4,14 +4,17 @@ var
   request = require('request'),
   futures = require('futures'),
   mongodb = require('mongodb'),
+  mongoose = require('mongoose'),
   sequence = futures.sequence(),
   db_connection = false,
-  db = false;
-  db_channels = false;
-  db_users = false;
+  db = false,
+  db_channels = false,
+  db_users = false,
   pagetty = {};
 
 pagetty.init = function(config, callback) {
+  mongoose.connect(config.db_url);
+  
   db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
@@ -99,18 +102,6 @@ pagetty.loadUserChannelUpdates = function(user, state, callback) {
       callback(updates);
     }
   });
-
-/*
-  each(state.channels)
-    .on('item', function(next, id, timestamp) {
-      console.log(timestamp);
-
-    })
-    .on('end', function() {
-      console.log(updates);
-      callback(updates);
-    });
-*/
 }
 
 pagetty.updateChannel = function(channel, callback) {

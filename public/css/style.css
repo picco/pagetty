@@ -21,6 +21,9 @@ h2 a {
 ul {
   list-style: none;
 }
+label {
+  display: block;
+}
 li {
   list-style: none;
 }
@@ -125,6 +128,9 @@ li {
 }
 .channel-items {
   display: none;
+}
+.form-element {
+  margin: 1em 0;
 }
 .item {
   border: 1px solid #ccc;
