@@ -110,7 +110,21 @@ app.get('/ajax/update', function(req, res) {
  * Get new channel form.
  */
 app.get('/channel/add', function(req, res) {
-  res.render('channel_add', {templates: ['channel_form', 'channel_form_component']});
+  res.render('init', {controller: 'controllers/channel_form', args: JSON.stringify({channel_id: false})});
+});
+
+/**
+ * Get new channel form.
+ */
+app.get('/channel/edit/:id', function(req, res) {
+  res.render('init', {controller: 'controllers/channel_form', args: JSON.stringify({channel_id: req.params.id})});
+});
+
+/**
+ * API, Get channel callback.
+ */
+app.get('/api/channel', function(req, res) {
+  res.json({'udu': 'peen'});
 });
 
 /**
@@ -122,13 +136,31 @@ app.post('/api/channel', function(req, res) {
 
   channel.save(function (err) {
     if (err) {
-
+      res.json(err, 400);
     }
     else {
-
+      res.json(channel, 200);
     }
-    res.send({status: 'OKIDOKI'});
-    console.dir(err);
+  });
+});
+
+/**
+ * API, Update channel callback.
+ */
+app.put('/api/channel', function(req, res) {
+  var channelModel = require('./models/channel.js');
+  var channel = req.body;
+  var id = channel._id;
+
+  delete channel._id;
+
+  channelModel.update({_id: id}, channel, {}, function(err, numAffected) {
+    if (err) {
+      res.json(err, 400);
+    }
+    else {
+      res.json(channel, 200);
+    }
   });
 });
 
