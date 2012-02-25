@@ -5,16 +5,14 @@ var
   request = require('request'),
   futures = require('futures'),
   mongodb = require('mongodb'),
-  mongoose = require('mongoose'),
   sequence = futures.sequence(),
   Validator = require('validator').Validator,
   check = require('validator').check,
   ObjectID = require('mongodb').ObjectID,
-  db_connection = false,
   db = false,
+  db_connection = false,
   db_channels = false,
-  db_users = false,
-  pagetty = {};
+  db_users = false;
 
 /**
  * Configuration & setup.
@@ -33,12 +31,13 @@ Validator.prototype.getErrors = function () {
 }
 
 /**
- * Pagetty
+ * Initialize Pagetty.
  */
-pagetty.init = function(config, callback) {
-  mongoose.connect(config.db_url);
 
-  db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
+Pagetty = {};
+
+Pagetty.init = function(config, callback) {
+  db_connection = new mongodb.Db('Pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
       console.log(error);
@@ -53,7 +52,7 @@ pagetty.init = function(config, callback) {
   });
 }
 
-pagetty.loadUser = function(uid, callback) {
+Pagetty.loadUser = function(uid, callback) {
   db.collection('users', function(err, collection) {
     if (err) {
       console.log(err);
@@ -73,7 +72,14 @@ pagetty.loadUser = function(uid, callback) {
   });
 }
 
-pagetty.loadUserChannels = function(user, callback) {
+/**
+ * Load a single channel. Callback format: callback(err, docs);
+ */
+Pagetty.loadChannel = function(id, callback) {
+  db_channels.findOne({_id: new ObjectID(id)}, callback);
+}
+
+Pagetty.loadUserChannels = function(user, callback) {
   var channels = {};
 
   db.collection('channels', function(err, collection) {
@@ -86,7 +92,7 @@ pagetty.loadUserChannels = function(user, callback) {
   });
 }
 
-pagetty.loadAllChannels = function(callback) {
+Pagetty.loadAllChannels = function(callback) {
   db_channels.find().toArray(function(err, result) {
     if (err) {
       console.log(err);
@@ -103,7 +109,7 @@ pagetty.loadAllChannels = function(callback) {
   });
 }
 
-pagetty.loadChannelForUpdate = function(callback) {
+Pagetty.loadChannelForUpdate = function(callback) {
   var max_lifetime = 600;
   var now = new Date().getTime();
 
@@ -120,7 +126,7 @@ pagetty.loadChannelForUpdate = function(callback) {
   });
 }
 
-pagetty.loadUserChannelUpdates = function(user, state, callback) {
+Pagetty.loadUserChannelUpdates = function(user, state, callback) {
   var updates = {};
   var channels = [];
 
@@ -147,8 +153,8 @@ pagetty.loadUserChannelUpdates = function(user, state, callback) {
 /**
  * Update items for the given channel.
  */
-pagetty.updateChannelItems = function(channel, callback) {
-  pagetty.fetchChannelItems(chennel, function(err, updated_channel) {
+Pagetty.updateChannelItems = function(channel, callback) {
+  Pagetty.fetchChannelItems(chennel, function(err, updated_channel) {
     if (err) {
       console.log(err);
       callback();
@@ -164,11 +170,7 @@ pagetty.updateChannelItems = function(channel, callback) {
   })
 }
 
-pagetty.loadChannel = function(id, callback) {
-  db_channels.findOne({_id: new ObjectID(id)}, callback);
-}
-
-pagetty.createChannel = function(channel, callback) {
+Pagetty.createChannel = function(channel, callback) {
   db_channels.insert(channel, {safe: true}, function(err, doc) {
     if (err) {
       console.log(err);
@@ -181,7 +183,7 @@ pagetty.createChannel = function(channel, callback) {
 }
 
 
-pagetty.updateChannel = function(channel, callback) {
+Pagetty.updateChannel = function(channel, callback) {
   var id = new ObjectID(channel._id);
   delete channel._id;
 
@@ -199,20 +201,20 @@ pagetty.updateChannel = function(channel, callback) {
 /**
  * Fetch fresh items for the given channel.
  */
-pagetty.fetchChannelItems = function(channel, callback) {
+Pagetty.fetchChannelItems = function(channel, callback) {
   var now = new Date().getTime();
 
-  pagetty.fetchData(channel.uri)
+  Pagetty.fetchData(channel.uri)
     .done(function(response, err) {
       if (err) {
         callback(err);
       }
       else {
-        var items = pagetty.processData(response, channel);
+        var items = Pagetty.processData(response, channel);
 
         if (items.length) {
           channel.items_updated = now;
-          channel.items_added = pagetty.compareItems(channel.items, items) ? channel.items_added : now;
+          channel.items_added = Pagetty.compareItems(channel.items, items) ? channel.items_added : now;
           channel.items = items;
           callback(false, channel);
         }
@@ -223,7 +225,7 @@ pagetty.fetchChannelItems = function(channel, callback) {
     });
 }
 
-pagetty.compareItems = function(previous, current) {
+Pagetty.compareItems = function(previous, current) {
   for (var i in current) {
     var exists = false;
     for (var j in previous) {
@@ -237,7 +239,7 @@ pagetty.compareItems = function(previous, current) {
   return true;
 }
 
-pagetty.fetchData = function(uri) {
+Pagetty.fetchData = function(uri) {
   return new $.Deferred(function(dfd) {
     request({uri: uri, timeout: 10000}, function(err, response, body) {
       dfd.resolve(body, err);
@@ -245,7 +247,7 @@ pagetty.fetchData = function(uri) {
   }).promise();
 }
 
-pagetty.processData = function(response, channel) {
+Pagetty.processData = function(response, channel) {
   var items = [];
   var now = new Date().getTime();
 
@@ -253,10 +255,10 @@ pagetty.processData = function(response, channel) {
     var elements = $(response).find(channel.components[i].item).get();
 
     for (j in elements) {
-      var item = pagetty.processItem(elements[j], channel, channel.components[i]);
+      var item = Pagetty.processItem(elements[j], channel, channel.components[i]);
 
-      item.created = pagetty.getCreatedTime(now, item, channel.items);
-      if (item.title && item.target_uri && pagetty.itemIsUnique(item, items)) {
+      item.created = Pagetty.getCreatedTime(now, item, channel.items);
+      if (item.title && item.target_uri && Pagetty.itemIsUnique(item, items)) {
         items.push(item);
       }
     }
@@ -265,7 +267,7 @@ pagetty.processData = function(response, channel) {
   return items;
 }
 
-pagetty.getCreatedTime = function(now, item, items) {
+Pagetty.getCreatedTime = function(now, item, items) {
   for (var i in items) {
     if (items[i].target_uri == item.target_uri) {
       return items[i].created ? items[i].created : now;
@@ -278,7 +280,7 @@ pagetty.getCreatedTime = function(now, item, items) {
 /**
  * Chech that the item's target URL is not present already.
  */
-pagetty.itemIsUnique = function(item, items) {
+Pagetty.itemIsUnique = function(item, items) {
   for (var i in items) {
     if (items[i].target_uri == item.target_uri) {
       return false;
@@ -287,31 +289,31 @@ pagetty.itemIsUnique = function(item, items) {
   return true;
 }
 
-pagetty.processItem = function(item_data, channel, component) {
+Pagetty.processItem = function(item_data, channel, component) {
   var item = {
-    title: pagetty.processElement(item_data, component.title_selector, component.title_attribute),
-    target_uri: pagetty.processURI(pagetty.processElement(item_data, component.target_selector, component.target_attribute), channel),
-    image_uri: pagetty.processURI(pagetty.processElement(item_data, component.image_selector, component.image_attribute), channel),
-    score: pagetty.processScore(pagetty.processElement(item_data, component.score_selector, component.score_attribute))
+    title: Pagetty.processElement(item_data, component.title_selector, component.title_attribute),
+    target_uri: Pagetty.processURI(Pagetty.processElement(item_data, component.target_selector, component.target_attribute), channel),
+    image_uri: Pagetty.processURI(Pagetty.processElement(item_data, component.image_selector, component.image_attribute), channel),
+    score: Pagetty.processScore(Pagetty.processElement(item_data, component.score_selector, component.score_attribute))
   }
 
   if (item.target_uri && item.target_uri.match(/\.(jpg|png|gif)$/gi)) item.image_uri = item.target_uri;
   return item;
 }
 
-pagetty.processElement = function(data, selector, attribute) {
+Pagetty.processElement = function(data, selector, attribute) {
   if (typeof(selector) == 'undefined') {
     return null;
   }
   else if (attribute) {
-    return pagetty.stripTags($(data).find(selector).attr(attribute));
+    return Pagetty.stripTags($(data).find(selector).attr(attribute));
   }
   else {
-    return pagetty.stripTags($(data).find(selector).html());
+    return Pagetty.stripTags($(data).find(selector).html());
   }
 }
 
-pagetty.processURI = function(uri, channel) {
+Pagetty.processURI = function(uri, channel) {
   if (uri != null && uri.match(/^(\/\/).+/)) {
     return 'http://' + uri.replace(/^\/\//, '');
   }
@@ -323,7 +325,7 @@ pagetty.processURI = function(uri, channel) {
   }
 }
 
-pagetty.processScore = function(string) {
+Pagetty.processScore = function(string) {
   if (string) {
     return string.replace(/[^0-9.]/g, '');
   }
@@ -332,7 +334,7 @@ pagetty.processScore = function(string) {
   }
 }
 
-pagetty.stripTags = function(string) {
+Pagetty.stripTags = function(string) {
   if (string) {
     return string.replace(/<\/?(?!\!)[^>]*>/gi, '');
   }
@@ -341,7 +343,7 @@ pagetty.stripTags = function(string) {
   }
 }
 
-pagetty.validateChannel = function(channel) {
+Pagetty.validateChannel = function(channel) {
   var validator = new Validator;
 
   validator.check(channel.name, 'Name must start with a character.').is(/\w+.*/);
@@ -361,4 +363,4 @@ pagetty.validateChannel = function(channel) {
   }
 }
 
-module.exports = pagetty;
+module.exports = Pagetty;

@@ -5,12 +5,12 @@ var
   _ = require('underscore'),
   config = require('config').server,
   express = require('express'),
-  pagetty = require('./pagetty.js'),
   hulk = require('hulk-hogan'),
   hogan = require('hogan.js'),
   futures = require('futures'),
   mongoose = require('mongoose'),
   mustache = require('mustache'),
+  Pagetty = require('./Pagetty.js'),
   Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId,
   user = false,
@@ -30,27 +30,27 @@ app.dynamicHelpers({
 });
 
 /**
- * Get /
+ * Render frontpage.
  */
 app.get('/', function(req, res) {
   res.render('index');
 });
 
 /**
- * Get /app
+ * Render the main application.
  */
 app.get('/app', function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
   sequence
     .then(function(next, err) {
-      pagetty.loadUser(user_id, function(u) {
+      Pagetty.loadUser(user_id, function(u) {
         user = u;
         next();
       });
     })
     .then(function(next, err) {
-      pagetty.loadUserChannels(user, function(c) {
+      Pagetty.loadUserChannels(user, function(c) {
         channels = c;
         next();
       });
@@ -68,13 +68,13 @@ app.get('/ajax/load/channels', function(req, res) {
 
   sequence
     .then(function(next, err) {
-      pagetty.loadUser(user_id, function(u) {
+      Pagetty.loadUser(user_id, function(u) {
         user = u;
         next();
       });
     })
     .then(function(next, err) {
-      pagetty.loadUserChannels(user, function(c) {
+      Pagetty.loadUserChannels(user, function(c) {
         channels = c;
         next();
       });
@@ -92,13 +92,13 @@ app.get('/ajax/update', function(req, res) {
 
   sequence
     .then(function(next, err) {
-      pagetty.loadUser(user_id, function(u) {
+      Pagetty.loadUser(user_id, function(u) {
         user = u;
         next();
       });
     })
     .then(function(next, err) {
-      pagetty.loadUserChannelUpdates(user, req.param('state'), function(updates) {
+      Pagetty.loadUserChannelUpdates(user, req.param('state'), function(updates) {
         console.log('Sending ajax/update response.');
         res.json(updates);
       });
@@ -118,13 +118,13 @@ app.get('/channel/add', function(req, res) {
  */
 app.post('/channel/validate', function(req, res) {
   var channel = req.body;
-  var errors = pagetty.validateChannel(channel);
+  var errors = Pagetty.validateChannel(channel);
 
   if (errors.length) {
     res.json(errors, 400);
   }
   else {
-    pagetty.fetchChannelItems(channel, function(err, channel) {
+    Pagetty.fetchChannelItems(channel, function(err, channel) {
       if (err) {
         res.json({fetch_error: err}, 400);
       }
@@ -146,7 +146,7 @@ app.post('/null', function(req, res) {
  * Display a list of available channels.
  */
 app.get('/channels', function(req, res) {
-  pagetty.loadAllChannels(function(err, channels) {
+  Pagetty.loadAllChannels(function(err, channels) {
     if (err) {
       res.send(500);
     }
@@ -160,7 +160,14 @@ app.get('/channels', function(req, res) {
  * Display a preview of a single channel.
  */
 app.get('/preview/:id', function(req, res) {
-  res.render('preview');
+  Pagetty.loadChannel(req.params.id, function(err, channel) {
+    if (err) {
+      res.send(404);
+    }
+    else {
+      res.render('preview', {channel: channel});
+    }
+  });
 });
 
 /**
@@ -168,13 +175,13 @@ app.get('/preview/:id', function(req, res) {
  */
 app.post('/channel/save', function(req, res) {
   var channel = req.body;
-  var errors = pagetty.validateChannel(channel);
+  var errors = Pagetty.validateChannel(channel);
 
   if (errors.length) {
     res.json(errors, 400);
   }
   else {
-    pagetty.fetchChannelItems(channel, function(err, channel) {
+    Pagetty.fetchChannelItems(channel, function(err, channel) {
       if (err) {
         res.json({fetch_error: err}, 400);
       }
@@ -182,7 +189,7 @@ app.post('/channel/save', function(req, res) {
         if (channel._id) {
           var id = channel._id;
 
-          pagetty.updateChannel(channel, function(err) {
+          Pagetty.updateChannel(channel, function(err) {
             if (err) {
               res.json({error: err}, 400);
             }
@@ -192,7 +199,7 @@ app.post('/channel/save', function(req, res) {
           });
         }
         else {
-          pagetty.createChannel(channel, function(err, doc) {
+          Pagetty.createChannel(channel, function(err, doc) {
             if (err) {
               res.json({error: err}, 400);
             }
@@ -210,7 +217,7 @@ app.post('/channel/save', function(req, res) {
  * Get new channel form.
  */
 app.get('/channel/edit/:id', function(req, res) {
-  pagetty.loadChannel(req.params.id, function(err, channel) {
+  Pagetty.loadChannel(req.params.id, function(err, channel) {
     if (err) {
       res.send(404);
     }
@@ -223,7 +230,7 @@ app.get('/channel/edit/:id', function(req, res) {
 /**
  * Initialize and start the server.
  */
-pagetty.init(config, function () {
+Pagetty.init(config, function () {
   console.log("Starting server on port " + config.port);
   app.listen(config.port);
 });
