@@ -7,7 +7,7 @@ process.on('message', function(params) {
       if (channel) {
         console.log('Channel loaded: ' + channel.name);
 
-        pagetty.updateChannel(channel, function() {
+        pagetty.updateChannelItems(channel, function() {
           console.log('Update completed.');
           process.exit();
         });

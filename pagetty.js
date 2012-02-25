@@ -1,4 +1,5 @@
 var
+  _ = require('underscore'),
   $ = require('jquery'),
   each = require('each'),
   request = require('request'),
@@ -6,15 +7,37 @@ var
   mongodb = require('mongodb'),
   mongoose = require('mongoose'),
   sequence = futures.sequence(),
+  Validator = require('validator').Validator,
+  check = require('validator').check,
+  ObjectID = require('mongodb').ObjectID,
   db_connection = false,
   db = false,
   db_channels = false,
   db_users = false,
   pagetty = {};
 
+/**
+ * Configuration & setup.
+ */
+
+Validator.prototype.error = function (msg) {
+  this._errors.push(msg);
+}
+
+Validator.prototype.hasErrors = function () {
+  return this._errors.length;
+}
+
+Validator.prototype.getErrors = function () {
+  return this._errors;
+}
+
+/**
+ * Pagetty
+ */
 pagetty.init = function(config, callback) {
   mongoose.connect(config.db_url);
-  
+
   db_connection = new mongodb.Db('pagetty', new mongodb.Server(config.db_host, config.db_port)),
   db_connection.open(function(error, client) {
     if (error) {
@@ -63,6 +86,23 @@ pagetty.loadUserChannels = function(user, callback) {
   });
 }
 
+pagetty.loadAllChannels = function(callback) {
+  db_channels.find().toArray(function(err, result) {
+    if (err) {
+      console.log(err);
+      callback(err);
+    }
+    else {
+      var channels = {};
+
+      for (i in result) {
+        channels[result[i]._id] = result[i];
+      }
+      callback(false, channels);
+    }
+  });
+}
+
 pagetty.loadChannelForUpdate = function(callback) {
   var max_lifetime = 600;
   var now = new Date().getTime();
@@ -104,34 +144,80 @@ pagetty.loadUserChannelUpdates = function(user, state, callback) {
   });
 }
 
+/**
+ * Update items for the given channel.
+ */
+pagetty.updateChannelItems = function(channel, callback) {
+  pagetty.fetchChannelItems(chennel, function(err, updated_channel) {
+    if (err) {
+      console.log(err);
+      callback();
+    }
+    else {
+      db_channels.update({_id: updated_channel._id}, updated_channel, {}, function(err) {
+        if (err) {
+          console.log(err);
+        }
+        callback();
+      });
+    }
+  })
+}
+
+pagetty.loadChannel = function(id, callback) {
+  db_channels.findOne({_id: new ObjectID(id)}, callback);
+}
+
+pagetty.createChannel = function(channel, callback) {
+  db_channels.insert(channel, {safe: true}, function(err, doc) {
+    if (err) {
+      console.log(err);
+      callback(err);
+    }
+    else {
+      callback(false, doc[0]);
+    }
+  });
+}
+
+
 pagetty.updateChannel = function(channel, callback) {
+  var id = new ObjectID(channel._id);
+  delete channel._id;
+
+  db_channels.update({_id: id}, channel, {safe: true}, function(err) {
+    if (err) {
+      console.log(err);
+      callback(err);
+    }
+    else {
+      callback();
+    }
+  });
+}
+
+/**
+ * Fetch fresh items for the given channel.
+ */
+pagetty.fetchChannelItems = function(channel, callback) {
   var now = new Date().getTime();
 
   pagetty.fetchData(channel.uri)
     .done(function(response, err) {
       if (err) {
-        console.log('Failed to request: ' + channel.uri);
-        callback();
+        callback(err);
       }
       else {
-        console.log('Data bytes received: ' + response.length);
         var items = pagetty.processData(response, channel);
 
         if (items.length) {
           channel.items_updated = now;
           channel.items_added = pagetty.compareItems(channel.items, items) ? channel.items_added : now;
           channel.items = items;
-          db_channels.update({_id: channel._id}, channel, {}, function(err) {
-            if (err) {
-              console.log(err);
-              process.exit();
-            }
-            callback();
-          });
+          callback(false, channel);
         }
         else {
-          console.log('No items found.');
-          callback();
+          callback('No items found.');
         }
       }
     });
@@ -168,6 +254,7 @@ pagetty.processData = function(response, channel) {
 
     for (j in elements) {
       var item = pagetty.processItem(elements[j], channel, channel.components[i]);
+
       item.created = pagetty.getCreatedTime(now, item, channel.items);
       if (item.title && item.target_uri && pagetty.itemIsUnique(item, items)) {
         items.push(item);
@@ -188,6 +275,9 @@ pagetty.getCreatedTime = function(now, item, items) {
   return now;
 }
 
+/**
+ * Chech that the item's target URL is not present already.
+ */
 pagetty.itemIsUnique = function(item, items) {
   for (var i in items) {
     if (items[i].target_uri == item.target_uri) {
@@ -199,25 +289,25 @@ pagetty.itemIsUnique = function(item, items) {
 
 pagetty.processItem = function(item_data, channel, component) {
   var item = {
-    title: pagetty.processElement(component.title, item_data),
-    target_uri: pagetty.processURI(pagetty.processElement(component.target, item_data), channel),
-    image_uri: pagetty.processURI(pagetty.processElement(component.image, item_data), channel),
-    score: pagetty.processScore(pagetty.processElement(component.score, item_data))
+    title: pagetty.processElement(item_data, component.title_selector, component.title_attribute),
+    target_uri: pagetty.processURI(pagetty.processElement(item_data, component.target_selector, component.target_attribute), channel),
+    image_uri: pagetty.processURI(pagetty.processElement(item_data, component.image_selector, component.image_attribute), channel),
+    score: pagetty.processScore(pagetty.processElement(item_data, component.score_selector, component.score_attribute))
   }
 
   if (item.target_uri && item.target_uri.match(/\.(jpg|png|gif)$/gi)) item.image_uri = item.target_uri;
   return item;
 }
 
-pagetty.processElement = function(def, data) {
-  if (typeof(def) == 'undefined') {
+pagetty.processElement = function(data, selector, attribute) {
+  if (typeof(selector) == 'undefined') {
     return null;
   }
-  else if (def.attribute) {
-    return pagetty.stripTags($(data).find(def.selector).attr(def.attribute));
+  else if (attribute) {
+    return pagetty.stripTags($(data).find(selector).attr(attribute));
   }
   else {
-    return pagetty.stripTags($(data).find(def.selector).html());
+    return pagetty.stripTags($(data).find(selector).html());
   }
 }
 
@@ -248,6 +338,26 @@ pagetty.stripTags = function(string) {
   }
   else {
     return null;
+  }
+}
+
+pagetty.validateChannel = function(channel) {
+  var validator = new Validator;
+
+  validator.check(channel.name, 'Name must start with a character.').is(/\w+.*/);
+  validator.check(channel.uri, 'URL is not valid.').is(/(http|https):\/\/.+\..+/);
+
+  _.each(channel.components, function(component) {
+    validator.check(component.item, 'Item selector is always required.').notEmpty();
+    validator.check(component.title_selector, 'Title selector is always required.').notEmpty();
+    validator.check(component.target_selector, 'Target selector is always required.').notEmpty();
+  });
+
+  if (validator.hasErrors()) {
+    return validator.getErrors();
+  }
+  else {
+    return [];
   }
 }
 

@@ -3,8 +3,6 @@
   "version": "1.0.1",
   "dependencies": {
     "config": "*",
-    "each": "*",
-    "ejs": "*",
     "express": "*",
     "express-messages": "*",
     "futures": "*",
@@ -15,7 +13,8 @@
     "mongoose": "*",
     "mustache": "*",
     "request": "*",
-    "underscore": "*"
+    "underscore": "*",
+    "validator": "*"
   },
   "scripts": {"start": "node app.js"}
 }

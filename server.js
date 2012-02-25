@@ -2,16 +2,15 @@ const
   user_id = 'b8ac4a414a81f75ff0e2452cac001538';
 
 var
+  _ = require('underscore'),
   config = require('config').server,
-  pagetty = require('./pagetty.js'),
-  hogan = require('hogan.js'),
-  hulk = require('hulk-hogan'),
   express = require('express'),
+  pagetty = require('./pagetty.js'),
+  hulk = require('hulk-hogan'),
+  hogan = require('hogan.js'),
   futures = require('futures'),
-  jade = require('jade'),
   mongoose = require('mongoose'),
   mustache = require('mustache'),
-  _ = require('underscore'),
   Schema = mongoose.Schema,
   ObjectId = Schema.ObjectId,
   user = false,
@@ -107,61 +106,118 @@ app.get('/ajax/update', function(req, res) {
 });
 
 /**
- * Get new channel form.
+ * GET new channel form.
  */
 app.get('/channel/add', function(req, res) {
-  res.render('init', {controller: 'controllers/channel_form', args: JSON.stringify({channel_id: false})});
+  var channel = {components: [{}]};
+  res.render('channel_form', {channel: channel});
+});
+
+/**
+ * Validate channel data, try to fetch some items from the channel.
+ */
+app.post('/channel/validate', function(req, res) {
+  var channel = req.body;
+  var errors = pagetty.validateChannel(channel);
+
+  if (errors.length) {
+    res.json(errors, 400);
+  }
+  else {
+    pagetty.fetchChannelItems(channel, function(err, channel) {
+      if (err) {
+        res.json({fetch_error: err}, 400);
+      }
+      else {
+        res.json(channel, 200);
+      }
+    });
+  }
+});
+
+/**
+ * Dummy callback for invisible iframes.
+ */
+app.post('/null', function(req, res) {
+  res.send(200);
+});
+
+/**
+ * Display a list of available channels.
+ */
+app.get('/channels', function(req, res) {
+  pagetty.loadAllChannels(function(err, channels) {
+    if (err) {
+      res.send(500);
+    }
+    else {
+      res.render('channels', {channels: _.toArray(channels)});
+    }
+  });
+});
+
+/**
+ * Display a preview of a single channel.
+ */
+app.get('/preview/:id', function(req, res) {
+  res.render('preview');
+});
+
+/**
+ * Save channel data.
+ */
+app.post('/channel/save', function(req, res) {
+  var channel = req.body;
+  var errors = pagetty.validateChannel(channel);
+
+  if (errors.length) {
+    res.json(errors, 400);
+  }
+  else {
+    pagetty.fetchChannelItems(channel, function(err, channel) {
+      if (err) {
+        res.json({fetch_error: err}, 400);
+      }
+      else {
+        if (channel._id) {
+          var id = channel._id;
+
+          pagetty.updateChannel(channel, function(err) {
+            if (err) {
+              res.json({error: err}, 400);
+            }
+            else {
+              res.json({_id: id}, 200);
+            }
+          });
+        }
+        else {
+          pagetty.createChannel(channel, function(err, doc) {
+            if (err) {
+              res.json({error: err}, 400);
+            }
+            else {
+              res.json({_id: doc._id}, 200);
+            }
+          });
+        }
+      }
+    });
+  }
 });
 
 /**
  * Get new channel form.
  */
 app.get('/channel/edit/:id', function(req, res) {
-  res.render('init', {controller: 'controllers/channel_form', args: JSON.stringify({channel_id: req.params.id})});
-});
-
-/**
- * API, Get channel callback.
- */
-app.get('/api/channel', function(req, res) {
-  res.json({'udu': 'peen'});
-});
-
-/**
- * API, Create new channel callback.
- */
-app.post('/api/channel', function(req, res) {
-  var channelModel = require('./models/channel.js');
-  var channel = new channelModel(req.body);
-
-  channel.save(function (err) {
+  pagetty.loadChannel(req.params.id, function(err, channel) {
     if (err) {
-      res.json(err, 400);
+      res.send(404);
     }
     else {
-      res.json(channel, 200);
+      res.render('channel_form', {channel: channel});
     }
-  });
-});
-
-/**
- * API, Update channel callback.
- */
-app.put('/api/channel', function(req, res) {
-  var channelModel = require('./models/channel.js');
-  var channel = req.body;
-  var id = channel._id;
-
-  delete channel._id;
-
-  channelModel.update({_id: id}, channel, {}, function(err, numAffected) {
-    if (err) {
-      res.json(err, 400);
-    }
-    else {
-      res.json(channel, 200);
-    }
-  });
+  })
 });
 
 /**
