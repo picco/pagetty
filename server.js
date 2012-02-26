@@ -1,33 +1,70 @@
-const
-  user_id = 'b8ac4a414a81f75ff0e2452cac001538';
-
 var
   _ = require('underscore'),
+  fs = require('fs'),
+  util = require('util'),
   config = require('config').server,
   express = require('express'),
   hulk = require('hulk-hogan'),
   hogan = require('hogan.js'),
   futures = require('futures'),
-  mongoose = require('mongoose'),
   mustache = require('mustache'),
-  Pagetty = require('./Pagetty.js'),
-  Schema = mongoose.Schema,
-  ObjectId = Schema.ObjectId,
-  user = false,
-  channels = [];
+  mongoStore = require('connect-session-mongo'),
+  pagetty = require('./lib/pagetty.js');
 
-app = express.createServer();
-app.set('view engine', 'hulk');
-app.set('views', __dirname + '/views');
-app.use(express.static(__dirname + '/public'));
-app.use(express.bodyParser());
-app.use(express.cookieParser());
-app.use(express.session({secret: "nıude"}));
-app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
-app.register('.hulk', hulk);
-app.dynamicHelpers({
-  messages: require('express-messages')
+/**
+ * Create express app.
+ */
+var app = express.createServer({
+  ca: fs.readFileSync("./ssl/ca.pem"),
+  key: fs.readFileSync("./ssl/pagetty.key.nopass"),
+  cert: fs.readFileSync("./ssl/pagetty.crt")
 });
+
+app.configure(function() {
+  app.use(express.bodyParser());
+  app.use(express.cookieParser());
+  app.use(express.session({
+    secret: "n√µude",
+    cookie: {maxAge: 60000 * 60},
+    store: new mongoStore({db: config.db_name})
+  }));
+  app.set('view engine', 'hulk');
+  app.set('views', __dirname + '/views');
+  app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+  app.use(express.static(__dirname + '/public'));
+  app.register(".hulk", hulk);
+
+  app.use(function(req, res, next) {
+    pagetty.user = req.session.user;
+    next();
+  });
+
+});
+
+/**
+ * Create a redirecting HTTP server.
+ */
+var http = express.createServer();
+http.all("*", function(req, res) {
+  res.redirect("https://pagetty.com" + req.url, 301);
+});
+
+/**
+ * Initialize and start the pagetty & the server.
+ */
+
+
+/**
+ * Define authentication middleware.
+ */
+var restricted = function(req, res, next) {
+  if (req.session.user) {
+    next();
+  }
+  else {
+    res.redirect('/login');
+  }
+}
 
 /**
  * Render frontpage.
@@ -39,76 +76,73 @@ app.get('/', function(req, res) {
 /**
  * Render the main application.
  */
-app.get('/app', function(req, res) {
+app.get('/app', restricted, function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
-  sequence
-    .then(function(next, err) {
-      Pagetty.loadUser(user_id, function(u) {
-        user = u;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      Pagetty.loadUserChannels(user, function(c) {
-        channels = c;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      res.render('app', {title: 'Pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
+  sequence.then(function(next, err) {
+    pagetty.loadUser(req.session.user._id, function(u) {
+      user = u;
+      next();
     });
+  })
+  .then(function(next, err) {
+    pagetty.loadUserChannels(user, function(c) {
+      channels = c;
+      next();
+    });
+  })
+  .then(function(next, err) {
+    res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
+  });
 });
 
 /**
  * Get /ajax/load/channels
  */
-app.get('/ajax/load/channels', function(req, res) {
+app.get('/ajax/load/channels', restricted, function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
-  sequence
-    .then(function(next, err) {
-      Pagetty.loadUser(user_id, function(u) {
-        user = u;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      Pagetty.loadUserChannels(user, function(c) {
-        channels = c;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      res.send(channels)
+  sequence.then(function(next, err) {
+    pagetty.loadUser(req.session.user._id, function(u) {
+      user = u;
+      next();
     });
+  })
+  .then(function(next, err) {
+    pagetty.loadUserChannels(user, function(c) {
+      channels = c;
+      next();
+    });
+  })
+  .then(function(next, err) {
+    res.send(channels)
+  });
 });
 
 /**
  * Get /ajax/update
  */
-app.get('/ajax/update', function(req, res) {
+app.get('/ajax/update', restricted, function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
-  sequence
-    .then(function(next, err) {
-      Pagetty.loadUser(user_id, function(u) {
-        user = u;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      Pagetty.loadUserChannelUpdates(user, req.param('state'), function(updates) {
-        console.log('Sending ajax/update response.');
-        res.json(updates);
-      });
+  sequence.then(function(next, err) {
+    pagetty.loadUser(req.session.user._id, function(u) {
+      user = u;
+      next();
     });
+  })
+  .then(function(next, err) {
+    pagetty.loadUserChannelUpdates(user, req.param('state'), function(updates) {
+      console.log('Sending ajax/update response.');
+      res.json(updates);
+    });
+  });
 });
 
 /**
  * GET new channel form.
  */
-app.get('/channel/add', function(req, res) {
+app.get('/channel/add', restricted, function(req, res) {
   var channel = {components: [{}]};
   res.render('channel_form', {channel: channel});
 });
@@ -116,15 +150,15 @@ app.get('/channel/add', function(req, res) {
 /**
  * Validate channel data, try to fetch some items from the channel.
  */
-app.post('/channel/validate', function(req, res) {
+app.post('/channel/validate', restricted, function(req, res) {
   var channel = req.body;
-  var errors = Pagetty.validateChannel(channel);
+  var errors = pagetty.validateChannel(channel);
 
   if (errors.length) {
     res.json(errors, 400);
   }
   else {
-    Pagetty.fetchChannelItems(channel, function(err, channel) {
+    pagetty.fetchChannelItems(channel, function(err, channel) {
       if (err) {
         res.json({fetch_error: err}, 400);
       }
@@ -145,13 +179,19 @@ app.post('/null', function(req, res) {
 /**
  * Display a list of available channels.
  */
-app.get('/channels', function(req, res) {
-  Pagetty.loadAllChannels(function(err, channels) {
+app.get('/channels', restricted, function(req, res) {
+  pagetty.loadAllChannels(function(err, channels) {
     if (err) {
       res.send(500);
     }
     else {
-      res.render('channels', {channels: _.toArray(channels)});
+      var ca = _.toArray(channels);
+
+      for (var i in ca) {
+        ca[i] = pagetty.attachChannelTemplating(ca[i]);
+      }
+
+      res.render('channels', {channels: ca});
     }
   });
 });
@@ -160,28 +200,47 @@ app.get('/channels', function(req, res) {
  * Display a preview of a single channel.
  */
 app.get('/preview/:id', function(req, res) {
-  Pagetty.loadChannel(req.params.id, function(err, channel) {
+  pagetty.loadChannel(req.params.id, function(err, channel) {
     if (err) {
+      console.log(err);
       res.send(404);
     }
     else {
-      res.render('preview', {channel: channel});
+      res.render('preview', {channel: JSON.stringify(channel)});
     }
+  });
+});
+
+/**
+ * Subscribe yourself to a given channel.
+ */
+app.get('/subscribe/:id', restricted, function(req, res) {
+  pagetty.subscribe(req.session.user._id, req.params.id, function(err) {
+    err ? res.send(400) : res.send(200);
+  });
+});
+
+/**
+ * Unsubscribe yourself from a given channel.
+ */
+app.get('/unsubscribe/:id', restricted, function(req, res) {
+  pagetty.unsubscribe(req.session.user._id, req.params.id, function(err) {
+    err ? res.send(400) : res.send(200);
   });
 });
 
 /**
  * Save channel data.
  */
-app.post('/channel/save', function(req, res) {
+app.post('/channel/save', restricted, function(req, res) {
   var channel = req.body;
-  var errors = Pagetty.validateChannel(channel);
+  var errors = pagetty.validateChannel(channel);
 
   if (errors.length) {
     res.json(errors, 400);
   }
   else {
-    Pagetty.fetchChannelItems(channel, function(err, channel) {
+    pagetty.fetchChannelItems(channel, function(err, channel) {
       if (err) {
         res.json({fetch_error: err}, 400);
       }
@@ -189,7 +248,7 @@ app.post('/channel/save', function(req, res) {
         if (channel._id) {
           var id = channel._id;
 
-          Pagetty.updateChannel(channel, function(err) {
+          pagetty.updateChannel(channel, function(err) {
             if (err) {
               res.json({error: err}, 400);
             }
@@ -199,7 +258,7 @@ app.post('/channel/save', function(req, res) {
           });
         }
         else {
-          Pagetty.createChannel(channel, function(err, doc) {
+          pagetty.createChannel(channel, function(err, doc) {
             if (err) {
               res.json({error: err}, 400);
             }
@@ -216,8 +275,8 @@ app.post('/channel/save', function(req, res) {
 /**
  * Get new channel form.
  */
-app.get('/channel/edit/:id', function(req, res) {
-  Pagetty.loadChannel(req.params.id, function(err, channel) {
+app.get('/channel/edit/:id', restricted, function(req, res) {
+  pagetty.loadChannel(req.params.id, function(err, channel) {
     if (err) {
       res.send(404);
     }
@@ -228,9 +287,112 @@ app.get('/channel/edit/:id', function(req, res) {
 });
 
 /**
- * Initialize and start the server.
+ * Display sign-up form.
  */
-Pagetty.init(config, function () {
-  console.log("Starting server on port " + config.port);
-  app.listen(config.port);
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
+/**
+ * Display sign-up form.
+ */
+app.post('/signup', function(req, res) {
+  pagetty.signup(req.body.mail, function(err) {
+    if (err) {
+      res.send(err, 400);
+    }
+    else {
+      res.send(200);
+    }
+  });
+});
+
+/**
+ * Display the login form.
+ */
+app.get('/login', function(req, res) {
+  if (req.session.user) {
+    res.redirect("/app");
+  }
+  else {
+    res.render("login");
+  }
+});
+
+/**
+ * Handle the login request.
+ */
+app.post('/login', function(req, res) {
+  pagetty.checkLogin(req.body.name, req.body.pass, function(err, user) {
+    if (err) {
+      res.send(400);
+    }
+    else {
+      req.session.user = user;
+      res.send(200);
+    }
+  });
+});
+
+/**
+ * Log the user out of the system.
+ */
+app.get('/logout', function(req, res) {
+  delete req.session.user;
+  res.redirect("/");
+});
+
+/**
+ * Verify the user's e-mail address.
+ */
+app.get('/signup/verify/:id', function(req, res) {
+  pagetty.checkIfUserUnverified(req.params.id, function(err) {
+    if (err) {
+      res.render("message", {title: "Account verification failed", message: err});
+    }
+    else {
+      res.redirect("/signup/profile/" + req.params.id);
+    }
+  });
+});
+
+
+/**
+ * Let the user fill out initial user profile.
+ */
+app.get('/signup/profile/:id', function(req, res) {
+  pagetty.checkIfUserUnverified(req.params.id, function(err) {
+    if (err) {
+      res.render("message", {title: "Something went wrong", message: err});
+    }
+    else {
+      res.render("signup_profile");
+    }
+  });
+});
+
+
+/**
+ * Let the user fill out initial user profile.
+ */
+app.post('/signup/profile', function(req, res) {
+  pagetty.activate(req.body, function(err) {
+    if (err) {
+      res.json(err, 400);
+    }
+    else {
+      res.send(200);
+    }
+  });
+});
+
+/**
+ * Initialize the application.
+ */
+pagetty.init(function (self) {
+  console.log("Starting HTTPS server on port: " + config.https_port);
+  app.listen(config.https_port);
+
+  console.log("Starting HTTP server on port: " + config.http_port);
+  http.listen(config.http_port);
 });

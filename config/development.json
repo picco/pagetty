@@ -1,5 +1,11 @@
 {
   "server": {
-    "port": 9000
+    "http_port": 8000,
+    "https_port": 8443,
+    "everyauth": {
+      "appId": "1042288061895-3gq5j0n1add03mli5h04n66hf01l358s.apps.googleusercontent.com",
+      "appSecret": "PaJKxVWxGToWYgYXKaEGTA00",
+      "scope": "http://pagetty.com:9000"
+    }
   }
 }
