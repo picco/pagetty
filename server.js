@@ -21,6 +21,9 @@ var app = express.createServer({
 });
 
 app.configure(function() {
+  app.register(".hulk", hulk);
+  app.use(pagetty.imageCache);
+  app.use(express.static(__dirname + '/public'));
   app.use(express.bodyParser());
   app.use(express.cookieParser());
   app.use(express.session({
@@ -28,17 +31,14 @@ app.configure(function() {
     cookie: {maxAge: 60000 * 60},
     store: new mongoStore({db: config.db_name})
   }));
-  app.set('view engine', 'hulk');
-  app.set('views', __dirname + '/views');
-  app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
-  app.use(express.static(__dirname + '/public'));
-  app.register(".hulk", hulk);
-
   app.use(function(req, res, next) {
     pagetty.user = req.session.user;
     next();
   });
-
+  app.set('view engine', 'hulk');
+  app.set('views', __dirname + '/views');
+  app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+  app.use(app.router);
 });
 
 /**

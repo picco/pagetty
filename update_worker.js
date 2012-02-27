@@ -1,8 +1,8 @@
-var
-  pagetty = require('./pagetty.js');
+process.env.NODE_ENV = 'development';
+var pagetty = require('./lib/pagetty.js');
 
 process.on('message', function(params) {
-  pagetty.init(params.config, function() {
+  pagetty.init(function() {
     pagetty.loadChannelForUpdate(function(channel) {
       if (channel) {
         console.log('Channel loaded: ' + channel.name);

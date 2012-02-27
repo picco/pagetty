@@ -14,7 +14,10 @@
     "mustache": "*",
     "request": "*",
     "underscore": "*",
-    "validator": "*"
+    "validator": "*",
+    "each": "*",
+    "nodemailer": "*",
+    "imagemagick": "*"    
   },
   "scripts": {"start": "node app.js"}
 }
