@@ -76,7 +76,7 @@ app.get('/', function(req, res) {
 /**
  * Render the main application.
  */
-app.get('/app', restricted, function(req, res) {
+app.get("/app", restricted, function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
   sequence.then(function(next, err) {
