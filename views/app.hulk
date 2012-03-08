@@ -1,0 +1,31 @@
+<div class="container">
+  <div class="row-fluid">
+    <div class="span3 root-col">&nbsp;</div>
+    <div class="span6">
+      <div class="runway">
+        <div class="channel channel-recent clearfix"><div class="title"><h1>Recent stories</h1></div><div class="items"></div></div>
+        <div class="channel channel-top clearfix"><div class="title"><h1>Top stories</h1></div><div class="items"></div></div>
+        {{#channels}}
+          <div class="channel channel-{{_id}}"><div class="title"><h1><a href="{{url}}" target="_blank">{{name}}</a></h1></div><div class="items"></div></div>
+        {{/channels}}
+      </div>
+      &nbsp;
+    </div>
+    <div class="span3 root-col">
+      <div id="nav-channels" class="well">
+        <ul class="nav nav-list">
+          <li class="recent"><a href="#recent">Recent stories</a></li>
+          <li class="top"><a href="#top">Top stories</a></li>
+          <li class="nav-header">All your channels</li>
+          {{#channels}}
+            <li class="channel channel-{{_id}}"><a href="#{{_id}}" data-channel="{{_id}}">{{name}}</a></li>
+          {{/channels}}
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var channels = {{{channels_json}}};
+  require(['/scripts/controllers/app.js']);
+</script>

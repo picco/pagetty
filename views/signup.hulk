@@ -1,0 +1,18 @@
+<div id="signup">
+  <div class="head">
+    <h1>Sign up</h1>
+    <div class="intro">
+      Grab your <strong>free beta account</strong> right now and take Pagetty for a spin!
+      <br/>
+      All we need is your e-mail address.
+    </div>
+  </div>
+  <div class="form-element form-element-large">
+    <label>What's your e-mail?</label>
+    <input class="mail form-text" type="text" name="mail" value="" />
+  </div>
+  <a class="signup button big" href="#">Sign me up!</a>
+</div>
+<script type="text/javascript">
+  require(['/scripts/controllers/signup.js']);
+</script>

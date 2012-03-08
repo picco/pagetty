@@ -1,0 +1,8 @@
+<div id="preview">
+  <h1>Channel preview</h1>
+  <div id="runway"></div>
+</div>
+<script type="text/javascript">
+  var channel = {{{channel}}};
+  require(['/scripts/controllers/preview.js']);
+</script>

@@ -1,0 +1,24 @@
+<div id="signup-profile">
+  <div class="head">
+    <h1>Complete your profile</h1>
+    <div class="intro">
+      We don't ask much. Just select a username and password.
+    </div>
+  </div>
+  <div class="form-element form-element-large">
+    <label>Create username</label>
+    <input class="name form-text" type="text" name="name" value="" />
+  </div>
+  <div class="form-element form-element-large">
+    <label>Create password</label>
+    <input class="pass form-text" type="password" name="name" value="" />
+  </div>
+  <div class="form-element form-element-large">
+    <label>Repeat password</label>
+    <input class="pass2 form-text" type="password" name="name" value="" />
+  </div>
+  <a class="activate button big" href="#">Activate my account</a>
+</div>
+<script type="text/javascript">
+  require(['/scripts/controllers/signup_profile.js']);
+</script>

@@ -1,0 +1,20 @@
+<div id="login">
+  <div class="head">
+    <h1>Log in</h1>
+    <div class="intro">
+      Welcome back!
+    </div>
+  </div>
+  <div class="form-element form-element-large">
+    <label>Username</label>
+    <input class="name form-text" type="text" name="user:name" value="" />
+  </div>
+  <div class="form-element form-element-large">
+    <label>Password</label>
+    <input class="pass form-text" type="password" name="user:pass" value="" />
+  </div>
+  <a class="login button big" href="#">Log in</a>
+</div>
+<script type="text/javascript">
+  require(['/scripts/controllers/login.js']);
+</script>

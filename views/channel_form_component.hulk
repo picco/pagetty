@@ -1,0 +1,47 @@
+<div class="component clearfix">
+  <div class="form-element">
+    <label>Item selector</label>
+    <input class="item form-text" type="text" name="channel:component:item" value="{{item}}" />
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Title selector</label>
+      <input class="title-selector form-text" type="text" name="channel:component:title_selector" value="{{title_selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="title-attribute form-text" type="text" name="channel:component:title_attribute" value="{{title_attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Target selector</label>
+      <input class="target-selector form-text" type="text" name="channel:component:target_selector" value="{{target_selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="target-attribute form-text" type="text" name="channel:component:target_attribute" value="{{target_attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Image selector</label>
+      <input class="image-selector form-text" type="text" name="channel:component:image_selector" value="{{image_selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="image-attribute form-text" type="text" name="channel:component:image_attribute" value="{{image_attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Score selector</label>
+      <input class="score-selector form-text" type="text" name="channel:component:score_selector" value="{{score_selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="score-attribute form-text" type="text" name="channel:component:score_attribute" value="{{score_attribute}}" />
+    </div>
+  </div>
+  <a href="#" class="remove">Remove this rule</a>
+</div>

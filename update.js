@@ -1,18 +1,34 @@
-var
-  config = require('config').server,
-  cp = require('child_process'),
-  break_timeout = 10;
+var pagetty = require("./lib/pagetty.js");
+var last_update = new Date().getTime();
+var timeout = 60 * 1000;
 
-function update() {
-  var n = cp.fork(__dirname + '/update_worker.js');
+pagetty.init(function() {
+  update(true);
+  setInterval(update, timeout);
+});
 
-  n.send({config: config});
+function update(force) {
+  var now = new Date().getTime();
 
-  n.on('exit', function (code, signal) {
-    setTimeout(update, break_timeout * 1000);
-  });
+  if (force || now - last_update >= timeout) {
+    console.log("Executing new batch...");
+    var channels = pagetty.loadChannelsForUpdate();
+
+    channels.each(function(err, channel) {
+      if (err) throw err;
+
+      if (channel) {
+        pagetty.updateChannelItems(channel, function(err) {
+          if (err) throw err;
+
+          console.log('Update completed for: ' + channel.name);
+          last_update = new Date().getTime();
+        });
+      }
+    });
+  }
+  else {
+    console.log("Waiting, only " + (now - last_update) + " has passed...");
+  }
 }
 
-update();
-
-console.log('Update process started.');

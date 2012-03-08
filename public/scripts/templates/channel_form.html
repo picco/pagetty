@@ -1,0 +1,15 @@
+<div class="form-element">
+  <label>Name</label>
+  <input class="name" type="text" value="{{name}}" />
+</div>
+<div class="form-element">
+  <label>URL</label>
+  <input class="uri" type="text" value="{{uri}}" />
+</div>
+<div class="components">
+  {{#components}}
+    {{>channel_form_component}}
+  {{/components}}
+</div>
+<a class="add-component" href="#">Add component</a>
+<input type="submit" name="add" value="Add" class="submit" />

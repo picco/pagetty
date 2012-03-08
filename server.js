@@ -1,15 +1,15 @@
 var
-  _ = require('underscore'),
-  fs = require('fs'),
-  util = require('util'),
-  config = require('config').server,
-  express = require('express'),
-  hulk = require('hulk-hogan'),
-  hogan = require('hogan.js'),
-  futures = require('futures'),
-  mustache = require('mustache'),
-  mongoStore = require('connect-session-mongo'),
-  pagetty = require('./lib/pagetty.js');
+_          = require('underscore'),
+fs         = require('fs'),
+util       = require('util'),
+config     = require('config').server,
+express    = require('express'),
+hulk       = require('hulk-hogan'),
+hogan      = require('hogan.js'),
+futures    = require('futures'),
+mustache   = require('mustache'),
+mongoStore = require('connect-session-mongo'),
+pagetty    = require('./lib/pagetty.js');
 
 /**
  * Create express app.

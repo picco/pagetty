@@ -6,6 +6,7 @@
     "express": "*",
     "everyauth": "*",
     "futures": "*",
+    "domino": "*",
     "hogan.js": "*",
     "jquery": "*",
     "jsdom": "*",
@@ -19,7 +20,8 @@
     "nodemailer": "*",
     "imagemagick": "*",
     "hulk-hogan": "*",
-    "connect-session-mongo": "*"
+    "connect-session-mongo": "*",
+    "zepto-node": "*"
   },
   "scripts": {"start": "node app.js"}
 }

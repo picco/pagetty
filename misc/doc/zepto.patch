@@ -1,0 +1,1 @@
+get: function(idx){ return idx === undefined ? slice.call(this) : this[idx] },

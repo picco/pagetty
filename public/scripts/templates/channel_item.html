@@ -1,0 +1,11 @@
+<div class="item item-{{id}} {{class}}">
+  <h2><a target="_blank" href="{{target_url}}">{{title}}{{#score}} ({{score}}){{/score}}</a></h2>
+  <div class="details">
+    <a class="site" target="_blank" href="{{channel.url}}"><strong>{{channel.name}}</strong></a> - <abbr class="timeago" title="{{stamp}}"></abbr>
+  </div>
+  {{#image}}
+    <a target="_blank" href="{{target_url}}">
+      <img data-src="{{image}}" src="/images/loading.gif" />
+    </a>
+  {{/image}}
+</div>

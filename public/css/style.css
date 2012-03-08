@@ -1,9 +1,20 @@
 body {
-  padding-top: 60px;
-  padding-bottom: 40px;
+  background: #f1f1f1 !important;
+  height: 100%;
 }
 iframe {
   display: none;
+}
+h1 {
+  font-family: GraublauWeb;
+  font-weight: bold;
+  text-rendering: auto !important;
+}
+.root-col {
+  margin-top: 20px;
+}
+#nav-channels {
+  padding: 16px 0;
 }
 
 /* RUNWAY ------------------------------------------------------------------- */
@@ -11,6 +22,7 @@ iframe {
 .runway {
   border-left: 1px solid #ddd;
   border-right: 1px solid #ddd;
+  background-color: #fff;
 }
 .runway h2 {
   font-family: GraublauWeb;
@@ -19,7 +31,7 @@ iframe {
   line-height: 30px;
 }
 .runway h2 a  {
-  color: #333;
+  color: #000;
   text-decoration: none;
 }
 .runway h2 a:hover  {
@@ -29,15 +41,48 @@ iframe {
 .runway h2 a:visited  {
   color: #999;
 }
+.runway .items {
+}
 .runway .item {
   border-bottom: 1px solid #ddd;
   padding: 0 20px 20px 20px;
-  margin: 20px 0;
+  margin-bottom: 20px;
+}
+.runway .item-hidden {
+  display: none;
 }
 .runway .details {
   margin: 5px 0 10px;
   line-height: 20px;
-  font-size: 12px;
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+}
+.runway .details abbr {
+  border-bottom: none;
+}
+.runway .channel {
+  display: none;
+}
+.runway .title {
+  padding: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+}
+.runway .title a {
+  color: #333;
+}
+.runway .title a:hover {
+  color: #08c;
+  text-decoration: none;
+}
+.runway .loadmore {
+  margin: 20px;
+}
+.runway .loadmore .btn {
+  display: block;
+  padding: 10px;
 }
 
 /* FONTS -------------------------------------------------------------------- */
