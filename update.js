@@ -12,18 +12,23 @@ function update(force) {
 
   if (force || now - last_update >= timeout) {
     console.log("Executing new batch...");
-    var channels = pagetty.loadChannelsForUpdate();
 
-    channels.each(function(err, channel) {
+    pagetty.loadChannelsForUpdate().each(function(err, channel) {
       if (err) throw err;
 
       if (channel) {
-        pagetty.updateChannelItems(channel, function(err) {
-          if (err) throw err;
-
-          console.log('Update completed for: ' + channel.name);
+        pagetty.updateChannelItems(channel, function(err, updated_channel) {
+          if (err) {
+            console.log('Update failed for: ' + channel.name);
+          }
+          else {
+            console.log('Update completed for: ' + updated_channel.name);
+          }
           last_update = new Date().getTime();
         });
+      }
+      else {
+        console.log("Nothing more to update, it seems...");
       }
     });
   }
@@ -31,4 +36,3 @@ function update(force) {
     console.log("Waiting, only " + (now - last_update) + " has passed...");
   }
 }
-

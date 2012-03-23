@@ -21,7 +21,8 @@
     "imagemagick": "*",
     "hulk-hogan": "*",
     "connect-session-mongo": "*",
-    "zepto-node": "*"
+    "zepto-node": "*",
+    "winston": "*",
   },
   "scripts": {"start": "node app.js"}
 }

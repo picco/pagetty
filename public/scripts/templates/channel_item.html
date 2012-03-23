@@ -1,11 +1,13 @@
-<div class="item item-{{id}} {{class}}">
-  <h2><a target="_blank" href="{{target_url}}">{{title}}{{#score}} ({{score}}){{/score}}</a></h2>
+<div class="item item-{{id}} {{class}} clearfix">
+  <h2><a target="_blank" href="{{target_url}}">{{title}}</a></h2>
   <div class="details">
-    <a class="site" target="_blank" href="{{channel.url}}"><strong>{{channel.name}}</strong></a> - <abbr class="timeago" title="{{stamp}}"></abbr>
+    {{#score}}<a class="score" target="_blank" href="{{score_target_url}}"><i class="icon-fire"></i>{{score}}</a>{{/score}}<span class="site"><a target="_blank" href="{{channel.url}}"><strong>{{channel.name}}</strong></a> - </span><abbr class="timeago" title="{{stamp}}"></abbr>
   </div>
   {{#image}}
-    <a target="_blank" href="{{target_url}}">
-      <img data-src="{{image}}" src="/images/loading.gif" />
-    </a>
+    <div class="media">
+      <a target="_blank" href="{{target_url}}">
+        <img data-src="{{image}}" src="/images/loading.gif" />
+      </a>
+    </div>
   {{/image}}
 </div>

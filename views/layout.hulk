@@ -3,8 +3,9 @@
 <head>
   <title>Pagetty</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/css/style.css">
+  <link rel="stylesheet" type="text/css" href="/gh-buttons/gh-buttons.css">
   <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="/bootstrap/css/bootstrap-responsive.min.css">
   <script data-main="/scripts/main" src="/scripts/libraries/ext/require-jquery.js"></script>

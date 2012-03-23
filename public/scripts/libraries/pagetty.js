@@ -1,68 +1,44 @@
 define([
   'text!templates/channel_item.html',
   'icanhaz',
-  'timeago'
+  'timeago',
+  'underscore'
 ],function(channelItemTemplate) {
   var Pagetty = {
+    activeChannel: false,
     pager: 9,
     state: {channels: {}},
     updates: {},
+    rendered: [],
 
     init: function(channels) {
       var self = this;
       this.channels = channels;
       ich.addTemplate("channelItem", channelItemTemplate);
 
-      for (i in this.channels) {
-        var channel = this.channels[i];
-        this.state.channels[this.channels[i]._id] = this.channels[i].items_added;
-        this.renderChannel(channel._id);
-      }
-
-      this.renderTopStories();
-      this.renderRecentStories();
-      $("abbr.timeago").timeago();
-      $(".loadmore a").click(function() {
+      $(".runway .more a").click(function() {
         self.loadMore($(this).data("channel"));
         return false;
       });
 
       return this;
     },
-    renderChannel: function(channel_id) {
-      var html = '';
-
-      if ($.isArray(this.channels[channel_id].items) && this.channels[channel_id].items.length) {
-        for (i in this.channels[channel_id].items) {
-          visible = (i <= this.pager) ? true : false;
-          html += this.renderChannelItem(this.channels[channel_id].items[i], this.channels[channel_id], visible);
-        }
-        $('.runway .channel-' + channel_id + ' .items').html(html);
-        this.renderLoadMoreButton(channel_id);
-      }
-    },
-    renderChannelItem: function(item, channel, visible) {
-      item.stamp = this.ISODateString(new Date(item.created));
-      item.channel = channel;
-      item.class = visible ? "item-visible" : "item-hidden";
-      item.visible = visible;
-      if (item.id && item.image_url) item.image = "/images/" + item.id + ".jpg";
-      return ich.channelItem(item, true);
-    },
     renderTopStories: function() {
       var html = "";
 
       for (i in this.channels) {
-        html += this.renderChannelItem(this.channels[i].items[0], this.channels[i], true);
+        if ($.isArray(this.channels[i].items)) html += this.renderChannelItem(this.channels[i].items[0], this.channels[i], true);
       }
 
       $('.runway .channel-top .items').html(html);
+      $(".runway .channel-top abbr.timeago").timeago();
+      this.rendered.push("top");
     },
     renderRecentStories: function() {
       var all_items = [];
-      var container = $('.runway .channel-recent .items');
       var self = this;
       var visible = true;
+      var html = '';
 
       for (i in this.channels) {
         for (j in this.channels[i].items) {
@@ -79,34 +55,71 @@ define([
 
       for (var i in all_items) {
         visible = (i <= this.pager) ? true : false;
-        container.append(self.renderChannelItem(all_items[i].item, all_items[i].channel, visible));
+        html += self.renderChannelItem(all_items[i].item, all_items[i].channel, visible);
       }
 
+      $('.runway .channel-recent .items').html(html);
+      $(".runway .channel-recent abbr.timeago").timeago();
       this.renderLoadMoreButton("recent");
+      this.rendered.push("recent");
+    },
+    renderChannelItem: function(item, channel, visible) {
+      item.stamp = this.ISODateString(new Date(item.created));
+      item.channel = channel;
+      item.class = visible ? "item-visible" : "item-hidden";
+      item.visible = visible;
+      if (item.id && item.image_url) item.image = "/images/" + item.id + ".jpg";
+      return ich.channelItem(item, true);
     },
     renderLoadMoreButton: function(channel_id) {
       var selection = $(".channel-" + channel_id + " .items .item-hidden");
 
       if (selection.size()) {
-        $(".channel-" + channel_id + " .items").append('<div class="loadmore"><a href="#" class="btn" data-channel="' + channel_id + '">Load more</a></div>');
+        $(".runway .channel-" + channel_id).append('<div class="more"><a href="#" class="button" data-channel="' + channel_id + '">Show more stories</a></div>');
       }
     },
     showChannel: function(channel_id) {
+      var channel = this.channels[channel_id], html = '';
+
+      if ($.isArray(this.channels[channel_id].items) && this.channels[channel_id].items.length) {
+        for (i in this.channels[channel_id].items) {
+          visible = (i <= this.pager) ? true : false;
+          html += this.renderChannelItem(this.channels[channel_id].items[i], this.channels[channel_id], visible);
+        }
+        this.renderLoadMoreButton(channel_id);
+      }
+
+      $('.runway .channel-normal').remove();
       $('.runway .channel').hide();
-      $('.runway .channel-' + channel_id).show();
+      $(".runway").append('<div class="channel channel-normal channel-' + channel_id + '"><div class="title"><h1><a href="' + channel.url + '" target="_blank">' + channel.name + '</a></h1></div><div class="items">' + html + '</div></div>');
+      $(".runway .channel-" + channel_id).show();
+      $(".runway .channel-" + channel_id + " abbr.timeago").timeago();
       $('#nav-channels li').removeClass('active');
       $('#nav-channels li.channel-' + channel_id).addClass('active');
-      $('html, body').scrollTop(0);
+      $(window).scrollTop(0);
+
+      this.activeChannel = channel_id;
+      this.rendered.push(channel_id);
       this.loadImages(channel_id);
+      this.updateUI();
+
       return false;
     },
     showSpecial: function(name) {
+      if (_.indexOf(this.rendered, name) == -1) {
+        if (name == 'recent') this.renderRecentStories();
+        if (name == 'top') this.renderTopStories();
+      }
+
+      this.activeChannel = name;
       $('.runway .channel').hide();
       $('.runway .channel-' + name).show();
       $('#nav-channels li').removeClass('active');
       $('#nav-channels li.' + name).addClass('active');
       $('html, body').scrollTop(0);
       this.loadImages(name);
+      this.updateUI();
+      $(window).scrollTop(0);
       return false;
     },
     ISODateString: function(d) {
@@ -120,28 +133,30 @@ define([
     },
     updateChannels: function() {
       var self = this;
-      $.getJSON('/ajax/update', {state: this.state}, function(updates) {
+      $.getJSON('/update', {state: this.state}, function(updates) {
         $.each(updates, function(index, value) {
-          self.state.channels[value._id] = value.items_added;
-          self.updates[index] = value;
+          self.state.channels[value._id].items_added = value.items_added;
+          self.updates[value._id] = value.items;
           self.showUpdateNotification();
         });
       });
     },
     showUpdateNotification: function() {
-      // todo
+      $('#refresh .refresh').html("Refresh").removeClass("approve").addClass("reload");
     },
     hideUpdateNotification: function() {
-      // todo
+      $('#refresh .refresh').html("No updates").removeClass("reload").addClass("approve");
+      $(".logo").animate({"padding-top": "65px"}, 100, "linear", function() {
+        $(this).animate({"padding-top": "60px"}, 100, "linear");
+      });
     },
     refreshChannels: function() {
       for (var i in this.updates) {
-        this.channels[i] = this.updates[i];
-        this.renderChannel(i);
+        this.channels[i].items = this.updates[i];
       }
+      this.updates = [];
       this.renderTopStories();
       this.renderRecentStories();
-      $("abbr.timeago").timeago();
       this.showSpecial('recent');
       this.hideUpdateNotification();
     },
@@ -151,11 +166,68 @@ define([
       });
     },
     loadMore: function(channel_id) {
-      $(".channel-" + channel_id + " .items .item-hidden").slice(0, this.pager + 1).each(function(index, element) {
-        $(this).removeClass("item-hidden").addClass("item-visible");
-        var image = $(this).find("img").first();
-        image.attr("src", image.data("src"));
+      var selection = $(".channel-" + channel_id + " .items .item-hidden");
+
+      if (selection.length) {
+        selection.slice(0, this.pager + 1).each(function(index, element) {
+          $(this).removeClass("item-hidden").addClass("item-visible");
+          var image = $(this).find("img").first();
+          image.attr("src", image.data("src"));
+        });
+      }
+      else {
+        $(".channel-" + channel_id + " .more").html("You have reached the end :)");
+      }
+    },
+    autoload: function() {
+      this.loadMore(this.activeChannel);
+    },
+    updateUI: function() {
+      var rb = $("#refresh .refresh");
+      //rb.width($("aside").width() - (rb.outerWidth(true) - rb.width()));
+
+      $(".runway img").error(function(){
+        console.log("Broken image detected:" + $(this).attr("src"));
+        $(this).parent().parent().remove();
       });
+
+      if ($(window).width() > 767) {
+        $("aside.right").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#f1f1f1", cursorborder: "none", zindex: 1});
+        $("aside").height($(window).height());
+      }
+      else {
+        $("aside.right").getNiceScroll().remove();
+        $("aside.right").css("height", "");
+      }
+
+      $(".runway .title").width($(".runway").width() - 2);
+      $("aside").width($(".sidebar").width());
+
+    },
+    nextItem: function() {
+      var self = this, scrollPos = $(document).scrollTop() + 70, nextPos = 0, itemPos = 0;
+      $(".runway .channel-" + this.activeChannel + " .item").each(function() {
+          itemPos = $(this).offset().top;
+          if (itemPos > scrollPos) {
+            $(window).scrollTop(itemPos - 70);
+            return false;
+          }
+      });
+    },
+    prevItem: function() {
+      var self = this, scrollPos = $(document).scrollTop() + 70, nextPos = 0, itemPos = 0, changePos = 0;
+      var items = $(".runway .channel-" + this.activeChannel + " .item").get();
+
+      for (var i in items) {
+        itemPos = $(items[i]).offset().top;
+          if (itemPos < scrollPos) {
+            changePos = itemPos - 70
+          }
+          else {
+            break;
+          }
+      }
+      $(window).scrollTop(changePos);
     }
   }
   return Pagetty;

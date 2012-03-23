@@ -17,7 +17,7 @@ Controller = {
 
     $.ajax('/login', {type: 'POST', data: {name: name, pass: pass}})
       .success(function() {
-        window.location = '/app';
+        window.location = '/';
       })
       .error(function() {
         alert("Something went wrong while logging.");

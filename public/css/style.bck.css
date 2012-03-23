@@ -302,29 +302,6 @@ th {
   padding: 10px;
 }
 
-/* CHANNELS ----------------------------------------------------------------- */
-
-table.channels {
-  width: 100%;
-}
-table.channels h3 {
-  margin: 0;
-}
-table.channels th {
-  border-bottom: 1px solid #d3d3d3;
-  padding: 5px 0;
-}
-table.channels td {
-  border-bottom: 1px solid #d3d3d3;
-  padding: 5px 0;
-}
-div.subscribed a.subscribe {
-  display: none;
-}
-div.unsubscribed a.unsubscribe {
-  display: none;
-}
-
 /* UTILITY ------------------------------------------------------------------ */
 
 .clearfix:before, .clearfix:after { content: ""; display: table; }

@@ -10,6 +10,24 @@ futures    = require('futures'),
 mustache   = require('mustache'),
 mongoStore = require('connect-session-mongo'),
 pagetty    = require('./lib/pagetty.js');
+winston    = require("winston");
+
+/**
+ * Initialize logging.
+ */
+winston.loggers.add("default", {loggly: {
+  inputToken: "5b22ef95-9494-4f6d-b20c-fc58614814ed",
+  subdomain: "pagetty",
+  handleExceptions: true
+}});
+
+winston.loggers.add("access", {loggly: {
+  inputToken: "8c173e34-0ed6-44e4-a49b-a0a524d08bd2",
+  subdomain: "pagetty"
+}});
+
+var log = winston.loggers.get("default");
+var accessLog = winston.loggers.get("access");
 
 /**
  * Create express app.
@@ -22,6 +40,16 @@ var app = express.createServer({
 
 app.configure(function() {
   app.register(".hulk", hulk);
+  app.use(function(req, res, next) {
+    var
+      remoteAddr = req.socket && (req.socket.remoteAddress || (req.socket.socket && req.socket.socket.remoteAddress)),
+      date = new Date().toUTCString(),
+      httpVersion = req.httpVersionMajor + '.' + req.httpVersionMinor,
+      referrer = req.headers['referer'] || req.headers['referrer'];
+    //':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
+    accessLog.info(remoteAddr + " - - [" + date + "] " + req.method + " " + req.originalUrl + " HTTP/" + httpVersion + " " + res.statusCode + " " + referrer + " " + req.headers['user-agent']);
+    next();
+  });
   app.use(pagetty.imageCache);
   app.use(express.static(__dirname + '/public'));
   app.use(express.bodyParser());
@@ -67,75 +95,47 @@ var restricted = function(req, res, next) {
 }
 
 /**
- * Render frontpage.
+ * Render frontpage or the app.
  */
 app.get('/', function(req, res) {
-  res.render('index');
+  if (req.session.user) {
+    var sequence = futures.sequence(), err, user, channels;
+
+    sequence.then(function(next, err) {
+      pagetty.loadUser(req.session.user._id, function(u) {
+        user = u;
+        next();
+      });
+    })
+    .then(function(next, err) {
+      pagetty.loadUserChannels(user, function(c) {
+        channels = c;
+        next();
+      });
+    })
+    .then(function(next, err) {
+      res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
+    });
+  }
+  else {
+    pagetty.checkLogin('ivo', 'ivonellis', function(err, user) {
+      if (err) {
+        res.send(400);
+      }
+      else {
+        req.session.user = user;
+        res.redirect('/');
+      }
+    });
+  }
 });
 
 /**
- * Render the main application.
+ * Client auto-update call.
  */
-app.get("/app", restricted, function(req, res) {
-  var sequence = futures.sequence(), err, user, channels;
-
-  sequence.then(function(next, err) {
-    pagetty.loadUser(req.session.user._id, function(u) {
-      user = u;
-      next();
-    });
-  })
-  .then(function(next, err) {
-    pagetty.loadUserChannels(user, function(c) {
-      channels = c;
-      next();
-    });
-  })
-  .then(function(next, err) {
-    res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
-  });
-});
-
-/**
- * Get /ajax/load/channels
- */
-app.get('/ajax/load/channels', restricted, function(req, res) {
-  var sequence = futures.sequence(), err, user, channels;
-
-  sequence.then(function(next, err) {
-    pagetty.loadUser(req.session.user._id, function(u) {
-      user = u;
-      next();
-    });
-  })
-  .then(function(next, err) {
-    pagetty.loadUserChannels(user, function(c) {
-      channels = c;
-      next();
-    });
-  })
-  .then(function(next, err) {
-    res.send(channels)
-  });
-});
-
-/**
- * Get /ajax/update
- */
-app.get('/ajax/update', restricted, function(req, res) {
-  var sequence = futures.sequence(), err, user, channels;
-
-  sequence.then(function(next, err) {
-    pagetty.loadUser(req.session.user._id, function(u) {
-      user = u;
-      next();
-    });
-  })
-  .then(function(next, err) {
-    pagetty.loadUserChannelUpdates(user, req.param('state'), function(updates) {
-      console.log('Sending ajax/update response.');
-      res.json(updates);
-    });
+app.get('/update', restricted, function(req, res) {
+  pagetty.loadUserChannelUpdates(req.session.user, req.param("state"), function(updates) {
+    res.json(updates);
   });
 });
 
@@ -202,7 +202,7 @@ app.get('/channels', restricted, function(req, res) {
 app.get('/preview/:id', function(req, res) {
   pagetty.loadChannel(req.params.id, function(err, channel) {
     if (err) {
-      console.log(err);
+      log.error(err);
       res.send(404);
     }
     else {
@@ -312,7 +312,7 @@ app.post('/signup', function(req, res) {
  */
 app.get('/login', function(req, res) {
   if (req.session.user) {
-    res.redirect("/app");
+    res.redirect("/");
   }
   else {
     res.render("login");
@@ -390,9 +390,7 @@ app.post('/signup/profile', function(req, res) {
  * Initialize the application.
  */
 pagetty.init(function (self) {
-  console.log("Starting HTTPS server on port: " + config.https_port);
+  log.info("Starting server on ports: " + config.https_port + " and " + config.http_port);
   app.listen(config.https_port);
-
-  console.log("Starting HTTP server on port: " + config.http_port);
   http.listen(config.http_port);
 });

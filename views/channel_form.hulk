@@ -1,40 +1,56 @@
-<div id="channel-form">
-  <h1>Add new channel</h1>
-  <form action="/null" method="post" target="null">
-    <div id="form">
-      <h2>Configure and save</h2>
-      <div class="help">
-        <p>You are adding a new channel. When configured, press "Test configuration" to test your configuration.</p>
-        <div class="button-group">
-          <input type="submit" class="refresh button big" value="Test configuration" />
-          <input type="submit" class="save button big primary" value="Save changes" />
-        </div>
+<header>
+  <div class="container">
+    <div class="row-fluid">
+      <div class="span12">
+        <h1>Add new channel</h1>
       </div>
-      <h2>The basics</h2>
-      <div class="form-element">
-        <label>Name</label>
-        <input class="name form-text" type="text" name="channel:name" value="{{channel.name}}" />
-      </div>
-      <div class="form-element">
-        <label>URL</label>
-        <input class="uri form-text" type="text" name="channel:url" value="{{channel.uri}}" />
-      </div>
-      <div class="form-element">
-        <label>Base URL</label>
-        <input class="base_uri form-text" type="text" name="channel:base_uri" value="{{channel.base_uri}}" />
-      </div>
-      <h2>Rules for data extraction</h2>
-      <div class="components">
-        {{#channel.components}}
-          {{>channel_form_component}}
-        {{/channel.components}}
-      </div>
-      <button class="add-rule button">Add rule</button>
     </div>
-    <div id="preview">
-      <div class="container"></div>
+  </div>
+</header>
+<div class="container">
+  <div class="row-fluid">
+    <div class="span12">
+      <!-- BEGIN FORM -->
+      <div id="channel-form">
+        <form action="/null" method="post" target="null">
+          <div id="form">
+            <h2>Configure and save</h2>
+            <div class="help">
+              <p>You are adding a new channel. When configured, press "Test configuration" to test your configuration.</p>
+              <div class="button-group">
+                <input type="submit" class="refresh button big" value="Test configuration" />
+                <input type="submit" class="save button big primary" value="Save changes" />
+              </div>
+            </div>
+            <h2>The basics</h2>
+            <div class="form-element">
+              <label>Name</label>
+              <input class="name form-text" type="text" name="channel:name" value="{{channel.name}}" />
+            </div>
+            <div class="form-element">
+              <label>URL</label>
+              <input class="uri form-text" type="text" name="channel:url" value="{{channel.uri}}" />
+            </div>
+            <div class="form-element">
+              <label>Base URL</label>
+              <input class="base_uri form-text" type="text" name="channel:base_uri" value="{{channel.base_uri}}" />
+            </div>
+            <h2>Rules for data extraction</h2>
+            <div class="components">
+              {{#channel.components}}
+                {{>channel_form_component}}
+              {{/channel.components}}
+            </div>
+            <button class="add-rule button">Add rule</button>
+          </div>
+          <div id="preview">
+            <div class="container"></div>
+          </div>
+        </form>
+      </div>
+      <!-- END FORM -->
     </div>
-  </form>
+  </div>
 </div>
 <script type="text/javascript">
   var channel_id = '{{channel._id}}';
