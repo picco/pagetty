@@ -1,28 +1,22 @@
 {
   "name": "pagetty",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "dependencies": {
     "config": "*",
+    "connect-session-mongo": "*",
+    "each": "*",
     "express": "*",
-    "everyauth": "*",
     "futures": "*",
-    "domino": "*",
     "hogan.js": "*",
-    "jquery": "*",
-    "jsdom": "*",
+    "hulk-hogan": "*",
+    "imagemagick": "*",
     "mongodb": "*",
-    "mailer": "*",
     "mustache": "*",
+    "nodemailer": "*",
     "request": "*",
+    "cheerio-soupselect": "*",
     "underscore": "*",
     "validator": "*",
-    "each": "*",
-    "nodemailer": "*",
-    "imagemagick": "*",
-    "hulk-hogan": "*",
-    "connect-session-mongo": "*",
-    "zepto-node": "*",
-    "winston": "*",
-  },
-  "scripts": {"start": "node app.js"}
+    "winston": "*"
+  }
 }

@@ -7,27 +7,10 @@ express    = require('express'),
 hulk       = require('hulk-hogan'),
 hogan      = require('hogan.js'),
 futures    = require('futures'),
+logger     = require(__dirname + "/lib/logger.js");
 mustache   = require('mustache'),
 mongoStore = require('connect-session-mongo'),
 pagetty    = require('./lib/pagetty.js');
-winston    = require("winston");
-
-/**
- * Initialize logging.
- */
-winston.loggers.add("default", {loggly: {
-  inputToken: "5b22ef95-9494-4f6d-b20c-fc58614814ed",
-  subdomain: "pagetty",
-  handleExceptions: true
-}});
-
-winston.loggers.add("access", {loggly: {
-  inputToken: "8c173e34-0ed6-44e4-a49b-a0a524d08bd2",
-  subdomain: "pagetty"
-}});
-
-var log = winston.loggers.get("default");
-var accessLog = winston.loggers.get("access");
 
 /**
  * Create express app.
@@ -47,7 +30,7 @@ app.configure(function() {
       httpVersion = req.httpVersionMajor + '.' + req.httpVersionMinor,
       referrer = req.headers['referer'] || req.headers['referrer'];
     //':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
-    accessLog.info(remoteAddr + " - - [" + date + "] " + req.method + " " + req.originalUrl + " HTTP/" + httpVersion + " " + res.statusCode + " " + referrer + " " + req.headers['user-agent']);
+    logger.accessLog.info(remoteAddr + " - - [" + date + "] " + req.method + " " + req.originalUrl + " HTTP/" + httpVersion + " " + res.statusCode + " " + referrer + " " + req.headers['user-agent']);
     next();
   });
   app.use(pagetty.imageCache);
@@ -98,36 +81,32 @@ var restricted = function(req, res, next) {
  * Render frontpage or the app.
  */
 app.get('/', function(req, res) {
-  if (req.session.user) {
-    var sequence = futures.sequence(), err, user, channels;
+  var sequence = futures.sequence(), err, user, channels;
 
-    sequence.then(function(next, err) {
-      pagetty.loadUser(req.session.user._id, function(u) {
-        user = u;
-        next();
+  pagetty.checkLogin('ivo', 'ivonellis', function(err, user) {
+    if (err) {
+      res.send(400);
+    }
+    else {
+      req.session.user = user;
+
+      sequence.then(function(next, err) {
+        pagetty.loadUser(req.session.user._id, function(u) {
+          user = u;
+          next();
+        });
+      })
+      .then(function(next, err) {
+        pagetty.loadUserChannels(user, function(c) {
+          channels = c;
+          next();
+        });
+      })
+      .then(function(next, err) {
+        res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
       });
-    })
-    .then(function(next, err) {
-      pagetty.loadUserChannels(user, function(c) {
-        channels = c;
-        next();
-      });
-    })
-    .then(function(next, err) {
-      res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
-    });
-  }
-  else {
-    pagetty.checkLogin('ivo', 'ivonellis', function(err, user) {
-      if (err) {
-        res.send(400);
-      }
-      else {
-        req.session.user = user;
-        res.redirect('/');
-      }
-    });
-  }
+    }
+  });
 });
 
 /**
@@ -390,7 +369,7 @@ app.post('/signup/profile', function(req, res) {
  * Initialize the application.
  */
 pagetty.init(function (self) {
-  log.info("Starting server on ports: " + config.https_port + " and " + config.http_port);
+  logger.log.info("Starting server on ports: " + config.https_port + " and " + config.http_port);
   app.listen(config.https_port);
   http.listen(config.http_port);
 });

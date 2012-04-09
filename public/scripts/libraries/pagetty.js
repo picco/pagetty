@@ -24,15 +24,36 @@ define([
       return this;
     },
     renderTopStories: function() {
-      var html = "";
+      var items = [];
+      var self = this;
+      var visible = true;
+      var html = '';
 
       for (i in this.channels) {
-        if ($.isArray(this.channels[i].items)) html += this.renderChannelItem(this.channels[i].items[0], this.channels[i], true);
+        for (j in this.channels[i].items) {
+          items.push(this.channels[i].items[j]);
+        }
+      }
+
+      items = this.sortItemsByRelativeScore(items);
+
+      console.dir(items);
+
+      for (var i in items) {
+        visible = (i <= this.pager) ? true : false;
+        items[i].title += ' ' + parseFloat(items[i].relative_score).toPrecision(4);
+        html += self.renderChannelItem(items[i], items[i].channel, visible);
       }
 
       $('.runway .channel-top .items').html(html);
       $(".runway .channel-top abbr.timeago").timeago();
+      this.renderLoadMoreButton("top");
       this.rendered.push("top");
+    },
+    sortItemsByRelativeScore: function(items) {
+      return items.sort(function(a, b) {
+        return b.relative_score - a.relative_score;
+      });
     },
     renderRecentStories: function() {
       var all_items = [];
@@ -65,6 +86,7 @@ define([
     },
     renderChannelItem: function(item, channel, visible) {
       item.stamp = this.ISODateString(new Date(item.created));
+      item.score = this.formatScore(item.score);
       item.channel = channel;
       item.class = visible ? "item-visible" : "item-hidden";
       item.visible = visible;
@@ -78,10 +100,26 @@ define([
         $(".runway .channel-" + channel_id).append('<div class="more"><a href="#" class="button" data-channel="' + channel_id + '">Show more stories</a></div>');
       }
     },
+    formatScore: function(nStr) {
+      nStr += '';
+      x = nStr.split('.');
+      x1 = x[0];
+      x2 = x.length > 1 ? '.' + x[1] : '';
+      var rgx = /(\d+)(\d{3})/;
+      while (rgx.test(x1)) {
+        x1 = x1.replace(rgx, '$1' + ' ' + '$2');
+      }
+      return x1 + x2;
+    },
     showChannel: function(channel_id) {
       var channel = this.channels[channel_id], html = '';
 
       if ($.isArray(this.channels[channel_id].items) && this.channels[channel_id].items.length) {
+
+        this.channels[channel_id].items = this.channels[channel_id].items.sort(function(a, b) {
+          return parseFloat(b.relative_score) - parseFloat(a.relative_score);
+        });
+
         for (i in this.channels[channel_id].items) {
           visible = (i <= this.pager) ? true : false;
           html += this.renderChannelItem(this.channels[channel_id].items[i], this.channels[channel_id], visible);
