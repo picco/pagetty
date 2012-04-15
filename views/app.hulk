@@ -11,11 +11,7 @@
       </aside>
     </div>
     <div class="center-col span6">
-      <div class="runway">
-        <div class="testx"></div>
-        <div class="channel channel-special channel-recent clearfix"><div class="title"><h1>Recent stories</h1></div><div class="items"></div></div>
-        <div class="channel channel-special channel-top clearfix"><div class="title"><h1>Top stories</h1></div><div class="items"></div></div>
-      </div>
+      <div class="runway"></div>
     </div>
     <div class="sidebar span3 root-col">
       <aside class="right">
@@ -27,9 +23,8 @@
         </div>
         <div id="nav-channels" class="well">
           <ul class="nav nav-list">
-            <li class="recent"><a href="#recent">Recent stories</a></li>
-            <li class="top"><a href="#top">Top stories</a></li>
-            <li class="nav-header">All your channels</li>
+            <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
+            <li class="nav-header">Channels</li>
             {{#channels}}
               <li class="channel channel-{{_id}}"><a href="#{{_id}}" data-channel="{{_id}}">{{name}}</a></li>
             {{/channels}}

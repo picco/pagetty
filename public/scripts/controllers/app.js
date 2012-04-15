@@ -4,43 +4,43 @@ require(["pagetty"], function(pagetty) {
 
     var hash = new String(window.location.hash);
 
-    if (hash.length && hash != "#top" && hash != "#recent") {
+    if (hash.length && hash != "#all") {
       pagetty.showChannel(hash.substring(1));
     }
     else {
-      pagetty.showSpecial("recent");
+      pagetty.showChannel("all", "time");
     }
 
     $("#nav-channels li.channel a").bind("click", function() {
-      pagetty.showChannel($(this).data("channel"));
-      //return false;
+      pagetty.showChannel($(this).data("channel"), $(this).data("variant"));
     });
 
-    $("#nav-channels li.recent a").bind("click", function() {
-      pagetty.showSpecial("recent");
-      //return false;
+    $("a.channel-variant").live("click", function() {
+      pagetty.showChannel($(this).data("channel"), $(this).data("variant"));
+    });
+
+    $("#nav-channels li.all a").bind("click", function() {
+      pagetty.showChannel("all", "time");
     });
 
     $("#nav-channels li.top a").bind("click", function() {
-      pagetty.showSpecial("top");
-      //return false;
+      pagetty.showChannel("all", "score");
     });
 
-    $("#refresh .refresh").bind("click", function() {
+    $("#refresh a").bind("click", function() {
       pagetty.refreshChannels();
       return false;
     });
 
-    $("#refresh .up").bind("click", function() {
-      $(window).scrollTop(0);
-      return false;
-    });
+    // Lazy load additional stories when the page is scrolled near to the bottom.
 
     $(window).scroll(function() {
       if ($(window).scrollTop() + $(window).height() >= $(document).height() - 60) {
         pagetty.autoload();
       }
     });
+
+    // Fancy logo animations.
 
     $(".logo").animate({"padding-top": "60px"}, 1000, "easeOutBack");
 
@@ -50,9 +50,19 @@ require(["pagetty"], function(pagetty) {
       $(".logo").animate({"padding-top": "60px"}, 200, "easeOutBack");
     });
 
-    $(".runway, aside").css("visibility", "visible").animate({opacity: 1}, 500);
+    // Fade in.
+
+    //$(".runway, aside").css("visibility", "visible").animate({opacity: 1}, 500);
+
+    // When the window is resized we need to adjust the dimensions of some elements.
 
     $(window).resize(pagetty.updateUI);
+
+    /* Key bindings:
+     *
+     * Right: Scroll to next story.
+     * Left: Scroll to provious story.
+     */
 
     $(document).keydown(function(e) {
       if (e.keyCode == 39) {
@@ -63,8 +73,10 @@ require(["pagetty"], function(pagetty) {
       }
     });
 
+    // Auto-update channels.
+
     window.setInterval(function() {
       pagetty.updateChannels();
-    }, 10000);
+    }, 3000);
   });
 });

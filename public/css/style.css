@@ -22,9 +22,11 @@ h1 {
 /* RUNWAY ------------------------------------------------------------------- */
 
 .runway {
-  padding-top: 50px;
-  visibility: hidden;
-  opacity: 0;
+  background: #fff;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  visibility: visible;
+  opacity: 1;
   margin-bottom: 20px;
 }
 .runway h2 {
@@ -49,13 +51,22 @@ h1 {
 .runway .items {
 }
 .runway .item {
+  position: relative;
   background: #fff;
-  xbackground: -webkit-linear-gradient(left, #eee 0%, #fff 3%);
-  border: 1px solid #ddd;
-  border-top: none;
-  border-collapse: collapse;
-  padding: 20px;
-  margin-bottom: 0;
+  border-width: 0 0 1px 0;
+  -webkit-border-image: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, 0) 100%) 0 0 100% 0;
+  padding: 0 20px 20px 20px;
+  margin-bottom: 20px;
+  z-index: 10;
+}
+.runway .item div.new {
+  position: absolute;
+  color: #fff;
+  background: #ff6666;
+  width: 8px;
+  height: 28px;
+  top: 0px;
+  left: 0px;
 }
 .runway .item:first-child {
 }
@@ -73,24 +84,20 @@ h1 {
   border-bottom: none;
 }
 .runway .channel {
-  display: none;
 }
 .runway .channel-normal .site {
-  display: none;
 }
 .runway .title {
   position: fixed;
   top: 0;
-  border-left: 1px solid #ddd;
-  border-right: 1px solid #ddd;
-  border-bottom: 1px solid #ddd;
   background: #fff;
-  height: 50px;
   overflow: hidden;
+  padding: 10px 0 0 0;
+  z-index: 100;
 }
 .runway .title h1 {
-  margin-left: 20px;
   line-height: 50px;
+  padding: 0 20px;
 }
 .runway .title a {
   color: #333;
@@ -127,6 +134,9 @@ h1 {
 .runway .score i {
   padding-right: 3px;
 }
+.runway .variants {
+  margin: 0 20px;
+}
 
 /* SIDEBAR ------------------------------------------------------------------ */
 
@@ -135,8 +145,7 @@ aside {
   top: 0;
   padding: 0;
   width: 100%;
-  visibility: hidden;
-  opacity: 0;
+  visibility: visible;
   z-index: 10000;
 }
 aside.right {
@@ -149,6 +158,7 @@ aside:focus {
   margin-bottom: 20px;
 }
 #refresh {
+  display: none;
   margin-bottom: 15px;
 }
 #refresh .button {
@@ -165,6 +175,14 @@ div.subscribed a.subscribe {
 }
 div.unsubscribed a.unsubscribe {
   display: none;
+}
+a.channel-variant {
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+a.channel-variant.active {
+  background: #f1f1f1;
 }
 
 /* FONTS -------------------------------------------------------------------- */
@@ -269,12 +287,10 @@ header {
   border-bottom: 1px solid #CCC;
 }
 
-.testx{
--webkit-mask-box-image: -webkit-linear-gradient(left,transparent 0%, rgb(0,0,0) 40%,transparent 100%);
-background: -webkit-linear-gradient(top, rgba(0, 0, 0,.2) 0%,rgba(0, 0, 0, 0) 100%); /* Chrome10+,Safari5.1+ */
-height: 5px;
-position: fixed;
-top: 50px;
-width: 568px;
-z-index: 900;
+.shadow {
+  -webkit-mask-box-image: -webkit-linear-gradient(left,transparent 0%, rgb(0,0,0) 50%,transparent 100%);
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0,.2) 0%,rgba(0, 0, 0, 0) 100%); /* Chrome10+,Safari5.1+ */
+  height: 5px;
+  margin: 15px 0 5px 0;
+  width: 100%;
 }

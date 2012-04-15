@@ -1,4 +1,5 @@
 <div class="item item-{{id}} {{class}} clearfix">
+  {{#isnew}}<div class="new"></div>{{/isnew}}
   <h2><a target="_blank" href="{{target_url}}">{{title}}</a></h2>
   <div class="details">
     {{#score}}<a class="score" target="_blank" href="{{score_target_url}}"><i class="icon-fire"></i>{{score}}</a>{{/score}}<span class="site"><a target="_blank" href="{{channel.url}}"><strong>{{channel.name}}</strong></a> - </span><abbr class="timeago" title="{{stamp}}"></abbr>
