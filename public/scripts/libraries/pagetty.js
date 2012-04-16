@@ -8,6 +8,7 @@ define([
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
   var Pagetty = {
     activeChannel: false,
+    activeVariant: false,
     pager: 9,
     state: {channels: {}},
     updates: {},
@@ -135,9 +136,10 @@ define([
         $(".runway .channel-" + channel_id).append('<div class="more"><a href="#" class="button" data-channel="' + channel_id + '">Show more stories</a></div>');
       }
 
-      $(window).scrollTop(0);
+      $(".channel-" + channel_id + " .item").first().find("h2 a").focus();
 
       this.activeChannel = channel_id;
+      this.activeVariant = variant;
       this.updateUI();
 
       return false;
@@ -231,20 +233,9 @@ define([
       $(".runway").css("padding-top", $(".runway .title").height() + 20);
       $("aside").width($(".sidebar").width());
 
+      $(window).scrollTop(0);
     },
-    nextItem: function() {
-      var adjust = $(".runway .title").height() + 20;
-      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0;
-
-      $(".runway .channel-" + this.activeChannel + " .item").each(function() {
-          itemPos = $(this).offset().top;
-          if (itemPos > scrollPos) {
-            $(window).scrollTop(itemPos - adjust);
-            return false;
-          }
-      });
-    },
-    prevItem: function() {
+    openPrevItem: function() {
       var adjust = $(".runway .title").height() + 20;
       var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
       var items = $(".runway .channel-" + this.activeChannel + " .item").get();
@@ -253,12 +244,118 @@ define([
         itemPos = $(items[i]).offset().top;
           if (itemPos < scrollPos) {
             changePos = itemPos - adjust;
+            $(items[i]).find("h2 a").focus();
           }
           else {
             break;
           }
       }
       $(window).scrollTop(changePos);
+    },
+    openNextItem: function() {
+      var adjust = $(".runway .title").height() + 20;
+      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0;
+
+      $(".runway .channel-" + this.activeChannel + " .item").each(function() {
+          itemPos = $(this).offset().top;
+          if (itemPos > scrollPos) {
+            $(window).scrollTop(itemPos - adjust);
+            $(this).find("h2 a").focus();
+            return false;
+          }
+      });
+    },
+    openChannelByKey: function(key) {
+      var channels = this.channelList(), first = false, match = false, activeFound = false, i = 0;
+
+      for (var id in channels) {
+        if (key.toLowerCase() == channels[id].substr(0, 1).toLowerCase()) {
+          if (!i++) first = id;
+
+          if (id == this.activeChannel) {
+            activeFound = true;
+            continue;
+          }
+
+          if (activeFound) {
+            this.showChannel(id);
+            return;
+          }
+        }
+      }
+
+      if (first) this.showChannel(first);
+    },
+    openPrevChannel: function() {
+      var channels = this.channelList(), prevId = false;
+
+      for (var id in channels) {
+        if (id == this.activeChannel) {
+          if (prevId) this.showChannel(prevId);
+          break;
+        }
+        else {
+          prevId = id;
+        }
+      }
+    },
+    openNextChannel: function() {
+      var channels = this.channelList(), found = false;
+
+      for (var id in channels) {
+        if (id == this.activeChannel) {
+          found = true;
+        }
+        else if (found) {
+          this.showChannel(id);
+          break;
+        }
+      }
+    },
+    openPrevVariant: function() {
+      if (this.activeChannel == "all") {
+        this.openNextVariant();
+      }
+      else {
+        switch (this.activeVariant) {
+          case "original":
+            this.showChannel(this.activeChannel, "score");
+            break;
+          case "time":
+            this.showChannel(this.activeChannel, "original");
+            break;
+          case "score":
+            this.showChannel(this.activeChannel, "time");
+            break;
+        }
+      }
+    },
+    openNextVariant: function() {
+      if (this.activeChannel == "all") {
+        this.showChannel("all", (this.activeVariant == "time") ? "score" : "time");
+      }
+      else {
+        switch (this.activeVariant) {
+          case "original":
+            this.showChannel(this.activeChannel, "time");
+            break;
+          case "time":
+            this.showChannel(this.activeChannel, "score");
+            break;
+          case "score":
+            this.showChannel(this.activeChannel, "original");
+            break;
+        }
+      }
+    },
+    channelList: function() {
+      var list = {all: "All stories"};
+
+      for (var i in this.channels) {
+        list[this.channels[i]._id] = this.channels[i].name;
+      }
+
+      return list;
     },
     setLastUpdateCookie: function() {
       var date = new Date();

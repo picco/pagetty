@@ -18,6 +18,9 @@ h1 {
 #nav-channels {
   padding: 16px 0;
 }
+*:focus {
+  outline: none;
+}
 
 /* RUNWAY ------------------------------------------------------------------- */
 
@@ -47,6 +50,10 @@ h1 {
 }
 .runway h2 a:visited  {
   color: #999;
+}
+.runway h2 a:focus {
+  color: red;
+  outline: none;
 }
 .runway .items {
 }

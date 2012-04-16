@@ -65,11 +65,42 @@ require(["pagetty"], function(pagetty) {
      */
 
     $(document).keydown(function(e) {
-      if (e.keyCode == 39) {
-         pagetty.nextItem();
+      if (e.ctrlKey == false && e.altKey == false && e.shiftKey == false) {
+        if (e.keyCode == 37) {
+          pagetty.openPrevChannel();
+
+          return false;
+        }
+        else if (e.keyCode == 39) {
+          pagetty.openNextChannel();
+          return false;
+        }
+        else if (e.keyCode == 32) {
+          pagetty.refreshChannels();
+          return false;
+        }
+        else if (e.keyCode >= 48 && e.keyCode < 90) {
+          pagetty.openChannelByKey(String.fromCharCode(e.keyCode));
+          return false;
+        }
+        else if (e.keyCode == 38) {
+          pagetty.openPrevItem();
+          return false;
+        }
+        else if (e.keyCode == 40) {
+          pagetty.openNextItem();
+          return false;
+        }
       }
-      else if (e.keyCode == 37) {
-         pagetty.prevItem();
+      else if (e.ctrlKey == true && e.altKey == false && e.shiftKey == false) {
+        if (e.keyCode == 39) {
+          pagetty.openNextVariant();
+          return false;
+        }
+        else if (e.keyCode == 37) {
+          pagetty.openPrevVariant();
+          return false;
+        }
       }
     });
 
