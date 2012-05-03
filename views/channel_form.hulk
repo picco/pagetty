@@ -2,53 +2,45 @@
   <div class="container">
     <div class="row-fluid">
       <div class="span12">
-        <h1>Add new channel</h1>
+        <h1>Create new channel</h1>
       </div>
     </div>
   </div>
 </header>
 <div class="container">
   <div class="row-fluid">
-    <div class="span12">
+    <div class="span3">
       <!-- BEGIN FORM -->
-      <div id="channel-form">
-        <form action="/null" method="post" target="null">
-          <div id="form">
-            <h2>Configure and save</h2>
-            <div class="help">
-              <p>You are adding a new channel. When configured, press "Test configuration" to test your configuration.</p>
-              <div class="button-group">
-                <input type="submit" class="refresh button big" value="Test configuration" />
-                <input type="submit" class="save button big primary" value="Save changes" />
-              </div>
-            </div>
-            <h2>The basics</h2>
-            <div class="form-element">
-              <label>Name</label>
-              <input class="name form-text" type="text" name="channel:name" value="{{channel.name}}" />
-            </div>
-            <div class="form-element">
-              <label>URL</label>
-              <input class="uri form-text" type="text" name="channel:url" value="{{channel.uri}}" />
-            </div>
-            <div class="form-element">
-              <label>Base URL</label>
-              <input class="base_uri form-text" type="text" name="channel:base_uri" value="{{channel.base_uri}}" />
-            </div>
-            <h2>Rules for data extraction</h2>
-            <div class="components">
-              {{#channel.components}}
-                {{>channel_form_component}}
-              {{/channel.components}}
-            </div>
-            <button class="add-rule button">Add rule</button>
-          </div>
-          <div id="preview">
-            <div class="container"></div>
-          </div>
-        </form>
+      <div id="channel-form" class="well">
+        <h2>Channel information</h2>
+        <div class="form-element">
+          <label>URL:</label>
+          http://www.ee
+        </div>
+        <div class="form-element">
+          <label>Author:</label>
+          picco
+        </div>
+        <div class="form-element">
+          <label>Name: *</label>
+          <input class="name form-text" type="text" name="channel:name" value="{{channel.name}}" />
+        </div>
+        <input type="submit" class="save button" value="Save" />
+      </div>
+      <div class="well">
+        <h2>Current state</h2>
+        <p>No rules defined yet.</p>
+        <input type="submit" class="save button" value="Show preview" />
       </div>
       <!-- END FORM -->
+    </div>
+    <div class="span9">
+      <div class="components">
+        {{#channel.components}}
+          {{>channel_form_component}}
+        {{/channel.components}}
+      </div>
+      <button class="add-rule button">Add new rule</button>
     </div>
   </div>
 </div>

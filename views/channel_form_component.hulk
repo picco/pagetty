@@ -1,47 +1,64 @@
-<div class="component clearfix">
+<div class="rule well clearfix">
+  <h2>Rule</h2>
+  <div class="autogenerate">
+    <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Test link 1</label>
+        <input class="item form-text" type="text" name="channel:rule:testx" value="" />
+      </div>
+      <div class="form-element">
+        <label>Test link 2</label>
+        <input class="item form-text" type="text" name="channel:rule:testy" value="" />
+      </div>
+    </div>
+    <a href="#" class="btn">Generate rule configuration</a>
+  </div>
   <div class="form-element">
     <label>Item selector</label>
-    <input class="item form-text" type="text" name="channel:component:item" value="{{item}}" />
+    <input class="item form-text" type="text" name="channel:rule:item" value="{{item}}" />
+  </div>
+  <div>
+    <pre class="prettyprint linenums">&lt;html&gt;asd&lt;b&gt;asd&lt;/b&gt;&lt;/html&gt;</pre>
   </div>
   <div class="form-container-multiple clearfix">
     <div class="form-element">
       <label>Title selector</label>
-      <input class="title-selector form-text" type="text" name="channel:component:title_selector" value="{{title_selector}}" />
+      <input class="title-selector form-text" type="text" name="channel:rule:title_selector" value="{{title_selector}}" />
     </div>
     <div class="form-element">
       <label>attribute</label>
-      <input class="title-attribute form-text" type="text" name="channel:component:title_attribute" value="{{title_attribute}}" />
+      <input class="title-attribute form-text" type="text" name="channel:rule:title_attribute" value="{{title_attribute}}" />
     </div>
   </div>
   <div class="form-container-multiple clearfix">
     <div class="form-element">
       <label>Target selector</label>
-      <input class="target-selector form-text" type="text" name="channel:component:target_selector" value="{{target_selector}}" />
+      <input class="target-selector form-text" type="text" name="channel:rule:target_selector" value="{{target_selector}}" />
     </div>
     <div class="form-element">
       <label>attribute</label>
-      <input class="target-attribute form-text" type="text" name="channel:component:target_attribute" value="{{target_attribute}}" />
+      <input class="target-attribute form-text" type="text" name="channel:rule:target_attribute" value="{{target_attribute}}" />
     </div>
   </div>
   <div class="form-container-multiple clearfix">
     <div class="form-element">
       <label>Image selector</label>
-      <input class="image-selector form-text" type="text" name="channel:component:image_selector" value="{{image_selector}}" />
+      <input class="image-selector form-text" type="text" name="channel:rule:image_selector" value="{{image_selector}}" />
     </div>
     <div class="form-element">
       <label>attribute</label>
-      <input class="image-attribute form-text" type="text" name="channel:component:image_attribute" value="{{image_attribute}}" />
+      <input class="image-attribute form-text" type="text" name="channel:rule:image_attribute" value="{{image_attribute}}" />
     </div>
   </div>
   <div class="form-container-multiple clearfix">
     <div class="form-element">
       <label>Score selector</label>
-      <input class="score-selector form-text" type="text" name="channel:component:score_selector" value="{{score_selector}}" />
+      <input class="score-selector form-text" type="text" name="channel:rule:score_selector" value="{{score_selector}}" />
     </div>
     <div class="form-element">
       <label>attribute</label>
-      <input class="score-attribute form-text" type="text" name="channel:component:score_attribute" value="{{score_attribute}}" />
+      <input class="score-attribute form-text" type="text" name="channel:rule:score_attribute" value="{{score_attribute}}" />
     </div>
   </div>
-  <a href="#" class="remove">Remove this rule</a>
+  <a href="#" class="btn">Remove this rule</a>
 </div>

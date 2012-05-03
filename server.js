@@ -16,9 +16,9 @@ pagetty    = require('./lib/pagetty.js');
  * Create express app.
  */
 var app = express.createServer({
-  ca: fs.readFileSync("./ssl/ca.pem"),
-  key: fs.readFileSync("./ssl/pagetty.key.nopass"),
-  cert: fs.readFileSync("./ssl/pagetty.crt")
+  ca: fs.readFileSync(__dirname + "/ssl/ca.pem"),
+  key: fs.readFileSync(__dirname + "/ssl/pagetty.key.nopass"),
+  cert: fs.readFileSync(__dirname + "/ssl/pagetty.crt")
 });
 
 app.configure(function() {
@@ -61,11 +61,6 @@ http.all("*", function(req, res) {
 });
 
 /**
- * Initialize and start the pagetty & the server.
- */
-
-
-/**
  * Define authentication middleware.
  */
 var restricted = function(req, res, next) {
@@ -80,10 +75,10 @@ var restricted = function(req, res, next) {
 /**
  * Render frontpage or the app.
  */
-app.get('/', function(req, res) {
+app.get("/", function(req, res) {
   var sequence = futures.sequence(), err, user, channels;
 
-  pagetty.checkLogin('ivo', 'ivonellis', function(err, user) {
+  pagetty.login("ivo", "ivonellis", function(err, user) {
     if (err) {
       res.send(400);
     }
@@ -97,13 +92,17 @@ app.get('/', function(req, res) {
         });
       })
       .then(function(next, err) {
-        pagetty.loadUserChannels(user, function(c) {
+        pagetty.loadSubscribedChannels(user, function(c) {
           channels = c;
           next();
         });
       })
       .then(function(next, err) {
-        res.render('app', {title: 'pagetty', channels: _.toArray(channels), channels_json: JSON.stringify(channels)});
+        res.render("app", {
+          title: "pagetty",
+          user: JSON.stringify(req.session.user),
+          channels: JSON.stringify(channels)
+        });
       });
     }
   });
@@ -123,7 +122,10 @@ app.get('/update', restricted, function(req, res) {
  */
 app.get('/channel/add', restricted, function(req, res) {
   var channel = {components: [{}]};
-  res.render('channel_form', {channel: channel});
+
+  pagetty.fetchLinks(req.query.url, function(err, links) {
+    res.render('channel_form', {channel: channel, links: links});
+  });
 });
 
 /**
@@ -191,9 +193,40 @@ app.get('/preview/:id', function(req, res) {
 });
 
 /**
+ * Subscription page, step 1.
+ */
+app.get('/subscribe', restricted, function(req, res) {
+  res.render('subscribe');
+});
+
+/**
+ * Subscription page, step 2.
+ */
+app.get('/subscribe/:url', restricted, function(req, res) {
+  pagetty.getSiteInformation(req.params.url, function(err, info) {
+    res.render('subscribe-complete', info);
+  });
+});
+
+/**
+ * Handle POST from subscription page, step 2.
+ */
+app.post('/subscribe', restricted, function(req, res) {
+  pagetty.subscribe({user_id: req.session.user._id, url: req.body.url, name: req.body.name, targetSelector: req.body.target}, function(err, x) {
+    if (err) {
+      res.send(500);
+      console.dir(err);
+    }
+    else {
+      res.json("{}");
+    }
+  });
+});
+
+/**
  * Subscribe yourself to a given channel.
  */
-app.get('/subscribe/:id', restricted, function(req, res) {
+app.get('/xsubscribe/:id', restricted, function(req, res) {
   pagetty.subscribe(req.session.user._id, req.params.id, function(err) {
     err ? res.send(400) : res.send(200);
   });
@@ -202,7 +235,7 @@ app.get('/subscribe/:id', restricted, function(req, res) {
 /**
  * Unsubscribe yourself from a given channel.
  */
-app.get('/unsubscribe/:id', restricted, function(req, res) {
+app.get('/xunsubscribe/:id', restricted, function(req, res) {
   pagetty.unsubscribe(req.session.user._id, req.params.id, function(err) {
     err ? res.send(400) : res.send(200);
   });
@@ -275,7 +308,7 @@ app.get('/signup', function(req, res) {
 /**
  * Display sign-up form.
  */
-app.post('/signup', function(req, res) {
+app.post("/signup", function(req, res) {
   pagetty.signup(req.body.mail, function(err) {
     if (err) {
       res.send(err, 400);
@@ -289,7 +322,7 @@ app.post('/signup', function(req, res) {
 /**
  * Display the login form.
  */
-app.get('/login', function(req, res) {
+app.get("/login", function(req, res) {
   if (req.session.user) {
     res.redirect("/");
   }
@@ -299,10 +332,10 @@ app.get('/login', function(req, res) {
 });
 
 /**
- * Handle the login request.
+ * Log the user in to the system.
  */
-app.post('/login', function(req, res) {
-  pagetty.checkLogin(req.body.name, req.body.pass, function(err, user) {
+app.post("/login", function(req, res) {
+  pagetty.login(req.body.name, req.body.pass, function(err, user) {
     if (err) {
       res.send(400);
     }
@@ -316,7 +349,7 @@ app.post('/login', function(req, res) {
 /**
  * Log the user out of the system.
  */
-app.get('/logout', function(req, res) {
+app.get("/logout", function(req, res) {
   delete req.session.user;
   res.redirect("/");
 });
@@ -370,6 +403,6 @@ app.post('/signup/profile', function(req, res) {
  */
 pagetty.init(function (self) {
   logger.log.info("Starting server on ports: " + config.https_port + " and " + config.http_port);
-  app.listen(config.https_port);
-  http.listen(config.http_port);
+  app.listen(config.https_port, config.host);
+  http.listen(config.http_port, config.host);
 });

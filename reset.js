@@ -4,29 +4,91 @@ var logger = require(__dirname + "/lib/logger.js");
 var sanitize = require('validator').sanitize;
 
 var channels = [
-  {name: "Delfi", url: "http://delfi.ee", parser: "delfi"},
-  {name: "Postimees", url: "http://postimees.ee", parser: "postimees"},
-  {name: "Õhtuleht", url: "http://ohtuleht.ee", parser: "ohtuleht"},
-  {name: "TechCrunch", url: "http://techcrunch.com", parser: "techcrunch"},
-  {name: "AnandTech", url: "http://www.anandtech.com", parser: "anandtech"},
-  {name: "EnglishRussia", url: "http://englishrussia.com", parser: "englishrussia"},
-  {name: "500px - Popular", url: "http://500px.com/popular", parser: "soopx"},
-  {name: "Reddit Top", url: "http://reddit.com/top", parser: "reddit"},
-  //{name: "Reddit - Gaming", url: "http://reddit.com/r/gaming", parser: "reddit"},
-  {name: "Failblog", url: "http://failblog.org", parser: "failblog"},
-  {name: "Smashing Magazone", url: "http://www.smashingmagazine.com/", parser: "smashingmagazine"},
-  {name: "DailyJS", url: "http://dailyjs.com/", parser: "dailyjs"},
-  {name: "Mashable", url: "http://mashable.com", parser: "mashable"},
-  {name: "ReddPics", url: "http://reddpics.com/", parser: "reddpics"},
-  {name: "Slashdot", url: "http://slashdot.org/", parser: "slashdot"},
-  {name: "Planet node.js", url: "http://planetnodejs.com/", parser: "planetnodejs"},
-  {name: "Youtube - most viewed today in Science", url: "http://www.youtube.com/charts/videos_views/science", parser: "youtube"},
+  {url: "http://www.postimees.ee/", domain: "www.postimees.ee", name: "Postimees"}
 ];
 
-var created_parsers = {};
+var rules = [{
+  url: "http://www.postimees.ee/",
+  domain: "www.postimees.ee",
+  target: {selector: "a.uudise_pealkiri", url_attribute: "href", title_attribute: false},
+  score: {selector: "a.komm_arv_link", url_attribute: "href", value_attribute: false},
+  image: {selector: "img.uudispilt", url_attribute: "src"}}
+];
 
-var parsers = {
-  delfi: {name: "Delfi", rules: [{
+pagetty.init(function() {
+  // Remove all channels.
+  pagetty.channels.remove({});
+  console.log("Removed all channels.");
+
+  // Remove all rules.
+  pagetty.rules.remove({});
+  console.log("Removed all rules.");
+
+  // Remove all users.
+  pagetty.users.remove({});
+  console.log("Removed all users.");
+
+  // Remove all history.
+  pagetty.history.remove({});
+  console.log("Removed all channels.");
+
+  // Remove all sessions.
+  pagetty.sessions.remove({});
+  console.log("Removed all sessions.");
+
+  // Clear image cache.
+  images = fs.readdirSync("./images");
+
+  for (var i in images) {
+    fs.unlinkSync("./images/" + images[i]);
+  }
+  console.log("Removed all cached images.");
+
+  // Create a new user and import channels.
+  pagetty.signup("ivo@pagetty.com", function(err, user) {
+    if (err) throw err;
+
+    pagetty.activate({user_id: user._id.toString(), name: "ivo", pass: "ivonellis", pass2: "ivonellis"}, function(err) {
+      if (err) throw err;
+
+      for (var i in channels) {
+        pagetty.createChannel(channels[i], function(err, channel){
+          pagetty.subscribe({user_id: user._id, url: channels[i].url, name: channels[i].name}, function() {
+            console.log("Reset done for: " + channel.url);
+          });
+        });
+      }
+
+      for (var i in rules) {
+        pagetty.createRule(rules[i], function(){});
+      }
+    });
+  });
+});
+  /*
+  {name: "Postimees", url: "http://postimees.ee", profile: "postimees"},
+  {name: "Õhtuleht", url: "http://ohtuleht.ee", profile: "ohtuleht"},
+  {name: "TechCrunch", url: "http://techcrunch.com", profile: "techcrunch"},
+  {name: "AnandTech", url: "http://www.anandtech.com", profile: "anandtech"},
+  {name: "EnglishRussia", url: "http://englishrussia.com", profile: "englishrussia"},
+  {name: "500px - Popular", url: "http://500px.com/popular", profile: "soopx"},
+  {name: "Reddit Top", url: "http://reddit.com/top", profile: "reddit"},
+  //{name: "Reddit - Gaming", url: "http://reddit.com/r/gaming", profile: "reddit"},
+  {name: "Failblog", url: "http://failblog.org", profile: "failblog"},
+  {name: "Smashing Magazone", url: "http://www.smashingmagazine.com/", profile: "smashingmagazine"},
+  {name: "DailyJS", url: "http://dailyjs.com/", profile: "dailyjs"},
+  {name: "Mashable", url: "http://mashable.com", profile: "mashable"},
+  {name: "ReddPics", url: "http://reddpics.com/", profile: "reddpics"},
+  {name: "Slashdot", url: "http://slashdot.org/", profile: "slashdot"},
+  {name: "Planet node.js", url: "http://planetnodejs.com/", profile: "planetnodejs"},
+  {name: "Youtube - most viewed today in Science", url: "http://www.youtube.com/charts/videos_views/science", profile: "youtube"},
+  */
+
+/*
+var created_profiles = {};
+
+var profiles = {
+  delfi: {domain: "www.delfi.ee", rules: [{
     item: "div.fp_huge_block",
     image_selector: "img",
     image_attribute: "src",
@@ -89,16 +151,11 @@ var parsers = {
   ]},
   postimees: {name: "Postimees", rules: [{
     item: "div.uudise_kast",
-    image_selector: "img.uudispilt",
-    image_attribute: "src",
-    score_selector: "a.komm_arv_link",
-    score_attribute: false,
-    score_target_selector: "a.komm_arv_link",
-    score_target_attribute: "href",
-    target_selector: "a.uudise_pealkiri",
-    target_attribute: "href",
-    title_selector: "a.uudise_pealkiri",
-    title_attribute: false}
+    image_selector: "img.uudispilt", image_attribute: "src",
+    score_selector: "a.komm_arv_link", score_attribute: false,
+    score_target_selector: "a.komm_arv_link", score_target_attribute: "href",
+    target_selector: "a.uudise_pealkiri", target_attribute: "href",
+    title_selector: "a.uudise_pealkiri", title_attribute: false}
   ]},
   ohtuleht: {name: "Õhtuleht", rules: [{
     item: "div.article",
@@ -294,66 +351,4 @@ var parsers = {
     score_target_attribute: "href"}
   ]},
 };
-
-pagetty.init(function() {
-  // Remove all users.
-  pagetty.users.remove({});
-  console.log("Removed all users.");
-
-  // Remove all channels.
-  pagetty.channels.remove({});
-  console.log("Removed all channels.");
-
-  // Remove all parsers.
-  pagetty.parsers.remove({});
-  console.log("Removed all parsers.");
-
-  // Remove all history.
-  pagetty.history.remove({});
-  console.log("Removed all channels.");
-
-  // Remove all sessions.
-  pagetty.sessions.remove({});
-  console.log("Removed all sessions.");
-
-  // Clear image cache.
-  images = fs.readdirSync("./images");
-
-  for (var i in images) {
-    fs.unlinkSync("./images/" + images[i]);
-  }
-  console.log("Removed all cached images.");
-
-  // Create a new user and import channels.
-  pagetty.signup("ivo@pagetty.com", function(err, user) {
-    if (err) throw err;
-    pagetty.activate({user_id: user._id.toString(), name: "ivo", pass: "ivonellis", pass2: "ivonellis"}, function(err) {
-      if (err) throw err;
-      console.log("Created an user account for you, dear Ivo.");
-      for (var i in channels) {
-        createParser(channels[i].parser, i, function(err, i, parser) {
-          var channel = channels[i];
-          channel.parser = parser._id;
-          pagetty.createChannel(channel, function(err, channel) {
-            if (err) throw err;
-            pagetty.subscribe(user._id, channel._id, function() {
-              console.log("Reset done for: " + channel.url);
-            });
-          });
-        });
-      }
-    });
-  });
-});
-
-function createParser(parser_name, i, callback) {
-  if (created_parsers[parser_name]) {
-    callback(false, i, created_parsers[parser_name]);
-  }
-  else {
-    pagetty.createParser(parsers[parser_name], function(err, parser) {
-      created_parsers[parser_name] = parser._id;
-      callback(err, i, parser);
-    });
-  }
-}
+*/

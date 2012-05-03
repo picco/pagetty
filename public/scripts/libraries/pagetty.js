@@ -7,6 +7,8 @@ define([
   'underscore'
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
   var Pagetty = {
+    channels: {},
+    subscriptions: {},
     activeChannel: false,
     activeVariant: false,
     pager: 9,
@@ -14,9 +16,22 @@ define([
     updates: {},
     rendered: [],
 
-    init: function(channels) {
+    init: function(user, channels) {
       var self = this;
-      this.channels = channels;
+      this.user = user;
+
+      for (var i in user.subscriptions) {
+        // Store user subscriptions separately with channel id's as keys.
+        this.subscriptions[user.subscriptions[i].channel] = user.subscriptions[i];
+      }
+
+      for (var i in channels) {
+        // Store channels as object with chanannel id's as keys.
+        this.channels[channels[i]._id] = channels[i];
+        // Create channel navigation links.
+        $("#nav-channels ul").append('<li class="channel channel-' + channels[i]._id + '"><a href="#' + channels[i]._id + '" data-channel="' + channels[i]._id + '">' + this.subscriptions[channels[i]._id].name + '</a></li>');
+      }
+
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
@@ -59,7 +74,7 @@ define([
       for (i in this.channels) {
         for (j in this.channels[i].items) {
           var item = this.channels[i].items[j];
-          item.channel = {name: this.channels[i].name, url: this.channels[i].url};
+          item.channel = {name: this.subscriptions[i].name, url: this.channels[i].url};
           items.push(item);
         }
       }
@@ -93,7 +108,9 @@ define([
       return x1 + x2;
     },
     showChannel: function(channel_id, variant) {
-      var channel = this.channels[channel_id], html = '';
+      var channel = this.channels[channel_id];
+      var subscription = this.subscriptions[channel_id];
+      var html = '';
 
       if (!variant) {
         variant = channel_id == "all" ? "time" : "original";
@@ -105,7 +122,7 @@ define([
       else {
         if ($.isArray(this.channels[channel_id].items) && this.channels[channel_id].items.length) {
           for (i in this.channels[channel_id].items) {
-            this.channels[channel_id].items[i].channel = {name: this.channels[channel_id].name, url: this.channels[channel_id].url};
+            this.channels[channel_id].items[i].channel = {name: this.subscriptions[channel_id].name, url: this.channels[channel_id].url};
           }
           html = this.renderItems(this.sortItems(this.channels[channel_id].items, variant));
         }
@@ -114,10 +131,10 @@ define([
       $('.runway .channel').remove();
 
       if (channel_id == "all") {
-        $(".runway").append(ich.channelAll({channel: channel, items: html}));
+        $(".runway").append(ich.channelAll({channel: channel, subscription: {name: "All stories"}, items: html}));
       }
       else {
-        $(".runway").append(ich.channel({channel: channel, items: html}));
+        $(".runway").append(ich.channel({channel: channel, subscription: subscription, items: html}));
       }
 
       $(".runway .channel-" + channel_id + " abbr.timeago").timeago();
@@ -352,7 +369,7 @@ define([
       var list = {all: "All stories"};
 
       for (var i in this.channels) {
-        list[this.channels[i]._id] = this.channels[i].name;
+        list[this.channels[i]._id] = this.subscriptions[i].name;
       }
 
       return list;

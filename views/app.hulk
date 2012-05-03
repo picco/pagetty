@@ -8,6 +8,7 @@
           <div class="name">pagetty</div>
           </a>
         </div>
+        <a href="/subscribe">Subscribe to a site</a>
       </aside>
     </div>
     <div class="center-col span6">
@@ -25,9 +26,6 @@
           <ul class="nav nav-list">
             <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
             <li class="nav-header">Channels</li>
-            {{#channels}}
-              <li class="channel channel-{{_id}}"><a href="#{{_id}}" data-channel="{{_id}}">{{name}}</a></li>
-            {{/channels}}
           </ul>
         </div>
       </aside>
@@ -36,6 +34,7 @@
   </div>
 </div>
 <script type="text/javascript">
-  var channels = {{{channels_json}}};
+  var user = {{{user}}};
+  var channels = {{{channels}}};
   require(['/scripts/controllers/app.js']);
 </script>

@@ -10,6 +10,16 @@ h1 {
   font-weight: bold;
   text-rendering: auto !important;
 }
+h2 {
+  font-family: GraublauWeb;
+  font-weight: normal;
+  text-rendering: auto !important;
+}
+h3 {
+  font-family: GraublauWeb;
+  font-weight: normal;
+  text-rendering: auto !important;
+}
 .center-col {
 }
 .root-col {
@@ -190,6 +200,60 @@ a.channel-variant {
 }
 a.channel-variant.active {
   background: #f1f1f1;
+}
+
+/* PAGE: SUBSCRIBE ---------------------------------------------------------- */
+
+#page-subscribe h2 {
+  margin-bottom: .5em;
+}
+#url {
+  width: 40em;
+}
+
+/* CHANNELS LIST ------------------------------------------------------------ */
+
+.channels .channel {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 1em;
+  margin-bottom: 1em;
+}
+.channels .channel:last-child {
+  margin-bottom: 0;
+}
+.channels .info {
+  float: left;
+}
+.channels .subscribe {
+  float: right;
+}
+
+/* FORM ELEMENTS ------------------------------------------------------------ */
+
+.form-element {
+  margin: 1em 0;
+}
+.form-container-multiple {
+  margin: 1em 0;
+}
+.form-container-multiple .form-element {
+  float: left;
+  margin: 0 1em 0 0;
+}
+.form-text {
+}
+.form-element-large {
+  margin: 20px 0;
+}
+.form-element-large label {
+  font-family: GraublauWeb;
+  font-size: 20px;
+  font-weight: normal;
+  margin-bottom: 10px;
+}
+.form-element-large .form-text {
 }
 
 /* FONTS -------------------------------------------------------------------- */

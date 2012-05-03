@@ -2,6 +2,7 @@
   "name": "pagetty",
   "version": "1.0.0",
   "dependencies": {
+    "cheerio-soupselect": "*",
     "config": "*",
     "connect-session-mongo": "*",
     "each": "*",
@@ -10,13 +11,17 @@
     "hogan.js": "*",
     "hulk-hogan": "*",
     "imagemagick": "*",
+    "jquery": "*",
     "mongodb": "*",
     "mustache": "*",
     "nodemailer": "*",
     "request": "*",
-    "cheerio-soupselect": "*",
     "underscore": "*",
+    "uri-js": "*",
     "validator": "*",
     "winston": "*"
+  },
+  "devDependencies" : {
+    "launch" : "*"
   }
 }

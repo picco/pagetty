@@ -1,6 +1,6 @@
 require(["pagetty"], function(pagetty) {
   $(document).ready(function() {
-    pagetty.init(channels);
+    pagetty.init(user, channels);
 
     var hash = new String(window.location.hash);
 
@@ -108,6 +108,6 @@ require(["pagetty"], function(pagetty) {
 
     window.setInterval(function() {
       pagetty.updateChannels();
-    }, 3000);
+    }, 60000);
   });
 });
