@@ -1,0 +1,6 @@
+/.env
+/.git
+/.gitignore
+/builds
+/images
+/node_modules

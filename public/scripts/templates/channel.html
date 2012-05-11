@@ -1,0 +1,12 @@
+<div class="channel channel-normal channel-{{channel._id}}">
+  <div class="title">
+    <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
+    <div class="variants">
+      <a class="channel-variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#">As displayed on site</a>
+      <a class="channel-variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#">Most recent</a>
+      <a class="channel-variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#">Highest score</a>
+    </div>
+    <div class="shadow"></div>
+  </div>
+  <div class="items">{{{items}}}</div>
+</div>
