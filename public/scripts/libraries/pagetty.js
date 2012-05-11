@@ -86,7 +86,7 @@ define([
 
       for (var i in items) {
         items[i].stamp = this.ISODateString(new Date(items[i].created));
-        items[i].score = this.formatScore(items[i].score);
+        items[i].score = items[i].score ? this.formatScore(items[i].score) : false;
         items[i].visible = (i <= this.pager) ? true : false;
         items[i].class = items[i].visible ? "item-visible" : "item-hidden";
         if (items[i].isnew) items[i].class += " new";

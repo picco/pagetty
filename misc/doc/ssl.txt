@@ -1,5 +1,0 @@
-Passphrase:
-rumba.90
-
-Password removal from key:
-openssl rsa -in pagetty.key -out pagetty.key.nopass

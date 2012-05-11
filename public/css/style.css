@@ -151,6 +151,9 @@ h3 {
 .runway .score i {
   padding-right: 3px;
 }
+.runway .summary {
+  margin: 10px 0;
+}
 .runway .variants {
   margin: 0 20px;
 }
