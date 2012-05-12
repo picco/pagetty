@@ -4,16 +4,20 @@
   "author": "Ivo Nellis <ivo.nellis@gmail.com>",
   "homepage": "http://pagetty.com/",
   "dependencies": {
+    "async": "*",
     "cheerio-soupselect": "*",
     "config": "*",
-    "connect-session-mongo": "*",
+    "connect-mongo": "*",
+    "dateformat": "*",
     "each": "*",
     "express": "*",
+    "feedparser": "*",
     "forever": "0.9",
     "futures": "*",
     "hogan.js": "*",
     "hulk-hogan": "*",
     "imagemagick": "*",
+    "jake": "*",
     "jquery": "*",
     "mongodb": "*",
     "mustache": "*",
@@ -23,12 +27,5 @@
     "uri-js": "*",
     "validator": "*",
     "winston": "*"
-  },
-  "devDependencies" : {
-    "launch" : "*"
-  },
-  "engines": {
-    "node": "0.6",
-    "npm": "1"
-  },
+  }
 }

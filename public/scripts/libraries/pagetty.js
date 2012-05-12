@@ -20,10 +20,7 @@ define([
       var self = this;
       this.user = user;
 
-      for (var i in user.subscriptions) {
-        // Store user subscriptions separately with channel id's as keys.
-        this.subscriptions[user.subscriptions[i].channel] = user.subscriptions[i];
-      }
+      this.subscriptions = user.subscriptions;
 
       for (var i in channels) {
         // Store channels as object with chanannel id's as keys.
@@ -86,11 +83,11 @@ define([
 
       for (var i in items) {
         items[i].stamp = this.ISODateString(new Date(items[i].created));
-        items[i].score = items[i].score ? this.formatScore(items[i].score) : false;
+        items[i].score = this.formatScore(items[i].score);
         items[i].visible = (i <= this.pager) ? true : false;
         items[i].class = items[i].visible ? "item-visible" : "item-hidden";
         if (items[i].isnew) items[i].class += " new";
-        if (items[i].id && items[i].image_url) items[i].image = "/images/" + items[i].id + ".jpg";
+        if (items[i].id && items[i].image) items[i].image_url = "/images/" + items[i].id + ".jpg";
         html += ich.channelItem(items[i], true);
       }
 
@@ -142,7 +139,18 @@ define([
       $('#nav-channels li.channel-' + channel_id + ", a.channel-variant." + channel_id + "-" + variant).addClass('active');
 
       $(".channel-" + channel_id + " .items .item-visible img").each(function(index, element) {
-        $(this).attr("src", $(this).data("src"));
+        var img = new Image();
+        var original = this;
+
+        $(img)
+          .load(function () {
+            $(original).replaceWith(img);
+          })
+          .error(function () {
+            delete img;
+            $(original).parent().parent().remove();
+          })
+          .attr('src', $(original).data("src"));
       });
 
       // Add "Load more" button.

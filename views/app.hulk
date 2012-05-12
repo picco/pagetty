@@ -8,7 +8,6 @@
           <div class="name">pagetty</div>
           </a>
         </div>
-        <a href="/subscribe">Subscribe to a site</a>
       </aside>
     </div>
     <div class="center-col span6">
@@ -16,6 +15,7 @@
     </div>
     <div class="sidebar span3 root-col">
       <aside class="right">
+        <a href="#add-subscription" class="btn btn-subscribe" data-toggle="modal">Subscribe to a site</a>
         <div id="refresh">
           <div class="well">
             <h4 style="margin-bottom: 1em;">New stories available.</h4>
@@ -31,6 +31,18 @@
       </aside>
       .
     </div>
+  </div>
+</div>
+<div class="modal hide" id="add-subscription">
+  <div class="modal-header">
+    <a href="#" class="close" data-dismiss="modal">×</a>
+    <h2>Subscribe to a site</h2>
+  </div>
+  <div class="modal-body">
+    <input type="text" class="subscribe-url" placeholder="Enter the URL of the website..." />
+  </div>
+  <div class="modal-footer">
+    <a href="#" class="btn btn-primary btn-subscribe">Subscribe</a>
   </div>
 </div>
 <script type="text/javascript">

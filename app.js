@@ -1,5 +1,6 @@
 var
 _          = require('underscore'),
+async      = require("async"),
 fs         = require('fs'),
 util       = require('util'),
 config     = require('config').server,
@@ -9,7 +10,7 @@ hogan      = require('hogan.js'),
 futures    = require('futures'),
 logger     = require(__dirname + "/lib/logger.js");
 mustache   = require('mustache'),
-mongoStore = require('connect-session-mongo'),
+MongoStore = require('connect-mongo')(express),
 pagetty    = require('./lib/pagetty.js');
 
 /**
@@ -30,7 +31,7 @@ app.configure(function() {
       httpVersion = req.httpVersionMajor + '.' + req.httpVersionMinor,
       referrer = req.headers['referer'] || req.headers['referrer'];
     //':remote-addr - - [:date] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent"'
-    logger.accessLog.info(remoteAddr + " - - [" + date + "] " + req.method + " " + req.originalUrl + " HTTP/" + httpVersion + " " + res.statusCode + " " + referrer + " " + req.headers['user-agent']);
+    //logger.accessLog.info(remoteAddr + " - - [" + date + "] " + req.method + " " + req.originalUrl + " HTTP/" + httpVersion + " " + res.statusCode + " " + referrer + " " + req.headers['user-agent']);
     next();
   });
   app.use(pagetty.imageCache);
@@ -39,8 +40,9 @@ app.configure(function() {
   app.use(express.cookieParser());
   app.use(express.session({
     secret: "nõude",
-    cookie: {maxAge: 60000 * 60},
-    store: new mongoStore({db: config.db_name})
+    store: new MongoStore({
+      db: config.db_name
+    })
   }));
   app.use(function(req, res, next) {
     pagetty.user = req.session.user;
@@ -101,7 +103,8 @@ app.get("/", function(req, res) {
         res.render("app", {
           title: "pagetty",
           user: JSON.stringify(req.session.user),
-          channels: JSON.stringify(channels)
+          channels: JSON.stringify(channels),
+          bodyClasses: "app"
         });
       });
     }
@@ -193,109 +196,107 @@ app.get('/preview/:id', function(req, res) {
 });
 
 /**
- * Subscription page, step 1.
+ * Subscribe use to a site.
  */
-app.get('/subscribe', restricted, function(req, res) {
-  res.render('subscribe');
-});
-
-/**
- * Subscription page, step 2.
- */
-app.get('/subscribe/:url', restricted, function(req, res) {
-  pagetty.getSiteInformation(req.params.url, function(err, info) {
-    res.render('subscribe-complete', info);
-  });
-});
-
-/**
- * Handle POST from subscription page, step 2.
- */
-app.post('/subscribe', restricted, function(req, res) {
-  pagetty.subscribe({user_id: req.session.user._id, url: req.body.url, name: req.body.name, targetSelector: req.body.target}, function(err, x) {
+app.post("/subscribe", restricted, function(req, res) {
+  pagetty.subscribe({user_id: req.session.user._id, url: req.body.url}, function(err) {
     if (err) {
-      res.send(500);
-      console.dir(err);
+      res.send(err, 400);
     }
     else {
-      res.json("{}");
+      res.json(200);
     }
   });
-});
-
-/**
- * Subscribe yourself to a given channel.
- */
-app.get('/xsubscribe/:id', restricted, function(req, res) {
-  pagetty.subscribe(req.session.user._id, req.params.id, function(err) {
-    err ? res.send(400) : res.send(200);
-  });
-});
-
-/**
- * Unsubscribe yourself from a given channel.
- */
-app.get('/xunsubscribe/:id', restricted, function(req, res) {
-  pagetty.unsubscribe(req.session.user._id, req.params.id, function(err) {
-    err ? res.send(400) : res.send(200);
-  });
-});
-
-/**
- * Save channel data.
- */
-app.post('/channel/save', restricted, function(req, res) {
-  var channel = req.body;
-  var errors = pagetty.validateChannel(channel);
-
-  if (errors.length) {
-    res.json(errors, 400);
-  }
-  else {
-    pagetty.fetchChannelItems(channel, function(err, channel) {
-      if (err) {
-        res.json({fetch_error: err}, 400);
-      }
-      else {
-        if (channel._id) {
-          var id = channel._id;
-
-          pagetty.updateChannel(channel, function(err) {
-            if (err) {
-              res.json({error: err}, 400);
-            }
-            else {
-              res.json({_id: id}, 200);
-            }
-          });
-        }
-        else {
-          pagetty.createChannel(channel, function(err, doc) {
-            if (err) {
-              res.json({error: err}, 400);
-            }
-            else {
-              res.json({_id: doc._id}, 200);
-            }
-          });
-        }
-      }
-    });
-  }
 });
 
 /**
  * Get new channel form.
  */
-app.get('/channel/edit/:id', restricted, function(req, res) {
-  pagetty.loadChannel(req.params.id, function(err, channel) {
+app.get("/configure/:id", restricted, function(req, res) {
+  var params = {};
+
+  async.series([
+    // Load channel.
+    function(callback) {
+      pagetty.loadChannel(req.params.id, function(err, channel) {
+        if (err) {
+          callback(err);
+        }
+        else {
+          params.channel = channel;
+          callback();
+        }
+      })
+    },
+    // Load rules.
+    function(callback) {
+      pagetty.loadRules({domain: params.channel.domain}, function(rules) {
+        params.rules = rules;
+        callback();
+      });
+    }
+  // Send response.
+  ], function(err) {
     if (err) {
-      res.send(404);
+      res.send(500);
     }
     else {
-      res.render('channel_form', {channel: channel});
+      res.render("configure", {
+        channel: params.channel,
+        rules: params.rules,
+        subscription: req.session.user.subscriptions[params.channel._id]
+      });
     }
-  })
+  });
+});
+
+/**
+ * Save channel configuration.
+ */
+app.post("/configure", restricted, function(req, res) {
+  var params = {}, data = req.body, validator = pagetty.getValidator();
+
+  async.series([
+    // Validate submitted data.
+    function(callback) {
+      validator.check(data.name, "Name must start with a character.").is(/\w+.*/);
+
+      for (var i in data.rules) {
+        validator.check(data.rules[i].item, 'Item selector is always required.').notEmpty();
+        validator.check(data.rules[i].target.selector, 'Target selector is always required.').notEmpty();
+        validator.check(data.rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
+      }
+
+      validator.hasErrors() ? callback(validator.getErrors()) : callback();
+    },
+    // Update subscription.
+    function(callback) {
+      pagetty.updateSubscription(req.session.user._id, data._id, {name: data.name}, function(err) {
+        callback(err);
+      });
+    },
+    // Update rules.
+    function(callback) {
+      pagetty.saveRules(data._id, data.rules, function(err) {
+        callback(err);
+      });
+    },
+    // Update channel items.
+    function(callback) {
+      pagetty.updateChannelItems(data._id, function(err, channel) {
+        callback();
+      });
+    }
+  // Send response.
+  ], function(err) {
+    if (err) {
+      console.dir(err);
+      res.json(err, 400);
+    }
+    else {
+      res.send(200);
+    }
+  });
 });
 
 /**

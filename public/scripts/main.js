@@ -8,7 +8,7 @@ require.config({
     timeago: 'libraries/ext/jquery.timeago',
     url: 'libraries/ext/jquery.url',
     ui: 'libraries/ext/jquery-ui.min',
-    pagetty: 'libraries/pagetty'
+    pagetty: 'libraries/pagetty',
   }
 });
 

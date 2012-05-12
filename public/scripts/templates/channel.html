@@ -2,9 +2,10 @@
   <div class="title">
     <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
     <div class="variants">
-      <a class="channel-variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#">As displayed on site</a>
-      <a class="channel-variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#">Most recent</a>
-      <a class="channel-variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#">Highest score</a>
+      <a class="channel-variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#"><i class="icon-home"></i> As on site</a>
+      <a class="channel-variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a>
+      <a class="channel-variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
+      <a class="configure" href="/configure/{{channel._id}}"><i class="icon-cog"></i> Configure</a>
     </div>
     <div class="shadow"></div>
   </div>

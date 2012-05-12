@@ -1,0 +1,46 @@
+<header>
+  <div class="container">
+    <div class="row-fluid">
+      <div class="span12">
+        <h1>{{subscription.name}}</h1>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="row-fluid">
+    <div class="span4">
+      <!-- BEGIN FORM -->
+      <div id="subscription" class="well">
+        <h2>Your subscription</h2>
+        <div class="form-element">
+          <label>Channel name: *</label>
+          <input class="name form-text" type="text" name="channel:name" value="{{subscription.name}}" />
+        </div>
+        <a class="btn btn-primary btn-save">Save</a>
+      </div>
+      <div class="well">
+        <h2>Unsubscribe</h2>
+        <p style="margin: 1em 0">This will unsubscribe you from <strong>{{channel.name}}</strong>.<br/>You can subscribe again at any time.</p>
+        <a class="btn btn-danger">Unsubscribe</a>
+      </div>
+      <!-- END FORM -->
+    </div>
+    <div class="span8">
+      <h1 style="margin-bottom: .5em">Rules</h1>
+      <div id="rules">
+        {{#rules}}
+          {{>rule}}
+        {{/rules}}
+      </div>
+      <div class="well">
+        <a class="btn btn-primary btn-save">Save</a>
+        <a class="btn btn-add-rule">Add rule</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var channel_id = '{{channel._id}}';
+  require(['/scripts/controllers/configure.js']);
+</script>

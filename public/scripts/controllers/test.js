@@ -1,0 +1,5 @@
+require([
+  "modal"
+], function() {
+
+});

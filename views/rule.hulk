@@ -1,0 +1,51 @@
+<div class="rule well clearfix">
+  <div class="form-element">
+    <label>Item selector</label>
+    <input class="item form-text" type="text" name="channel:rule:item" value="{{item}}" />
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Target selector</label>
+      <input class="target-selector form-text" type="text" name="channel:rule:target:selector" value="{{target.selector}}" />
+    </div>
+    <div class="form-element">
+      <label>URL attribute</label>
+      <input class="target-url-attribute form-text" type="text" name="channel:rule:target:url_attribute" value="{{target.url_attribute}}" />
+    </div>
+    <div class="form-element">
+      <label>Title attribute</label>
+      <input class="target-title-attribute form-text" type="text" name="channel:rule:target:title_attribute" value="{{target.title_attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Image selector</label>
+      <input class="image-selector form-text" type="text" name="channel:rule:image:selector" value="{{image.selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="image-attribute form-text" type="text" name="channel:rule:image:attribute" value="{{image.attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Score selector</label>
+      <input class="score-selector form-text" type="text" name="channel:rule:score:selector" value="{{score.selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="score-attribute form-text" type="text" name="channel:rule:score:attribute" value="{{score.attribute}}" />
+    </div>
+  </div>
+  <div class="form-container-multiple clearfix">
+    <div class="form-element">
+      <label>Comments selector</label>
+      <input class="comments-selector form-text" type="text" name="channel:rule:comments:selector" value="{{comments.selector}}" />
+    </div>
+    <div class="form-element">
+      <label>attribute</label>
+      <input class="comments-attribute form-text" type="text" name="channel:rule:comments:attribute" value="{{comments.attribute}}" />
+    </div>
+  </div>
+  <a href="#" class="btn btn-warning btn-remove-rule">Remove this rule</a>
+</div>

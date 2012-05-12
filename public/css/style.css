@@ -1,6 +1,8 @@
 body {
-  background: #fafafa !important;
   height: 100%;
+}
+body.app {
+  background: #fafafa !important;
 }
 iframe {
   display: none;
@@ -31,7 +33,9 @@ h3 {
 *:focus {
   outline: none;
 }
-
+.hide {
+  display: none;
+}
 /* RUNWAY ------------------------------------------------------------------- */
 
 .runway {
@@ -166,7 +170,7 @@ aside {
   padding: 0;
   width: 100%;
   visibility: visible;
-  z-index: 10000;
+  z-index: 1000;
 }
 aside.right {
   padding-top: 20px;
@@ -196,13 +200,17 @@ div.subscribed a.subscribe {
 div.unsubscribed a.unsubscribe {
   display: none;
 }
-a.channel-variant {
+a.channel-variant,
+a.configure {
   padding: 3px 6px;
   border-radius: 3px;
   font-size: 11px;
 }
 a.channel-variant.active {
   background: #f1f1f1;
+}
+a.configure {
+  float: right;
 }
 
 /* PAGE: SUBSCRIBE ---------------------------------------------------------- */
@@ -212,6 +220,12 @@ a.channel-variant.active {
 }
 #url {
   width: 40em;
+}
+
+/* PAGE: CONFIGURE ---------------------------------------------------------- */
+
+#subscription input {
+  width: 90%;
 }
 
 /* CHANNELS LIST ------------------------------------------------------------ */
@@ -367,4 +381,8 @@ header {
   height: 5px;
   margin: 15px 0 5px 0;
   width: 100%;
+}
+
+#add-subscription input {
+  width: 90%;
 }

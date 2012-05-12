@@ -32,6 +32,19 @@ require(["pagetty"], function(pagetty) {
       return false;
     });
 
+    $("#add-subscription .btn-subscribe").click(function() {
+      $.ajax("/subscribe", {
+        type: "POST",
+        data: {url: $(".subscribe-url").val()},
+        success: function() {
+          alert('success');
+        },
+        error: function(xhr, status, error) {
+          alert(xhr.responseText);
+        }
+      });
+    });
+
     // Lazy load additional stories when the page is scrolled near to the bottom.
 
     $(window).scroll(function() {

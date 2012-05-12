@@ -14,7 +14,7 @@ function update(force) {
   if (force || now - last_update >= timeout) {
     logger.log.info("Update: Executing new batch...");
 
-    pagetty.updateChannels(false, function() {
+    pagetty.updateChannelItems(false, function() {
       last_update = new Date().getTime();
     });
   }
