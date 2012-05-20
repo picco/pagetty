@@ -1,14 +1,14 @@
 require.config({
   paths: {
-    underscore: 'libraries/ext/underscore',
-    backbone: 'libraries/ext/backbone',
-    icanhaz: 'libraries/ext/icanhaz',
-    lazyload: 'libraries/ext/jquery.lazyload.min',
-    nicescroll: 'libraries/ext/jquery.nicescroll.min',
-    timeago: 'libraries/ext/jquery.timeago',
-    url: 'libraries/ext/jquery.url',
-    ui: 'libraries/ext/jquery-ui.min',
-    pagetty: 'libraries/pagetty',
+    moment: "libraries/moment",
+    history: "libraries/jquery.history",
+    icanhaz: "libraries/icanhaz",
+    nicescroll: "libraries/jquery.nicescroll.min",
+    pagetty: "libraries/pagetty",
+    timeago: "libraries/jquery.timeago",
+    ui: "libraries/jquery-ui.min",
+    underscore: "libraries/underscore",
+    url: "libraries/jquery.url"
   }
 });
 

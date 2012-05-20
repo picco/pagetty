@@ -19,10 +19,6 @@ Controller = {
       });
     });
 
-    $(".btn-back").click(function() {
-      window.location = "/#" + channel_id;
-    });
-
     $(".btn-unsubscribe").click(function() {
       $.ajax("/unsubscribe", {
         type: "POST",
@@ -37,7 +33,9 @@ Controller = {
     });
 
     $('.btn-remove-rule').live('click', function(e) {
-      $(this).parent().remove();
+      if (confirm("Are you sure? This will affect all channels on this domain.")) {
+        $(this).parent().remove();
+      }
       return false;
     });
   },

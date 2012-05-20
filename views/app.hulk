@@ -1,14 +1,15 @@
-<div class="container">
+<!-- LAYOUT -->
+<div class="container clearfix">
   <div class="row">
-    <div class="span10 middle-col"><div class="runway"></div></div>
-    <div class="span6 sidebar">
+    <div class="stage span10"><div class="runway"></div></div>
+    <div class="sidebar span6">
       <aside>
         <div id="account" class="clearfix">
-          <span class="user"><i class="icon-user"></i> Ivo Nellis</span>
-          <a class="btn-logout" href="/logout" title="Sign out"><i class="icon-off"></i> Sign out</a>
+          <span class="user"><i class="icon-user"></i> {{user.name}}</span>
+          <a class="btn-logout" href="/signout" title="Sign out"><i class="icon-off"></i> Sign out</a>
         </div>
         <div id="channels">
-          <div class="header" class="clearfix">
+          <div class="header clearfix">
             <h3>My channels</h3>
             <a href="#add-subscription" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
@@ -20,6 +21,7 @@
     </div>
   </div>
 </div>
+<!-- MODALS -->
 <div class="modal hide" id="add-subscription">
   <div class="modal-header">
     <a href="#" class="close" data-dismiss="modal">×</a>
@@ -33,8 +35,12 @@
     <a href="#" class="btn btn-primary btn-subscribe">Subscribe</a>
   </div>
 </div>
+<!-- CONTROLLER -->
 <script type="text/javascript">
-  var user = {{{user}}};
-  var channels = {{{channels}}};
-  require(['/scripts/controllers/app.js']);
+  var data = {{{data}}};
+  require(['/scripts/libraries/pagetty.js'], function(pagetty) {
+    $(document).ready(function() {
+      pagetty.init(data.user, data.channels);
+    });
+  });
 </script>

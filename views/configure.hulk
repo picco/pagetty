@@ -1,8 +1,8 @@
 <header>
   <div class="container">
-    <div class="row-fluid">
+    <div class="row">
       <div class="span12">
-        <h1>{{subscription.name}}</h1>
+        <h1>{{subscription.name}} - channel settings</h1>
       </div>
     </div>
   </div>
@@ -18,7 +18,6 @@
           <input class="name form-text" type="text" name="channel:name" value="{{subscription.name}}" />
         </div>
         <a class="btn btn-primary btn-save">Save all settings</a>
-        <a class="btn btn-back">Back to the app</a>
       </div>
       <div class="well">
         <h2>Unsubscribe</h2>
@@ -28,15 +27,18 @@
       <!-- END FORM -->
     </div>
     <div class="span8">
-      <h1 style="margin-bottom: .5em">Rules</h1>
+      <h1 style="margin-bottom: .5em;">Rules for {{channel.domain}}</h1>
+      <div class="alert alert-danger">
+        <strong>Please remember</strong> - rules that you can modify here <strong>affect all the pages</strong> on {{channel.domain}}.
+      </div>
       <div id="rules">
         {{#rules}}
           {{>rule}}
         {{/rules}}
       </div>
-      <div class="well">
+      <div class="form-actions">
+        <a class="btn btn-warning btn-add-rule">Add rule</a>
         <a class="btn btn-primary btn-save">Save all settings</a>
-        <a class="btn btn-add-rule">Add rule</a>
       </div>
     </div>
   </div>

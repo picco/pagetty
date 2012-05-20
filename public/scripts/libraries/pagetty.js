@@ -4,7 +4,9 @@ define([
   'text!templates/channel_all.html',
   'icanhaz',
   'timeago',
-  'underscore'
+  'underscore',
+  'history',
+  'moment'
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
   var Pagetty = {
     channels: {},
@@ -13,36 +15,115 @@ define([
     activeVariant: false,
     pager: 9,
     state: {channels: {}},
-    updates: {},
-    rendered: [],
+    updates: [],
 
     init: function(user, channels) {
       var self = this;
       this.user = user;
-
       this.subscriptions = user.subscriptions;
-
-      for (var i in channels) {
-        // Store channels as object with chanannel id's as keys.
-        this.channels[channels[i]._id] = channels[i];
-        // Create channel navigation links.
-        $("#channels .list").append('<li class="channel channel-' + channels[i]._id + '"><a href="#' + channels[i]._id + '" data-channel="' + channels[i]._id + '">' + this.subscriptions[channels[i]._id].name + '</a></li>');
-      }
 
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
+      for (var i in channels) {
+        this.channels[channels[i]._id] = channels[i];
+        $("#channels .list").append('<li class="channel channel-' + channels[i]._id + '"><a href="#' + channels[i]._id + '" data-channel="' + channels[i]._id + '">' + this.subscriptions[channels[i]._id].name + '</a></li>');
+      }
+
       for (i in this.channels) {
         this.state.channels[this.channels[i]._id] = this.channels[i].items_added;
       }
 
-      $(".runway .more a").click(function() {
-        self.loadMore($(this).data("channel"));
+      $("#channels li.channel a").bind("click", function() {
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+        History.pushState({channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        self.showChannel($(this).data("channel"), $(this).data("variant"));
         return false;
       });
 
-      return this;
+      $(".channel a.variant").live("click", function() {
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+        History.pushState({channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        self.showChannel($(this).data("channel"), $(this).data("variant"));
+        return false;
+      });
+
+      $(".channel .more").live("click", function() {
+        self.loadMore(this.activeChannel);
+        return false;
+      });
+
+      $(".new-stories").live("click", function(e) {
+        e.preventDefault();
+        self.refreshChannels();
+        return false;
+      });
+
+      $("#add-subscription .btn-subscribe").click(function() {
+        self.clearMessages();
+
+        $.ajax("/subscribe", {
+          type: "POST",
+          data: {url: $(".subscribe-url").val()},
+          success: function(data) {
+            window.location = "/configure/" + data.channel_id;
+          },
+          error: function(xhr, status, error) {
+            self.error(xhr.responseText, "subscribe-messages");
+          }
+        });
+      });
+
+      // Sidebar scroll
+
+      $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
+
+      // Act on popstate
+
+      History.Adapter.bind(window, "statechange", function() {
+        var stateData = History.getState().data;
+
+        if (stateData.channel) {
+          self.showChannel(stateData.channel, stateData.variant);
+        }
+      });
+
+      // Lazy load additional stories when the page is scrolled near to the bottom.
+
+      $(window).scroll(function() {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 60) {
+          if ($(window).width() > 960) self.loadMore();
+        }
+      });
+
+      // Auto-update channels.
+
+      window.setInterval(function() {
+        self.updateChannels();
+      }, 10000);
+
+      // Open a requested channel.
+
+      var path = window.location.pathname.split("/"), channel = "all", variant;
+
+      if (path[1] == "channel") {
+        if (path.length == 3) {
+          channel = path[2];
+        }
+        else if (path.length == 4) {
+          channel = path[2];
+          variant = path[3];
+        }
+      }
+
+      if (channel == "all" || self.channels[channel]) {
+        self.showChannel(channel, variant);
+        History.pushState({channel: channel, variant: variant}, null, this.channelUrl(channel, variant));
+      }
+      else {
+        window.location = "/";
+      }
     },
     sortItems: function(items_reference, variant) {
       var items = _.clone(items_reference);
@@ -81,11 +162,12 @@ define([
       var html = "";
 
       for (var i in items) {
-        items[i].stamp = this.ISODateString(new Date(items[i].created));
-        items[i].score = this.formatScore(items[i].score);
+        items[i].created = moment(items[i].created);
+        items[i].stamp = moment(items[i].created).format();
+        items[i].score = parseInt(items[i].score) ?  this.formatScore(items[i].score) : false;
         items[i].visible = (i <= this.pager) ? true : false;
-        items[i].class = items[i].visible ? "show" : "hide";
-        if (items[i].isnew) items[i].class += " new";
+        items[i].className = items[i].visible ? "show" : "hide";
+        if (items[i].isnew) items[i].className += " new";
         if (items[i].id && items[i].image) items[i].image_url = "/images/" + items[i].id + ".jpg";
         html += ich.channelItem(items[i], true);
       }
@@ -134,8 +216,10 @@ define([
       }
 
       $(".runway .channel-" + channel_id + " abbr.timeago").timeago();
-      $('#channels .list li, a.channel-variant').removeClass('active');
-      $('#channels .list li.channel-' + channel_id + ", a.channel-variant." + channel_id + "-" + variant).addClass('active');
+      $('#channels .list li, a.variant').removeClass('active');
+      $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
+
+      if (this.newItems) this.showUpdateNotification();
 
       $(".channel-" + channel_id + " .items .show img").each(function(index, element) {
         var img = new Image();
@@ -157,12 +241,13 @@ define([
       var selection = $(".channel-" + channel_id + " .items .hide");
 
       if (selection.size()) {
-        $(".runway .channel-" + channel_id).append('<div class="more"><a href="#" class="button" data-channel="' + channel_id + '">Show more stories</a></div>');
+        $(".runway .channel-" + channel_id).append('<a class="more" href="#"><i class="icon-arrow-down"></i> Show more stories</a></div>');
       }
 
       this.activeChannel = channel_id;
       this.activeVariant = variant;
-      this.updateUI();
+
+      window.scrollTo(0, 0);
 
       return false;
     },
@@ -179,23 +264,20 @@ define([
       var self = this;
 
       $.getJSON('/update', {state: this.state}, function(updates) {
-        $.each(updates, function(index, value) {
-          self.state.channels[value._id] = value.items_added;
-          self.updates[value._id] = value.items;
-          self.showUpdateNotification();
-        });
+        if (updates.length) {
+          $.each(updates, function(index, value) {
+            self.state.channels[value._id] = value.items_added;
+            self.updates[value._id] = value.items;
+            self.newItems = true;
+            self.showUpdateNotification();
+          });
+        }
       });
-    },
-    showUpdateNotification: function() {
-      $('#refresh').show();
-    },
-    hideUpdateNotification: function() {
-      $('#refresh').hide();
     },
     refreshChannels: function() {
       for (var channel_id in this.channels) {
-        for (var i in this.channels[channel_id]) {
-          this.channels[channel_id][i].isnew = false;
+        for (var i in this.channels[channel_id].items) {
+          this.channels[channel_id].items[i].isnew = false;
         }
       }
 
@@ -206,18 +288,30 @@ define([
         this.channels[channel_id].items = this.updates[channel_id];
       }
 
+      this.newItems = false;
       this.updates = [];
       this.showChannel("all", "time");
+      History.pushState({channel: "all", variant: "time"}, null, this.channelUrl("all", "time"));
       this.hideUpdateNotification();
     },
+    showUpdateNotification: function() {
+      $(".app .runway").addClass("with-messages");
+      $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> New stories available. Click here to update.</a>');
+    },
+    hideUpdateNotification: function() {
+      $(".app .runway").removeClass("with-messages");
+      $(".channel .messages").html();
+    },
     itemIsNew: function(channel_id, item) {
-      for (var i in this.channels[channel_id]) {
-        if (this.channels[channel_id][i]._id == item._id) return false;
+      for (var j in this.channels[channel_id].items) {
+        if (this.channels[channel_id].items[j].id == item.id) {
+          return false;
+        }
       }
       return true;
     },
-    loadMore: function(channel_id) {
-      var selection = $(".channel-" + channel_id + " .items .hide");
+    loadMore: function() {
+      var selection = $(".channel-" + this.activeChannel + " .items .hide");
 
       if (selection.length) {
         selection.slice(0, this.pager + 1).each(function(index, element) {
@@ -227,13 +321,8 @@ define([
         });
       }
       else {
-        $(".channel-" + channel_id + " .more").html("You have reached the end :)");
+        $(".channel-" + this.activeChannel + " .more").html("You have reached the end :)");
       }
-    },
-    autoload: function() {
-      this.loadMore(this.activeChannel);
-    },
-    updateUI: function() {
     },
     channelList: function() {
       var list = {all: "All stories"};
@@ -244,9 +333,21 @@ define([
 
       return list;
     },
+    channelUrl: function(channelId, variant) {
+      if (channelId == "all") {
+        if (!variant || variant == "time") {
+          return "/"
+        }
+        else {
+          return "/channel/all/" + variant;
+        }
+      }
+      else {
+        return "/channel/" + channelId + ((!variant || variant == "original") ? "" : ("/" + variant));
+      }
+    },
     error: function(text, container) {
       $("#" + container).html("<div class=\"alert alert-error\">" + text + "</div>");
-      // <a class=\"close\" data-dismiss=\"alert\" href=\"#\">&times;</a>
     },
     clearMessages: function() {
       $(".messages").html("");

@@ -1,1 +1,33 @@
-Welcome, my friend!
+<!-- LAYOUT -->
+<div class="frontpage container">
+  <div class="row">
+    <div class="span16">
+      <div class="hero-unit">
+        <h1>Pagetty</h1>
+        <h2>Forget RSS. Discover a totally different news reader.</h2>
+        <form class="sign-in form-inline" action="/sign-in" method="post">
+          <input class="username input-medium" type="text" name="username" placeholder="Username" />
+          <input class="password input-medium" type="password" name="password" placeholder="Password" />
+          <input type="submit" class="btn btn-sign-in" value="Sign in" />
+        </form>
+        <noscript>
+          <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
+        </noscript>
+        <div class="beta-message">
+          We are in early beta, signups will be available soon.
+        </div>
+      </div>
+      <div class="logos">
+        <a href="http://nodejs.org">
+          <img src="/images/nodejs.png" alt="Powered by NodeJS" title="Powered by NodeJS" />
+        </a>
+        <a href="http://www.w3.org/html/logo/">
+          <img src="http://www.w3.org/html/logo/badge/html5-badge-h-solo.png" width="63" height="64" alt="HTML5 Powered" title="HTML5 Powered">
+        </a>
+        <a href="http://mongodb.org">
+          <img src="/images/mongodb.png" alt="Powered by MongoDB" title="Powered by MongoDB" />
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

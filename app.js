@@ -74,94 +74,30 @@ var restricted = function(req, res, next) {
 /**
  * Render the app.
  */
-app.get("/", function(req, res) {
-  var sequence = futures.sequence(), err, user, channels;
-
-  pagetty.login("ivo", "ivonellis", function(err, user) {
-    if (err) {
-      res.send(400);
-    }
-    else {
-      req.session.user = user;
-
-      sequence.then(function(next, err) {
-        pagetty.loadUser(req.session.user._id, function(u) {
-          user = u;
-          next();
-        });
-      })
-      .then(function(next, err) {
-        pagetty.loadSubscribedChannels(user, function(c) {
-          channels = c;
-          next();
-        });
-      })
-      .then(function(next, err) {
-        res.render("app", {
-          title: "pagetty",
-          user: JSON.stringify(req.session.user),
-          channels: JSON.stringify(channels),
-          bodyClasses: "app"
-        });
+app.get(/(^\/$)|(^\/channel\/)/, function(req, res) {
+  if (req.session.user) {
+    pagetty.loadSubscribedChannels(req.session.user, function(channels) {
+      res.render("app", {
+        user: req.session.user,
+        data: JSON.stringify({
+          user: req.session.user,
+          channels: channels,
+        }),
+        bodyClass: "app",
       });
-    }
-  });
+    });
+  }
+  else {
+    res.render("index");
+  }
 });
 
 /**
  * Client auto-update call.
  */
-app.get('/update', restricted, function(req, res) {
+app.get("/update", restricted, function(req, res) {
   pagetty.loadUserChannelUpdates(req.session.user, req.param("state"), function(updates) {
     res.json(updates);
-  });
-});
-
-/**
- * GET new channel form.
- */
-app.get('/channel/add', restricted, function(req, res) {
-  var channel = {components: [{}]};
-
-  pagetty.fetchLinks(req.query.url, function(err, links) {
-    res.render('channel_form', {channel: channel, links: links});
-  });
-});
-
-/**
- * Validate channel data, try to fetch some items from the channel.
- */
-app.post('/channel/validate', restricted, function(req, res) {
-  var channel = req.body;
-  var errors = pagetty.validateChannel(channel);
-
-  if (errors.length) {
-    res.json(errors, 400);
-  }
-  else {
-    pagetty.fetchChannelItems(channel, function(err, channel) {
-      if (err) {
-        res.json({fetch_error: err}, 400);
-      }
-      else {
-        res.json(channel, 200);
-      }
-    });
-  }
-});
-
-/**
- * Display a preview of a single channel.
- */
-app.get('/preview/:id', function(req, res) {
-  pagetty.loadChannel(req.params.id, function(err, channel) {
-    if (err) {
-      log.error(err);
-      res.send(404);
-    }
-    else {
-      res.render('preview', {channel: JSON.stringify(channel)});
-    }
   });
 });
 
@@ -284,9 +220,24 @@ app.post("/configure", restricted, function(req, res) {
 });
 
 /**
+ * Log the user in to the system.
+ */
+app.post("/sign-in", function(req, res) {
+  pagetty.authenticate(req.body.username, req.body.password, function(err, user) {
+    if (err) {
+      res.redirect("/");
+    }
+    else {
+      req.session.user = user;
+      res.redirect("/");
+    }
+  });
+});
+
+/**
  * Display sign-up form.
  */
-app.get('/signup', function(req, res) {
+app.get("/signup", function(req, res) {
   res.render('signup');
 });
 
@@ -307,7 +258,7 @@ app.post("/signup", function(req, res) {
 /**
  * Log the user out of the system.
  */
-app.get("/logout", function(req, res) {
+app.get("/signout", function(req, res) {
   delete req.session.user;
   res.redirect("/");
 });
@@ -349,33 +300,6 @@ app.post('/signup/profile', function(req, res) {
       res.json(err, 400);
     }
     else {
-      res.send(200);
-    }
-  });
-});
-
-/**
- * Display the login form.
- */
-secure.get("/login", function(req, res) {
-  if (req.session.user) {
-    res.redirect(config.domain);
-  }
-  else {
-    res.render("login");
-  }
-});
-
-/**
- * Log the user in to the system.
- */
-secure.post("/login", function(req, res) {
-  pagetty.login(req.body.name, req.body.pass, function(err, user) {
-    if (err) {
-      res.send(400);
-    }
-    else {
-      req.session.user = user;
       res.send(200);
     }
   });

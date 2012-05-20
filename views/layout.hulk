@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagetty</title>
+  <title>Pagetty (beta)</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="/css/style.css">
-  <script data-main="/scripts/main" src="/scripts/libraries/ext/require-jquery.js"></script>
+  <meta name="description" content="Pagetty is a news reader that can follow any webpage. No RSS required." />
+  <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js"></script>
 </head>
-<body {{#bodyClasses}}class="{{bodyClasses}}"{{/bodyClasses}}>
+<body class="{{{bodyClass}}}">
   {{{ body }}}
   <script type="text/javascript" src="/bootstrap/bootstrap/js/bootstrap.min.js"></script>
   <script type="text/javascript">

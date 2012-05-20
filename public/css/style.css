@@ -14,6 +14,11 @@ a:hover {
 h1 {
   font-weight: bold !important;
 }
+.modal-messages .alert {
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}
 
 /* TYPOGRAPHY & FONTS ------------------------------------------------------- */
 
@@ -22,44 +27,53 @@ h1, h2, h3 {
   font-weight: normal;
   text-rendering: auto !important;
 }
-
 @font-face {
   font-family: GraublauWeb;
-  src: url('/fonts/GraublauWeb.otf') format(truetype);
+  src: url("/fonts/GraublauWeb.eot?") format("eot"), url("/fonts/GraublauWeb.woff") format("woff"), url("/fonts/GraublauWeb.otf") format("opentype");
 }
 @font-face {
   font-family: GraublauWeb;
   font-weight: bold;
-  src: url('/fonts/GraublauWebBold.otf') format(truetype);
+  src: url("/fonts/GraublauWeb.eot?") format("eot"), url("/fonts/GraublauWebBold.woff") format("woff"), url("/fonts/GraublauWebBold.otf") format("opentype");
 }
 
 /* REUSABLE COMPONENTS ------------------------------------------------------ */
 
+header {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  padding: 40px 0;
+}
 .btn-a {
   font-size: 11px;
   border-radius: 3px;
   padding: 3px 6px;
+  white-space: nowrap;
 }
 .btn-a.active {
   background: #f1f1f1;
 }
-
-.shadow {
-  -webkit-mask-box-image: -webkit-linear-gradient(left,transparent 0%, rgb(0,0,0) 50%,transparent 100%);
-  background: -webkit-linear-gradient(top, rgba(0, 0, 0,.2) 0%,rgba(0, 0, 0, 0) 100%); /* Chrome10+,Safari5.1+ */
-  height: 5px;
-  margin: 15px 0 5px 0;
-  width: 100%;
+.form-container-multiple {
+  margin: 1em 0;
+}
+.form-container-multiple .form-element {
+  float: left;
+  margin: 0 1em 0 0;
+}
+.form-element {
+  margin: 1em 0;
+}
+.form-description {
+  clear: both;
+  color: #888;
+  font-size: 11px;
 }
 
-/* HELPERS ------------------------------------------------------------------ */
-
-/* GLOBAL STYLES ------------------------------------------------------------ */
+/* APP ---------------------------------------------------------------------- */
 
 #account {
   font-size: 11px;
   margin: 15px;
-  margin-bottom: 15px;
 }
 #account .btn-logout {
   float: right;
@@ -71,138 +85,201 @@ h1, h2, h3 {
   color: #333;
   font-size: 11px;
 }
-
-/* APP ---------------------------------------------------------------------- */
-
+#add-subscription input {
+  width: 95%;
+}
+#channels {
+  border: 1px solid #eee;
+  border-radius: 3px;
+  margin-bottom: 20px;
+}
+#channels .header {
+  border-bottom: 1px solid #eee;
+  padding: 15px;
+}
+#channels .header a {
+  float: right;
+}
+#channels .header h3 {
+  float: left;
+  line-height: 28px;
+  margin: 0;
+}
+#channels .list {
+  margin: 15px 0;
+}
+#channels .list > li > a {
+  padding: 6px 15px !important;
+}
 .app {
   background: #fafafa !important;
 }
 .app .container,
 .app .row,
-.app .middle-col {
+.app .stage {
   height: 100%;
 }
-.runway {
-  background: #fff;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
-  margin-bottom: 20px;
-  padding-top: 115px;
-  min-height: 100%;
-}
-.runway h2 {
-  line-height: 28px;
-}
-.runway h2 a  {
-  display: block;
-  color: #000;
-}
-.runway h2 a:hover  {
-  color: #08c;
-}
-.runway h2 a:visited  {
-  color: #999;
-}
-.runway .item {
-  position: relative;
-  background: #fff;
-  border-width: 0 0 1px 0;
-  -webkit-border-image: -webkit-linear-gradient(left, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, .2) 50%, rgba(0, 0, 0, 0) 100%) 0 0 100% 0;
-  padding: 0 20px 20px 20px;
-  margin-bottom: 20px;
-  z-index: 10;
-}
-.runway .details {
-  margin: 10px 0 0;
-  line-height: 20px;
-  font-size: 10px;
-  color: #999;
-  text-transform: uppercase;
-}
-.runway .details abbr {
-  border-bottom: none;
-}
-.runway .title {
+.app aside {
   position: fixed;
   top: 0;
+  width: 340px;
+  height: 100%;
+  padding-right: 6px;
+}
+.app aside:focus {
+  outline: none;
+}
+.app .configure {
+  float: right;
+}
+.app .stage {
   background: #fff;
+  padding-bottom: 20px;
+}
+.app .runway {
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  padding: 115px 0 1px 0;
+  min-height: 100%;
+}
+.app .runway.with-messages {
+  padding-top: 155px;
+}
+.channel div.title {
+  position: fixed;
+  top: 0;
   overflow: hidden;
+  background: #fff;
   padding: 10px 0 0 0;
   width: 578px;
   z-index: 100;
 }
-.runway .title h1 {
+.channel div.title .wrapper {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+  padding: 0 20px;
+}
+.channel div.title h1 {
   line-height: 36px;
   margin: 6px 0;
-  padding: 0 20px;
   height: 40px;
   overflow: hidden;
 }
-.runway .title a {
+.channel div.title a {
   color: #333;
 }
-.runway .title a:hover {
+.channel div.title a:hover {
   color: #08c;
 }
-.runway .more {
+.channel .items {
+  background: #fff;
+}
+.channel .more {
   margin: 20px;
   text-align: center;
 }
-.runway .more .button {
+.channel .more .button {
   display: block;
   text-align: center;
 }
-.runway .media {
-  margin-top: 10px;
+.channel .new-stories,
+.channel .more {
+  display: block;
+  background: #D9EDF7;
+  font-size: 11px;
+  text-align: center;
+  border-radius: 3px;
+  margin: 10px 0 10px 0;
+  padding: 6px 6px;
 }
-.runway .score {
-  font-family: Helvetica, Arial, sans-serif;
-  background: #f1f1f1;
+.channel .more {
+  margin: 20px;
+}
+.channel .variants {
+  margin-bottom: 15px;
+}
+.channel .item {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 20px;
+  padding: 0 20px 20px 20px;
+}
+.channel .item.new .new {
+  display: block !important;
+}
+.channel .item .title {
+  position: relative;
+  margin-bottom: 10px;
+}
+.channel .item .title a  {
+  display: block;
+  color: #333;
+  line-height: 28px;
+}
+.channel .item .title a:hover {
+  color: #08c;
+}
+.channel .item .title a:visited  {
+  color: #999;
+}
+.channel .item .title .new {
+  display: none;
+  position: absolute;
+  left: -20px;
+  background: red;
+  width: 6px;
+  height: 1em;
+}
+.channel .item .meta {
+  color: #999;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+.channel .item .meta abbr {
+  border-bottom: none;
+}
+.channel .item .image img {
+  padding-top: 10px;
+}
+.channel .item .score {
   color: #000;
-  font-size: 12px;
-  line-height: 12px;
-  padding: 5px 8px;
+  background: #f1f1f1;
+  font-size: 11px;
+  line-height: 11px;
   border-radius: 3px;
   margin-right: 6px;
+  padding: 5px 8px;
 }
-.runway .score:hover {
+.channel .item .score:hover {
   background: #dadada;
 }
-.runway .score i {
-  padding-right: 3px;
-}
-.runway .summary {
-  margin: 10px 0;
-}
-.runway .variants {
-  margin: 0 20px;
-}
 
-/* SIDEBAR ------------------------------------------------------------------ */
+/* PAGE: FRONT -------------------------------------------------------------- */
 
-aside {
-  position: fixed;
+.frontpage {
+  padding-top: 20px;
 }
-aside.right:focus {
-  outline: none;
+.frontpage .logos {
+  text-align: center;
 }
-.nav-list > li > a {
-  padding: 6px 15px !important;
+.frontpage .logos a {
+  padding: 0 1em;
 }
-
-/* CHANNELS ----------------------------------------------------------------- */
-
-a.configure {
-  float: right;
+.frontpage h1 {
+  margin-bottom: 20px;
 }
-
-/* PAGE: SUBSCRIBE ---------------------------------------------------------- */
-
-#page-subscribe h2 {
-  margin-bottom: .5em;
+.frontpage h2 {
+  margin-bottom: 1em;
 }
-#url {
-  width: 40em;
+.frontpage .sign-in {
+  margin-bottom: 20px;
+}
+.frontpage .noscript {
+  display: block;
+  color: yellow;
+  background: red;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  padding: 1em;
 }
 
 /* PAGE: CONFIGURE ---------------------------------------------------------- */
@@ -211,77 +288,43 @@ a.configure {
   width: 90%;
 }
 
-/* FORM ELEMENTS ------------------------------------------------------------ */
-
-.form-element {
-  margin: 1em 0;
-}
-.form-container-multiple {
-  margin: 1em 0;
-}
-.form-container-multiple .form-element {
-  float: left;
-  margin: 0 1em 0 0;
-}
-.form-text {
-}
-.form-element-large {
-  margin: 20px 0;
-}
-.form-element-large label {
-  font-family: GraublauWeb;
-  font-size: 20px;
-  font-weight: normal;
-  margin-bottom: 10px;
-}
-.form-element-large .form-text {
-}
-
 /* RESPONSIVE --------------------------------------------------------------- */
 
-/* TEST */
 
-header {
-  padding: 30px 0;
-  margin-bottom: 30px;
-  border-bottom: 1px solid #CCC;
-}
-#add-subscription input {
-  width: 80%;
-}
-.modal-messages .alert {
-  border: none;
-  border-radius: 0;
-  margin: 0;
-}
-#nav-channels h3 {
-  margin: 1em 14px .5em 14px;
-}
-#nav-channels .nav-list {
-  margin: 14px 0;
-}
-#search {
-  margin-bottom: 20px;
-}
-#channels-header {
-  border-bottom: 1px solid #eee;
-  padding: 14px;
-}
-#channels-header h3 {
-  float: left;
-  margin: 0;
-  line-height: 28px;
-}
-#channels-header a {
-  float: right;
-}
-.middle-col {
-  background: #fff;
-}
-.sidebar-left {
-  pading-top: 20px;
-}
-.xxx {
-  border: 1px solid #eee;
-  border-radius: 3px;
+@media (max-width: 960px) {
+  .container {
+    width: auto;
+  }
+  .row {
+    margin-left: 0;
+  }
+  [class*="span"] {
+    display: block;
+    float: none;
+    width: auto;
+    margin-left: 0;
+  }
+  #account {
+    margin-top: 0;
+  }
+  .app .container,
+  .app .row,
+  .app .stage {
+    height: auto;
+  }
+  .app aside {
+    position: static;
+    width: auto;
+    padding: 0 20px;
+  }
+  .app .runway {
+    border: none;
+    padding: 0 !important;
+  }.app .stage {
+    padding-bottom: 0;
+  }
+  .channel div.title {
+    position: static;
+    width: auto;
+  }
 }
