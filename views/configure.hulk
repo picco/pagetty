@@ -17,12 +17,13 @@
           <label>Channel name: *</label>
           <input class="name form-text" type="text" name="channel:name" value="{{subscription.name}}" />
         </div>
-        <a class="btn btn-primary btn-save">Save</a>
+        <a class="btn btn-primary btn-save">Save all settings</a>
+        <a class="btn btn-back">Back to the app</a>
       </div>
       <div class="well">
         <h2>Unsubscribe</h2>
         <p style="margin: 1em 0">This will unsubscribe you from <strong>{{channel.name}}</strong>.<br/>You can subscribe again at any time.</p>
-        <a class="btn btn-danger">Unsubscribe</a>
+        <a class="btn btn-danger btn-unsubscribe">Unsubscribe</a>
       </div>
       <!-- END FORM -->
     </div>
@@ -34,7 +35,7 @@
         {{/rules}}
       </div>
       <div class="well">
-        <a class="btn btn-primary btn-save">Save</a>
+        <a class="btn btn-primary btn-save">Save all settings</a>
         <a class="btn btn-add-rule">Add rule</a>
       </div>
     </div>

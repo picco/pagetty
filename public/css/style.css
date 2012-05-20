@@ -1,75 +1,107 @@
+
+/* GLOBAL DEFAULTS ---------------------------------------------------------- */
+
+html,
 body {
   height: 100%;
 }
-body.app {
-  background: #fafafa !important;
+a {
+  text-decoration: none;
 }
-iframe {
-  display: none;
+a:hover {
+  text-decoration: none;
 }
 h1 {
+  font-weight: bold !important;
+}
+
+/* TYPOGRAPHY & FONTS ------------------------------------------------------- */
+
+h1, h2, h3 {
+  font-family: GraublauWeb;
+  font-weight: normal;
+  text-rendering: auto !important;
+}
+
+@font-face {
+  font-family: GraublauWeb;
+  src: url('/fonts/GraublauWeb.otf') format(truetype);
+}
+@font-face {
   font-family: GraublauWeb;
   font-weight: bold;
-  text-rendering: auto !important;
+  src: url('/fonts/GraublauWebBold.otf') format(truetype);
 }
-h2 {
-  font-family: GraublauWeb;
-  font-weight: normal;
-  text-rendering: auto !important;
-}
-h3 {
-  font-family: GraublauWeb;
-  font-weight: normal;
-  text-rendering: auto !important;
-}
-.center-col {
-}
-.root-col {
-  margin-top: 20px;
-}
-#nav-channels {
-  padding: 16px 0;
-}
-*:focus {
-  outline: none;
-}
-.hide {
-  display: none;
-}
-/* RUNWAY ------------------------------------------------------------------- */
 
+/* REUSABLE COMPONENTS ------------------------------------------------------ */
+
+.btn-a {
+  font-size: 11px;
+  border-radius: 3px;
+  padding: 3px 6px;
+}
+.btn-a.active {
+  background: #f1f1f1;
+}
+
+.shadow {
+  -webkit-mask-box-image: -webkit-linear-gradient(left,transparent 0%, rgb(0,0,0) 50%,transparent 100%);
+  background: -webkit-linear-gradient(top, rgba(0, 0, 0,.2) 0%,rgba(0, 0, 0, 0) 100%); /* Chrome10+,Safari5.1+ */
+  height: 5px;
+  margin: 15px 0 5px 0;
+  width: 100%;
+}
+
+/* HELPERS ------------------------------------------------------------------ */
+
+/* GLOBAL STYLES ------------------------------------------------------------ */
+
+#account {
+  font-size: 11px;
+  margin: 15px;
+  margin-bottom: 15px;
+}
+#account .btn-logout {
+  float: right;
+  color: #333;
+  font-size: 11px;
+}
+#account .user {
+  float: left;
+  color: #333;
+  font-size: 11px;
+}
+
+/* APP ---------------------------------------------------------------------- */
+
+.app {
+  background: #fafafa !important;
+}
+.app .container,
+.app .row,
+.app .middle-col {
+  height: 100%;
+}
 .runway {
   background: #fff;
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
-  visibility: visible;
-  opacity: 1;
   margin-bottom: 20px;
+  padding-top: 115px;
+  min-height: 100%;
 }
 .runway h2 {
-  font-family: GraublauWeb;
-  font-weight: normal;
-  text-rendering: auto;
   line-height: 28px;
 }
 .runway h2 a  {
   display: block;
   color: #000;
-  text-decoration: none;
-  vertical-align: middle;
 }
 .runway h2 a:hover  {
   color: #08c;
-  text-decoration: none;
 }
 .runway h2 a:visited  {
   color: #999;
-}
-.runway h2 a:focus {
-  color: red;
-  outline: none;
-}
-.runway .items {
 }
 .runway .item {
   position: relative;
@@ -79,20 +111,6 @@ h3 {
   padding: 0 20px 20px 20px;
   margin-bottom: 20px;
   z-index: 10;
-}
-.runway .item div.new {
-  position: absolute;
-  color: #fff;
-  background: #ff6666;
-  width: 8px;
-  height: 28px;
-  top: 0px;
-  left: 0px;
-}
-.runway .item:first-child {
-}
-.runway .item-hidden {
-  display: none;
 }
 .runway .details {
   margin: 10px 0 0;
@@ -104,28 +122,27 @@ h3 {
 .runway .details abbr {
   border-bottom: none;
 }
-.runway .channel {
-}
-.runway .channel-normal .site {
-}
 .runway .title {
   position: fixed;
   top: 0;
   background: #fff;
   overflow: hidden;
   padding: 10px 0 0 0;
+  width: 578px;
   z-index: 100;
 }
 .runway .title h1 {
-  line-height: 50px;
+  line-height: 36px;
+  margin: 6px 0;
   padding: 0 20px;
+  height: 40px;
+  overflow: hidden;
 }
 .runway .title a {
   color: #333;
 }
 .runway .title a:hover {
   color: #08c;
-  text-decoration: none;
 }
 .runway .more {
   margin: 20px;
@@ -150,7 +167,6 @@ h3 {
 }
 .runway .score:hover {
   background: #dadada;
-  text-decoration: none;
 }
 .runway .score i {
   padding-right: 3px;
@@ -166,27 +182,9 @@ h3 {
 
 aside {
   position: fixed;
-  top: 0;
-  padding: 0;
-  width: 100%;
-  visibility: visible;
-  z-index: 1000;
 }
-aside.right {
-  padding-top: 20px;
-}
-aside:focus {
+aside.right:focus {
   outline: none;
-}
-#nav-channels {
-  margin-bottom: 20px;
-}
-#refresh {
-  display: none;
-  margin-bottom: 15px;
-}
-#refresh .button {
-  padding: 1em;
 }
 .nav-list > li > a {
   padding: 6px 15px !important;
@@ -194,21 +192,6 @@ aside:focus {
 
 /* CHANNELS ----------------------------------------------------------------- */
 
-div.subscribed a.subscribe {
-  display: none;
-}
-div.unsubscribed a.unsubscribe {
-  display: none;
-}
-a.channel-variant,
-a.configure {
-  padding: 3px 6px;
-  border-radius: 3px;
-  font-size: 11px;
-}
-a.channel-variant.active {
-  background: #f1f1f1;
-}
 a.configure {
   float: right;
 }
@@ -226,25 +209,6 @@ a.configure {
 
 #subscription input {
   width: 90%;
-}
-
-/* CHANNELS LIST ------------------------------------------------------------ */
-
-.channels .channel {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 1em;
-  margin-bottom: 1em;
-}
-.channels .channel:last-child {
-  margin-bottom: 0;
-}
-.channels .info {
-  float: left;
-}
-.channels .subscribe {
-  float: right;
 }
 
 /* FORM ELEMENTS ------------------------------------------------------------ */
@@ -273,99 +237,7 @@ a.configure {
 .form-element-large .form-text {
 }
 
-/* FONTS -------------------------------------------------------------------- */
-
-@font-face {
-  font-family: GraublauWeb;
-  src: url('/fonts/GraublauWeb.otf') format(truetype);
-}
-@font-face {
-  font-family: GraublauWeb;
-  font-weight: bold;
-  src: url('/fonts/GraublauWebBold.otf') format(truetype);
-}
-@font-face {
-  font-family: 'Lobster';
-  src: url('/fonts/Lobster.eot');
-  src: url('/fonts/Lobster.eot?#iefix') format('embedded-opentype'),
-       url('/fonts/Lobster.woff') format('woff'),
-       url('/fonts/Lobster.ttf') format('truetype'),
-       url('/fonts/Lobster.svg#Lobster13Regular') format('svg');
-  font-weight: normal;
-  font-style: normal;
-}
-
-/* */
-.logo {
-  float: right;
-  font-family: Lobster;
-  background: #eee;
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#F4F4F4), to(#ECECEC));
-  background-image: -moz-linear-gradient(#F4F4F4, #ECECEC);
-  background-image: -o-linear-gradient(#F4F4F4, #ECECEC);
-  background-image: linear-gradient(#F4F4F4, #ECECEC);
-  padding: 20px;
-  border: 1px solid #d4d4d4;
-  border-top: none;
-  border-bottom-left-radius: 5px;
-  border-bottom-right-radius: 5px;
-  padding-top: 20px;
-  cursor: pointer;
-}
-.logo .name {
-  font-size: 42px;
-  padding-bottom: 20px;
-}
-.logo .tagline {
-  margin-left: 2px;
-}
-.logo a {
-  display: block;
-  color: #000;
-}
-.logo:hover a {
-  color: #08c;
-  text-decoration: none;
-}
-
 /* RESPONSIVE --------------------------------------------------------------- */
-
-@media (max-width: 767px) {
-  aside {
-    position: static;
-    visibility: visible;
-    opacity: 1;
-  }
-  aside.left {
-    display: none;
-  }
-  aside.right {
-    padding-top: 0;
-  }
-  .container {
-    padding: 0 10px !important;
-  }
-  .runway {
-    padding-top: 0;
-    visibility: visible;
-    opacity: 1;
-  }
-  .runway .title {
-    position: static;
-    margin-bottom: 10px;
-    height: inherit;
-  }
-  .runway .title h1 {
-    margin: 20px 10px;
-    line-height: inherit;
-  }
-  .runway .item {
-    padding: 0 10px 10px 10px;
-    margin-bottom: 10px;
-  }
-}
-@media (max-width: 480px) {
-}
 
 /* TEST */
 
@@ -374,15 +246,42 @@ header {
   margin-bottom: 30px;
   border-bottom: 1px solid #CCC;
 }
-
-.shadow {
-  -webkit-mask-box-image: -webkit-linear-gradient(left,transparent 0%, rgb(0,0,0) 50%,transparent 100%);
-  background: -webkit-linear-gradient(top, rgba(0, 0, 0,.2) 0%,rgba(0, 0, 0, 0) 100%); /* Chrome10+,Safari5.1+ */
-  height: 5px;
-  margin: 15px 0 5px 0;
-  width: 100%;
-}
-
 #add-subscription input {
-  width: 90%;
+  width: 80%;
+}
+.modal-messages .alert {
+  border: none;
+  border-radius: 0;
+  margin: 0;
+}
+#nav-channels h3 {
+  margin: 1em 14px .5em 14px;
+}
+#nav-channels .nav-list {
+  margin: 14px 0;
+}
+#search {
+  margin-bottom: 20px;
+}
+#channels-header {
+  border-bottom: 1px solid #eee;
+  padding: 14px;
+}
+#channels-header h3 {
+  float: left;
+  margin: 0;
+  line-height: 28px;
+}
+#channels-header a {
+  float: right;
+}
+.middle-col {
+  background: #fff;
+}
+.sidebar-left {
+  pading-top: 20px;
+}
+.xxx {
+  border: 1px solid #eee;
+  border-radius: 3px;
 }

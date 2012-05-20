@@ -24,7 +24,6 @@
     "nodemailer": "*",
     "request": "*",
     "underscore": "*",
-    "uri-js": "*",
     "validator": "*",
     "winston": "*"
   }

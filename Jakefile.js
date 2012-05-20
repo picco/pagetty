@@ -75,14 +75,11 @@ task("reset", [], function() {
 	var sanitize = require('validator').sanitize;
 
 	var channels = [
-		{url: "http://www.postimees.ee/", domain: "www.postimees.ee"}
-		/*
+		{name: "EnglishRussia", url: "http://englishrussia.com", domain: "englishrussia.com"},
 		{name: "DELFI", url: "http://www.delfi.ee/", domain: "www.delfi.ee"},
-		{name: "Reddit Top", url: "http://www.reddit.com/top/", domain: "www.reddit.com"},
 		{name: "Õhtuleht", url: "http://www.ohtuleht.ee", domain: "www.ohtuleht.ee"},
 		{name: "TechCrunch", url: "http://techcrunch.com", domain: "techcrunch.com"},
 		{name: "AnandTech", url: "http://www.anandtech.com", domain: "www.anandtech.com"},
-		{name: "EnglishRussia", url: "http://englishrussia.com", domain: "englishrussia.com"},
 		{name: "500px - Popular", url: "http://500px.com/popular", domain: "500px.com"},
 		{name: "Reddit Top", url: "http://www.reddit.com/top", domain: "www.reddit.com"},
 		{name: "Reddit - Gaming", url: "http://www.reddit.com/r/gaming", domain: "www.reddit.com"},
@@ -92,18 +89,10 @@ task("reset", [], function() {
 		{name: "Mashable", url: "http://mashable.com", domain: "mashable.com"},
 		{name: "Slashdot", url: "http://slashdot.org/", domain: "slashdot.org"},
 		{name: "Planet node.js", url: "http://planetnodejs.com/", domain: "planetnodejs.com"},
-		{name: "Youtube - most viewed today in Science", url: "http://www.youtube.com/charts/videos_views/science", domain: "www.youtube.com"},
-		*/
+		{name: "Youtube - most viewed today in Science", url: "http://www.youtube.com/charts/videos_views/science", domain: "www.youtube.com"}
 	];
 
 	var rules = [{
-		domain: "www.postimees.ee",
-		item: "div.uudise_kast",
-		target: {selector: "a.uudise_pealkiri", url_attribute: "href", title_attribute: null},
-		image: {selector: "img.uudispilt", attribute: "src"},
-		score: {selector: "a.komm_arv_link", attribute: null},
-		comments: {selector: "a.komm_arv_link", attribute: "href"}
-	}, {
 		domain: "www.reddit.com",
 		item: "div.thing:not(.promoted)",
 		target: {selector: "a.title", url_attribute: "href", title_attribute: null},
@@ -121,7 +110,7 @@ task("reset", [], function() {
 		domain: "www.ohtuleht.ee",
 		item: "div.article",
 		target: {selector: "h2 a", url_attribute: "href", title_attribute: null},
-		image: {selector: "div.img img", attribute: "src"},
+		image: {selector: "div.img img", attribute: "data-original"},
 		score: {selector: "a.red", attribute: null},
 		comments: {selector: "a.red", attribute: "href"}
 	}, {
@@ -141,7 +130,7 @@ task("reset", [], function() {
 	}, {
 		domain: "englishrussia.com",
 		item: "div.post",
-		target: {selector: "h2.entry-title a", url_attribute: "href", title_attribute: null},
+		target: {selector: "h2.entry-title a", url_attribute: "href", title_attribute: "title"},
 		image: {selector: "img", attribute: "src"},
 		score: {selector: ".comments-link a", attribute: null},
 		comments: {selector: ".comments-link a", attribute: "href"}
@@ -198,7 +187,7 @@ task("reset", [], function() {
 		domain: "planetnodejs.com",
 		item: "div.post",
 		target: {selector: ".post-title a", url_attribute: "href", title_attribute: null},
-		image: {selector: ".c img", attribute: "src"},
+		image: {selector: ".post-description p img", attribute: "src"},
 		score: {selector: null, attribute: null},
 		comments: {selector: null, attribute: null}
 	}, {

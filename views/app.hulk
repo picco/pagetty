@@ -1,35 +1,22 @@
 <div class="container">
-  <div class="row-fluid">
-    <div class="span3 root-col">
-      <aside class="left">
-        <div class="logo">
-          <a href="/">
-          <div class="tagline">Browse with</div>
-          <div class="name">pagetty</div>
-          </a>
+  <div class="row">
+    <div class="span10 middle-col"><div class="runway"></div></div>
+    <div class="span6 sidebar">
+      <aside>
+        <div id="account" class="clearfix">
+          <span class="user"><i class="icon-user"></i> Ivo Nellis</span>
+          <a class="btn-logout" href="/logout" title="Sign out"><i class="icon-off"></i> Sign out</a>
         </div>
-      </aside>
-    </div>
-    <div class="center-col span6">
-      <div class="runway"></div>
-    </div>
-    <div class="sidebar span3 root-col">
-      <aside class="right">
-        <a href="#add-subscription" class="btn btn-subscribe" data-toggle="modal">Subscribe to a site</a>
-        <div id="refresh">
-          <div class="well">
-            <h4 style="margin-bottom: 1em;">New stories available.</h4>
-            <a href="#" class="btn btn-success"><i class="icon-refresh icon-white"></i> Refresh</a>
+        <div id="channels">
+          <div class="header" class="clearfix">
+            <h3>My channels</h3>
+            <a href="#add-subscription" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
-        </div>
-        <div id="nav-channels" class="well">
-          <ul class="nav nav-list">
-            <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
-            <li class="nav-header">Channels</li>
+          <ul class="nav nav-list list">
+            <li class="channel channel-all"><a href="#" data-channel="all"><strong>All stories</strong></a></li>
           </ul>
         </div>
       </aside>
-      .
     </div>
   </div>
 </div>
@@ -38,8 +25,9 @@
     <a href="#" class="close" data-dismiss="modal">×</a>
     <h2>Subscribe to a site</h2>
   </div>
+  <div id="subscribe-messages" class="messages modal-messages"></div>
   <div class="modal-body">
-    <input type="text" class="subscribe-url" placeholder="Enter the URL of the website..." />
+    <input type="text" name="url" class="subscribe-url" placeholder="Enter the URL of the website..." />
   </div>
   <div class="modal-footer">
     <a href="#" class="btn btn-primary btn-subscribe">Subscribe</a>

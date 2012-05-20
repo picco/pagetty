@@ -10,14 +10,25 @@ Controller = {
 
     ich.addTemplate("rule", ruleTemplate);
 
-    $(".btn-save").click(function(e) {
-      console.dir(self.getData());
-
+    $(".btn-save").click(function() {
       $.ajax("/configure", {
         type: "POST",
         data: self.getData(),
         success: self.saveSuccessCallback,
         error: self.saveErrorCallback
+      });
+    });
+
+    $(".btn-back").click(function() {
+      window.location = "/#" + channel_id;
+    });
+
+    $(".btn-unsubscribe").click(function() {
+      $.ajax("/unsubscribe", {
+        type: "POST",
+        data: {channel_id: channel_id},
+        success: self.unsubscribeSuccessCallback,
+        error: self.unsubscribeErrorCallback
       });
     });
 
@@ -68,6 +79,13 @@ Controller = {
     window.location = "/#" + channel_id;
   },
   saveErrorCallback: function(xhr, status, error) {
+    alert(xhr.responseText);
+  },
+  unsubscribeSuccessCallback: function(data, status) {
+    window.location = "/";
+  },
+  unsubscribeErrorCallback: function(xhr, status, error) {
+    console.dir(xhr);
     alert(xhr.responseText);
   }
 };

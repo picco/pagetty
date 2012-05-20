@@ -33,14 +33,16 @@ require(["pagetty"], function(pagetty) {
     });
 
     $("#add-subscription .btn-subscribe").click(function() {
+      pagetty.clearMessages();
+
       $.ajax("/subscribe", {
         type: "POST",
         data: {url: $(".subscribe-url").val()},
-        success: function() {
-          alert('success');
+        success: function(data) {
+          window.location = "/configure/" + data.channel_id;
         },
         error: function(xhr, status, error) {
-          alert(xhr.responseText);
+          pagetty.error(xhr.responseText, "subscribe-messages");
         }
       });
     });
@@ -78,23 +80,10 @@ require(["pagetty"], function(pagetty) {
      */
 
     $(document).keydown(function(e) {
-      if (e.ctrlKey == false && e.altKey == false && e.shiftKey == false) {
-        if (e.keyCode == 37) {
-          pagetty.openPrevChannel();
-
-          return false;
-        }
-        else if (e.keyCode == 39) {
-          pagetty.openNextChannel();
-          return false;
-        }
-        else if (e.keyCode == 32) {
-          pagetty.refreshChannels();
-          return false;
-        }
-        else if (e.keyCode >= 48 && e.keyCode < 90) {
-          pagetty.openChannelByKey(String.fromCharCode(e.keyCode));
-          return false;
+      if (e.ctrlKey == true && e.altKey == false && e.shiftKey == false) {
+        if (e.keyCode == 32) {
+          //pagetty.refreshChannels();
+          //return false;
         }
         else if (e.keyCode == 38) {
           pagetty.openPrevItem();
@@ -105,13 +94,25 @@ require(["pagetty"], function(pagetty) {
           return false;
         }
       }
-      else if (e.ctrlKey == true && e.altKey == false && e.shiftKey == false) {
-        if (e.keyCode == 39) {
+      else if (e.ctrlKey == false && e.altKey == true && e.shiftKey == false) {
+        if (e.keyCode == 37) {
+          pagetty.openPrevVariant();
+          return false;
+        }
+        else if (e.keyCode == 39) {
           pagetty.openNextVariant();
           return false;
         }
-        else if (e.keyCode == 37) {
-          pagetty.openPrevVariant();
+        else if (e.keyCode == 40) {
+          pagetty.openNextChannel();
+          return false;
+        }
+        else if (e.keyCode == 38) {
+          pagetty.openPrevChannel();
+          return false;
+        }
+        else if (e.keyCode >= 48 && e.keyCode < 90) {
+          pagetty.openChannelByKey(String.fromCharCode(e.keyCode));
           return false;
         }
       }
