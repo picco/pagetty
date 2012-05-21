@@ -1,7 +1,7 @@
 <!-- LAYOUT -->
 <div class="container clearfix">
   <div class="row">
-    <div class="stage span10"><div class="runway"></div></div>
+    <div class="stage span10"><div class="runway"><div class="inner"></div></div></div>
     <div class="sidebar span6">
       <aside>
         <div id="account" class="clearfix">
@@ -14,7 +14,7 @@
             <a href="#add-subscription" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
           <ul class="nav nav-list list">
-            <li class="channel channel-all"><a href="#" data-channel="all"><strong>All stories</strong></a></li>
+            <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
           </ul>
         </div>
       </aside>

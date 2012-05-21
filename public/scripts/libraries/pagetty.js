@@ -124,6 +124,10 @@ define([
       else {
         window.location = "/";
       }
+
+      // Reveal the UI when everything is loaded.
+      $(".app .container").show();
+
     },
     sortItems: function(items_reference, variant) {
       var items = _.clone(items_reference);
@@ -169,6 +173,12 @@ define([
         items[i].className = items[i].visible ? "show" : "hide";
         if (items[i].isnew) items[i].className += " new";
         if (items[i].id && items[i].image) items[i].image_url = "/images/" + items[i].id + ".jpg";
+
+        // Reduce long channel names
+        if (items[i].channel.name.length > 30) {
+          items[i].channel.name = items[i].channel.name.substr(0, 30) + "...";
+        }
+
         html += ich.channelItem(items[i], true);
       }
 
@@ -186,40 +196,40 @@ define([
       return x1 + x2;
     },
     showChannel: function(channel_id, variant) {
-      var channel = this.channels[channel_id];
-      var subscription = this.subscriptions[channel_id];
-      var html = '';
+      var html = "", self = this, channel = this.channels[channel_id], subscription = this.subscriptions[channel_id];
 
       if (!variant) {
         variant = channel_id == "all" ? "time" : "original";
       }
 
+      $("#channels .list li.channel-" + channel_id).addClass("loading");
+
       if (channel_id == "all") {
-        html = this.renderItems(this.sortItems(this.aggregateAllItems(), variant));
+        html = self.renderItems(self.sortItems(self.aggregateAllItems(), variant));
       }
       else {
-        if ($.isArray(this.channels[channel_id].items) && this.channels[channel_id].items.length) {
-          for (i in this.channels[channel_id].items) {
-            this.channels[channel_id].items[i].channel = {name: this.subscriptions[channel_id].name, url: this.channels[channel_id].url};
+        if ($.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
+          for (i in self.channels[channel_id].items) {
+            self.channels[channel_id].items[i].channel = {name: self.subscriptions[channel_id].name, url: self.channels[channel_id].url};
           }
-          html = this.renderItems(this.sortItems(this.channels[channel_id].items, variant));
+          html = self.renderItems(self.sortItems(self.channels[channel_id].items, variant));
         }
       }
 
       $('.runway .channel').remove();
 
       if (channel_id == "all") {
-        $(".runway").append(ich.channelAll({channel: channel, subscription: {name: "All stories"}, items: html}));
+        $(".runway .inner").append(ich.channelAll({channel: channel, subscription: {name: "All stories"}, items: html}));
       }
       else {
-        $(".runway").append(ich.channel({channel: channel, subscription: subscription, items: html}));
+        $(".runway .inner").append(ich.channel({channel: channel, subscription: subscription, items: html}));
       }
 
       $(".runway .channel-" + channel_id + " abbr.timeago").timeago();
       $('#channels .list li, a.variant').removeClass('active');
       $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
 
-      if (this.newItems) this.showUpdateNotification();
+      if (self.newItems) self.showUpdateNotification();
 
       $(".channel-" + channel_id + " .items .show img").each(function(index, element) {
         var img = new Image();
@@ -231,7 +241,7 @@ define([
           })
           .error(function () {
             delete img;
-            $(original).parent().parent().remove();
+            $(original).parent().remove();
           })
           .attr('src', $(original).data("src"));
       });
@@ -244,10 +254,12 @@ define([
         $(".runway .channel-" + channel_id).append('<a class="more" href="#"><i class="icon-arrow-down"></i> Show more stories</a></div>');
       }
 
-      this.activeChannel = channel_id;
-      this.activeVariant = variant;
+      self.activeChannel = channel_id;
+      self.activeVariant = variant;
 
       window.scrollTo(0, 0);
+
+      $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
       return false;
     },

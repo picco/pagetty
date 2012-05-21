@@ -6,7 +6,6 @@ require.config({
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
     timeago: "libraries/jquery.timeago",
-    ui: "libraries/jquery-ui.min",
     underscore: "libraries/underscore",
     url: "libraries/jquery.url"
   }

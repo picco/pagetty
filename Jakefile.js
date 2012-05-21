@@ -1,14 +1,22 @@
+var requirejs = require('requirejs');
+
 /**
  * Build configuration.
  */
 var buildID   = createBuildID(),
-    buildRoot = __dirname + "/builds/";
+    buildRoot = __dirname + "/builds/",
     buildPath = buildRoot + buildID + "/";
+
+var optimizeConfig = {
+    baseUrl: 'public/scripts',
+    name: 'main',
+    out: 'public/scripts/main.opt.js'
+};
 
 /**
  * Creates a new build of the app.
  */
-task("default", ["bootstrap", "copy-files"], function() {
+task("default", ["optimize"], function() {
 	complete();
 });
 
@@ -19,6 +27,15 @@ task("bootstrap", [], function() {
 	console.log("Build ID: " + buildID);
 	console.log("Build path: " + buildPath);
 	complete();
+});
+
+/**
+ * Optimize task.
+ */
+task("optimize", [], function() {
+	requirejs.optimize(config, function (buildResponse) {
+		complete();
+	});
 });
 
 /**

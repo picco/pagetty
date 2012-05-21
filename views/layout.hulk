@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Pagetty (beta)</title>
+  <title>Pagetty</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap/css/bootstrap.min.css">
@@ -12,6 +12,28 @@
 <body class="{{{bodyClass}}}">
   {{{ body }}}
   <script type="text/javascript" src="/bootstrap/bootstrap/js/bootstrap.min.js"></script>
+  <script type='text/javascript'>
+
+    var _ues = {
+    host:'pagetty.userecho.com',
+    forum:'12911',
+    lang:'en',
+    tab_corner_radius:5,
+    tab_font_size:20,
+    tab_image_hash:'RmVlZGJhY2s%3D',
+    tab_alignment:'right',
+    tab_text_color:'#FFFFFF',
+    tab_bg_color:'#23AD43',
+    tab_hover_color:'#2BD452'
+    };
+
+    (function() {
+        var _ue = document.createElement('script'); _ue.type = 'text/javascript'; _ue.async = true;
+        _ue.src = ('https:' == document.location.protocol ? 'https://s3.amazonaws.com/' : 'http://') + 'cdn.userecho.com/js/widget-1.4.gz.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(_ue, s);
+      })();
+
+  </script>
   <script type="text/javascript">
       var _gaq = _gaq || [];
       _gaq.push(['_setAccount', 'UA-29116516-1']);

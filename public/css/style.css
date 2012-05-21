@@ -106,10 +106,22 @@ header {
   margin: 0;
 }
 #channels .list {
-  margin: 15px 0;
+  margin-bottom: 10px;
 }
 #channels .list > li > a {
-  padding: 6px 15px !important;
+  padding: 8px 15px !important;
+}
+#channels .list li.channel-all a {
+  border-bottom: 1px solid #eee;
+}
+#channels .list a {
+  border-bottom: 1px solid #fafafa;
+  padding-right: 20px !important;
+}
+#channels .list a:active {
+  color: #fff;
+  text-shadow: none;
+  background: #09d;
 }
 .app {
   background: #fafafa !important;
@@ -128,6 +140,9 @@ header {
 }
 .app aside:focus {
   outline: none;
+}
+.app .container {
+  display: none;
 }
 .app .configure {
   float: right;
@@ -190,7 +205,7 @@ header {
   text-align: center;
   border-radius: 3px;
   margin: 10px 0 10px 0;
-  padding: 6px 6px;
+  padding: 8px 6px;
 }
 .channel .more {
   margin: 20px;
@@ -256,7 +271,7 @@ header {
 /* PAGE: FRONT -------------------------------------------------------------- */
 
 .frontpage {
-  padding-top: 20px;
+  padding: 20px;
 }
 .frontpage .logos {
   text-align: center;
@@ -289,7 +304,6 @@ header {
 }
 
 /* RESPONSIVE --------------------------------------------------------------- */
-
 
 @media (max-width: 960px) {
   .container {
@@ -326,5 +340,8 @@ header {
   .channel div.title {
     position: static;
     width: auto;
+  }
+  #channels .list > li > a:hover {
+    background: none;
   }
 }
