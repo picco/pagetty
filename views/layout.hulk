@@ -11,7 +11,6 @@
 </head>
 <body class="{{{bodyClass}}}">
   {{{ body }}}
-  <script type="text/javascript" src="/bootstrap/bootstrap/js/bootstrap.min.js"></script>
   <script type='text/javascript'>
 
     var _ues = {

@@ -49,7 +49,6 @@ app.configure(function() {
   app.register(".hulk", hulk);
   // The image serving middleware, keep in front of the stack since it does not need other middleware.
   app.use(pagetty.imageCache);
-  app.use(pagetty.headers);
   app.use(gzippo.staticGzip(__dirname + "/public", {contentTypeMatch: /text|javascript|json/}));
   app.use(express.bodyParser());
   app.use(express.cookieParser());
@@ -59,16 +58,17 @@ app.configure(function() {
   app.set('view engine', 'hulk');
   app.set('views', __dirname + '/views');
   app.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+  app.use(gzippo.compress());
   app.use(app.router);
 });
 
 /**
  * Catch uncaught exceptions.
  */
-
 process.on("uncaughtException", function(e) {
   logger.log.error("Uncaught exception: " + e);
 });
+
 
 
 /**
@@ -81,16 +81,7 @@ pagetty.init(function (self) {
    */
   app.get(/(^\/$)|(^\/channel\/)/, function(req, res) {
     if (pagetty.user) {
-      pagetty.loadSubscribedChannels(pagetty.user, function(channels) {
-        res.render("app", {
-          user: pagetty.user,
-          data: JSON.stringify({
-            user: pagetty.user,
-            channels: channels,
-          }),
-          bodyClass: "app",
-        });
-      });
+      res.render("app", {bodyClass: "app"});
     }
     else {
       res.render("index");
@@ -98,10 +89,26 @@ pagetty.init(function (self) {
   });
 
   /**
+   * API: send user information.
+   */
+  app.get("/api/user", restricted, function(req, res) {
+    res.json(pagetty.user);
+  });
+
+  /**
+   * API: send user subscription information.
+   */
+  app.get("/api/user/channels", restricted, function(req, res) {
+    pagetty.loadSubscribedChannels(pagetty.user, function(channels) {
+      res.json(channels);
+    });
+  });
+
+  /**
    * Client auto-update call.
    */
   app.get("/update", restricted, function(req, res) {
-    pagetty.loadUserChannelUpdates(pagetty.user, req.param("state"), function(updates) {
+    pagetty.loadUserChannelUpdates(pagetty.user, JSON.parse(req.param("state")), function(updates) {
       res.json(updates);
     });
   });

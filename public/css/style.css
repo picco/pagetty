@@ -11,6 +11,9 @@ a {
 a:hover {
   text-decoration: none;
 }
+a:focus {
+  outline: none;
+}
 h1 {
   font-weight: bold !important;
 }
@@ -23,7 +26,7 @@ h1 {
 /* TYPOGRAPHY & FONTS ------------------------------------------------------- */
 
 h1, h2, h3 {
-  font-family: GraublauWeb;
+  font-family: GraublauWeb, Helvetica, Arial;
   font-weight: normal;
   text-rendering: auto !important;
 }
@@ -47,11 +50,15 @@ header {
 .btn-a {
   font-size: 11px;
   border-radius: 3px;
+  border: 1px solid #fff;
   padding: 3px 6px;
   white-space: nowrap;
 }
 .btn-a.active {
   background: #f1f1f1;
+}
+.btn-a:active {
+  border: 1px solid #f1f1f1;
 }
 .form-container-multiple {
   margin: 1em 0;
@@ -89,6 +96,7 @@ header {
   width: 95%;
 }
 #channels {
+  background: #fff;
   border: 1px solid #eee;
   border-radius: 3px;
   margin-bottom: 20px;
@@ -115,13 +123,11 @@ header {
   border-bottom: 1px solid #eee;
 }
 #channels .list a {
-  border-bottom: 1px solid #fafafa;
   padding-right: 20px !important;
 }
 #channels .list a:active {
-  color: #fff;
   text-shadow: none;
-  background: #09d;
+  background: #ddd;
 }
 .app {
   background: #fafafa !important;
@@ -154,6 +160,7 @@ header {
 .app .runway {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
+  box-shadow: 0 0 10px #eee;
   padding: 115px 0 1px 0;
   min-height: 100%;
 }
@@ -183,14 +190,16 @@ header {
 .channel div.title a {
   color: #333;
 }
-.channel div.title a:hover {
-  color: #08c;
+.channel h1 a:hover,
+.channel h2 a:hover {
+  color: #0D28B1 !important;
 }
 .channel .items {
   background: #fff;
 }
 .channel .more {
   margin: 20px;
+  padding: 12px 6px !important;
   text-align: center;
 }
 .channel .more .button {
@@ -206,6 +215,10 @@ header {
   border-radius: 3px;
   margin: 10px 0 10px 0;
   padding: 8px 6px;
+}
+.channel .new-stories:hover,
+.channel .more:hover {
+  background: #bfe1f2;
 }
 .channel .more {
   margin: 20px;
@@ -239,7 +252,8 @@ header {
 .channel .item .title .new {
   display: none;
   position: absolute;
-  left: -20px;
+  left: -26px;
+  top: 4px;
   background: red;
   width: 6px;
   height: 1em;
@@ -333,13 +347,19 @@ header {
   }
   .app .runway {
     border: none;
+    box-shadow: none;
     padding: 0 !important;
-  }.app .stage {
+  }
+  .app .stage {
+    background: inherit;
     padding-bottom: 0;
   }
   .channel div.title {
     position: static;
     width: auto;
+  }
+  .channel .item .title .new {
+    left: -20px;
   }
   #channels .list > li > a:hover {
     background: none;

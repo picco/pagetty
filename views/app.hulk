@@ -37,10 +37,9 @@
 </div>
 <!-- CONTROLLER -->
 <script type="text/javascript">
-  var data = {{{data}}};
-  require(['/scripts/libraries/pagetty.js'], function(pagetty) {
+  require(["/scripts/libraries/pagetty.js", "json!/api/user", "json!/api/user/channels"], function(pagetty, user, channels) {
     $(document).ready(function() {
-      pagetty.init(data.user, data.channels);
+      pagetty.init(user, channels);
     });
   });
 </script>

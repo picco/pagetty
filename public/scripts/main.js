@@ -1,22 +1,16 @@
 require.config({
   paths: {
-    moment: "libraries/moment",
-    history: "libraries/jquery.history",
-    icanhaz: "libraries/icanhaz",
+    cookie: "libraries/jquery.cookie.min",
+    moment: "libraries/moment.min",
+    history: "libraries/jquery.history.min",
+    icanhaz: "libraries/icanhaz.min",
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
-    timeago: "libraries/jquery.timeago",
-    underscore: "libraries/underscore",
-    url: "libraries/jquery.url"
+    timeago: "libraries/jquery.timeago.min",
+    underscore: "libraries/underscore.min",
+    url: "libraries/jquery.url.min"
   }
 });
 
-require(["nicescroll", "ui"], function() {
-  $(function() {
-    $(document).ready(function() {
-      $(".logo").click(function() {
-        window.location = '/';
-      });
-    });
-  });
+require([], function() {
 });
