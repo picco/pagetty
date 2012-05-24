@@ -20,7 +20,7 @@ define([
     updates: [],
 
     init: function(user, channels) {
-      var self = this;
+      var self = this, navigation = [];
       this.user = user;
       this.subscriptions = user.subscriptions;
 
@@ -28,13 +28,22 @@ define([
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
-      for (var i in channels) {
-        this.channels[channels[i]._id] = channels[i];
-        $("#channels .list").append('<li class="channel channel-' + channels[i]._id + '"><a href="#' + channels[i]._id + '" data-channel="' + channels[i]._id + '">' + this.subscriptions[channels[i]._id].name + '</a></li>');
+      for (channel_id in user.subscriptions) {
+        navigation.push({channel_id: channel_id, name: user.subscriptions[channel_id].name});
       }
 
-      for (i in this.channels) {
-        this.state.channels[this.channels[i]._id] = this.channels[i].items_added;
+      navigation.sort(function(a, b) {
+        var x = a.name.toLowerCase(), y = b.name.toLowerCase();
+        return ( ( x == y ) ? 0 : ( ( x > y ) ? 1 : -1 ) );
+      });
+
+      for (var i in navigation) {
+        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="#' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + navigation[i].name + '</a></li>');
+      }
+
+      for (var i in channels) {
+        this.channels[channels[i]._id] = channels[i];
+        this.state.channels[channels[i]._id] = channels[i].items_added;
       }
 
       $("#channels li.channel a").bind("click", function() {
