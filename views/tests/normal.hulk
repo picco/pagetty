@@ -1,0 +1,10 @@
+<article>
+  <h2><a href="http://www.example.com/test-article-1">Test article 1</a></h2>
+  <a href="http://www.example.com/test-article-1-comments" class="comments">123 comments</a>
+  <img src="/images/tests/forever_alone.jpg" />
+</article>
+<article>
+  <h2><a href="http://www.example.com/test-article-{{random_id}}">Test article {{random_id}}</a></h2>
+  <a href="http://www.example.com/test-article-{{random_id}}-comments" class="comments">123 comments</a>
+  <img src="/images/tests/forever_alone.jpg" />
+</article>

@@ -1,5 +1,6 @@
 var
 _          = require('underscore'),
+$          = require('jquery'),
 async      = require("async"),
 fs         = require('fs'),
 util       = require('util'),
@@ -37,11 +38,12 @@ var httpPort = config.port_shift + 80, httpsPort = config.port_shift + 443;
  * Define authentication middleware.
  */
 var restricted = function(req, res, next) {
-  if (pagetty.user) {
+  if (req.session.user) {
     next();
   }
   else {
-    res.send(403);
+    res.statusCode = 403;
+    res.end("Access denied");
   }
 }
 
@@ -53,7 +55,6 @@ app.configure(function() {
   app.use(express.bodyParser());
   app.use(express.cookieParser());
   app.use(express.session({secret: "nõude", store: new MongoStore({db: config.db_name})}));
-  // Loads the pagetty.user object for every request.
   app.use(pagetty.session);
   app.set('view engine', 'hulk');
   app.set('views', __dirname + '/views');
@@ -65,22 +66,21 @@ app.configure(function() {
 /**
  * Catch uncaught exceptions.
  */
+/*
 process.on("uncaughtException", function(e) {
   logger.log.error("Uncaught exception: " + e);
 });
-
-
+*/
 
 /**
  * Initialize and start the servers.
  */
 pagetty.init(function (self) {
-
   /**
    * Render the app.
    */
-  app.get(/(^\/$)|(^\/channel\/)/, function(req, res) {
-    if (pagetty.user) {
+  app.get("/", function(req, res) {
+    if (req.session.user) {
       res.render("app", {bodyClass: "app"});
     }
     else {
@@ -92,15 +92,46 @@ pagetty.init(function (self) {
    * API: send user information.
    */
   app.get("/api/user", restricted, function(req, res) {
-    res.json(pagetty.user);
+    res.json(req.session.user);
   });
 
   /**
    * API: send user subscription information.
    */
   app.get("/api/user/channels", restricted, function(req, res) {
-    pagetty.loadSubscribedChannels(pagetty.user, function(channels) {
-      res.json(channels);
+    pagetty.loadSubscribedChannels(req.session.user, function(channels) {
+      var channelsObject = {};
+
+      for (var index in channels) {
+        channelsObject[channels[index]._id] = channels[index];
+      }
+
+      res.json(channelsObject);
+    });
+  });
+
+  /**
+   * API: send the whole source code of the channel.
+   */
+  app.get("/api/channel/source/:id", restricted, function(req, res) {
+    pagetty.loadChannel(req.params.id, function(err, channel) {
+      pagetty.request({url: channel.url}, function(err, response, body) {
+        res.send(_.escape(body));
+      });
+    });
+  });
+
+  /**
+   * API: send the whole source code of the channel.
+   */
+  app.get("/api/channel/sample/:id/:selector", restricted, function(req, res) {
+    pagetty.loadChannel(req.params.id, function(err, channel) {
+      pagetty.request({url: channel.url}, function(err, response, body) {
+        var html = $('<div>').append($(body).find(req.params.selector).first().clone()).remove().html();
+        pagetty.tidy(html, function(formatted) {
+          res.send(_.escape(formatted));
+        });
+      });
     });
   });
 
@@ -108,7 +139,7 @@ pagetty.init(function (self) {
    * Client auto-update call.
    */
   app.get("/update", restricted, function(req, res) {
-    pagetty.loadUserChannelUpdates(pagetty.user, JSON.parse(req.param("state")), function(updates) {
+    pagetty.loadUserChannelUpdates(req.session.user, JSON.parse(req.param("state")), function(updates) {
       res.json(updates);
     });
   });
@@ -116,8 +147,15 @@ pagetty.init(function (self) {
   /**
    * Subscribe user to a site.
    */
+  app.get("/subscribe", restricted, function(req, res) {
+    res.render("subscribe");
+  });
+
+  /**
+   * Subscribe user to a site.
+   */
   app.post("/subscribe", restricted, function(req, res) {
-    pagetty.subscribe({user_id: pagetty.user._id, url: req.body.url}, function(err, channel) {
+    pagetty.subscribe({user_id: req.session.user._id, url: req.body.url}, function(err, channel) {
       if (err) {
         res.send(err, 400);
       }
@@ -131,7 +169,7 @@ pagetty.init(function (self) {
    * Unsubscrbe user from a site.
    */
   app.post("/unsubscribe", restricted, function(req, res) {
-    pagetty.unsubscribe(pagetty.user._id, req.body.channel_id, function(err) {
+    pagetty.unsubscribe(req.session.user._id, req.body.channel_id, function(err) {
       if (err) {
         res.send(err, 400);
       }
@@ -176,7 +214,7 @@ pagetty.init(function (self) {
         res.render("configure", {
           channel: params.channel,
           rules: params.rules,
-          subscription: pagetty.user.subscriptions[params.channel._id]
+          subscription: req.session.user.subscriptions[params.channel._id]
         });
       }
     });
@@ -190,7 +228,7 @@ pagetty.init(function (self) {
 
     async.series([
       // Validate submitted data.
-      function(callback) {
+      function(next) {
         validator.check(data.name, "Name must start with a character.").is(/\w+.*/);
 
         for (var i in data.rules) {
@@ -199,24 +237,24 @@ pagetty.init(function (self) {
           validator.check(data.rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
         }
 
-        validator.hasErrors() ? callback(validator.getErrors()) : callback();
+        validator.hasErrors() ? callback(validator.getErrors()) : next();
       },
       // Update subscription.
-      function(callback) {
-        pagetty.updateSubscription(pagetty.user._id, data._id, {name: data.name}, function(err) {
-          callback(err);
+      function(next) {
+        pagetty.updateSubscription(req.session.user._id, data._id, {name: data.name}, function(err) {
+          next(err);
         });
       },
       // Update rules.
-      function(callback) {
+      function(next) {
         pagetty.saveRules(data._id, data.rules, function(err) {
-          callback(err);
+          next(err);
         });
       },
       // Update channel items.
-      function(callback) {
+      function(next) {
         pagetty.updateChannelItems(data._id, function(err, channel) {
-          callback();
+          next();
         });
       }
     // Send response.
@@ -239,7 +277,7 @@ pagetty.init(function (self) {
         res.redirect("/");
       }
       else {
-        req.session.userId = user._id;
+        req.session.user = user;
         res.redirect("/");
       }
     });
@@ -270,8 +308,7 @@ pagetty.init(function (self) {
    * Log the user out of the system.
    */
   app.get("/signout", function(req, res) {
-    delete req.session.userId;
-    pagetty.user = false;
+    delete req.session.user;
     res.redirect("/");
   });
 
@@ -317,11 +354,17 @@ pagetty.init(function (self) {
     });
   });
 
+  app.get("/test/:test", function(req, res) {
+    var params = {layout: "layout_test.hulk", random_id: new Date().getTime()};
+    res.render("tests/" + req.params.test, params);
+  });
+
   /**
    * Redirect any accidental requests to the normal site.
    */
   secure.get("*", function(req, res) {
-    res.redirect("http://" + config.domain);
+    console.log("Reditected user from HTTPS");
+    res.redirect("http://" + config.domain + req.url);
   });
 
   /**

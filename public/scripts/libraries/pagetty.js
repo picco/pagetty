@@ -7,8 +7,48 @@ define([
   "icanhaz",
   "timeago",
   "history",
-  "moment"
+  "moment",
+  "store",
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
+
+var JSONDate = (function() {
+	function isoDate(r, tz) {
+		// log(arguments);
+		return fixTimezone(new Date(r[0], r[1] - 1, r[2], r[3], r[4], r[5], r[6] || 0), tz);
+	}
+
+	function noop(it) {
+		return it;
+	}
+
+	function asDate(strValue, tz) {
+		return isoDate(strValue.split(/[-T:Z\."]/).filter(noop), tz);
+	}
+
+	// date.setHours(date.getUTCHours()); date.setUTCMinutes(date.getUTCMinutes());
+	function fixTimezone(date, tz) {
+		if (null == tz) {
+			tz = date.getTimezoneOffset() / 60 || 0;
+		}
+		if (tz) {
+			date.setHours(date.getHours() - tz);
+		}
+		return date;
+	}
+	function isBadDate(d) {
+		return String(d) === "Invalid Date"  || String(d.getFullYear()) === "NaN";
+	}
+	function fromJSON(dstr) {
+		var d = Date.create ? Date.create(dstr) : new Date(dstr);
+		if (isBadDate(d)) {
+			d = asDate(dstr);
+		}
+		return d;
+	}
+
+	return { fromJSON: fromJSON, isInvalidDate:isBadDate, toDate:asDate }
+})();
+
   var Pagetty = {
     channels: {},
     cache: [],
@@ -18,18 +58,20 @@ define([
     pager: 9,
     state: {channels: {}},
     updates: [],
+    newItemsCount: 0,
 
     init: function(user, channels) {
       var self = this, navigation = [];
       this.user = user;
       this.subscriptions = user.subscriptions;
+      this.storedChannels = amplify.store("channels");
 
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
-      for (channel_id in user.subscriptions) {
-        navigation.push({channel_id: channel_id, name: user.subscriptions[channel_id].name});
+      for (channel_id in this.subscriptions) {
+        navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
       }
 
       navigation.sort(function(a, b) {
@@ -38,13 +80,35 @@ define([
       });
 
       for (var i in navigation) {
-        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="#' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + navigation[i].name + '</a></li>');
+        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="#' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + _.escape(navigation[i].name) + '</a></li>');
       }
 
-      for (var i in channels) {
-        this.channels[channels[i]._id] = channels[i];
-        this.state.channels[channels[i]._id] = channels[i].items_added;
+      console.log("subscriptions");
+      console.dir(this.subscriptions);
+      console.log("channels from server");
+      console.dir(channels);
+      console.log("local sorage channels");
+      console.dir(amplify.store("channels"));
+
+      this.channels = this.prepareChannels(this.subscriptions, channels, this.storedChannels);
+
+      console.log("prepared channels");
+      console.dir(this.channels);
+
+      for (var channel_id in this.channels) {
+        this.state.channels[this.channels[channel_id]._id] = _.clone(this.channels[channel_id].items_added);
       }
+
+      console.log("state");
+      console.dir(this.state);
+
+      if (this.storedChannels) {
+        this.updateChannels();
+      }
+
+      amplify.store("channels", this.channels);
+
+      $(".username").append(_.escape(user.name));
 
       $("#channels li.channel a").bind("click", function() {
         var channel = $(this).data("channel"), variant = $(this).data("variant");
@@ -60,7 +124,7 @@ define([
         return false;
       });
 
-      $(".channel .more").live("click", function() {
+      $(".more").live("click", function() {
         self.loadMore(Pagetty.activeChannel, Pagetty.activeVariant);
         return false;
       });
@@ -69,21 +133,6 @@ define([
         e.preventDefault();
         self.refreshChannels();
         return false;
-      });
-
-      $("#add-subscription .btn-subscribe").click(function() {
-        self.clearMessages();
-
-        $.ajax("/subscribe", {
-          type: "POST",
-          data: {url: $(".subscribe-url").val()},
-          success: function(data) {
-            window.location = "/configure/" + data.channel_id;
-          },
-          error: function(xhr, status, error) {
-            self.error(xhr.responseText, "subscribe-messages");
-          }
-        });
       });
 
       // Sidebar scroll
@@ -141,6 +190,41 @@ define([
       $(".app .container").show();
 
     },
+    prepareChannels: function(subscriptions, channels, storedChannels) {
+      var prepared = {};
+
+      for (var channel_id in subscriptions) {
+        var items = [];
+
+        for (var i in channels[channel_id].items) {
+          if (storedChannels && storedChannels[channel_id] && storedChannels[channel_id].items) {
+            for (var j in storedChannels[channel_id].items) {
+              if (channels[channel_id].items[i].id == storedChannels[channel_id].items[j].id) {
+                // The the new item as the base.
+                var item = _.clone(channels[channel_id].items[i]);
+                // We need to rewrite the dates, since Android cannot handle native Date objects propertly.
+                item.created = JSONDate.fromJSON(storedChannels[channel_id].items[j].created);
+                // We need to keep the isnew status.
+                item.isnew = storedChannels[channel_id].items[j].isnew || false;
+                // Push to the items array.
+                items.push(item);
+                // Correct match is found, break the loop.
+                break;
+              }
+            }
+            prepared[channel_id] = _.clone(storedChannels[channel_id]);
+            prepared[channel_id].items = items;
+          }
+          else {
+            // There's no store, just use all the fresh items.
+            prepared[channel_id] = _.clone(channels[channel_id]);
+            prepared[channel_id].items = channels[channel_id].items;
+          }
+        }
+      }
+
+      return prepared;
+    },
     sortItems: function(items_reference, variant) {
       var items = _.clone(items_reference);
 
@@ -166,7 +250,7 @@ define([
 
       for (i in this.channels) {
         for (j in this.channels[i].items) {
-          var item = this.channels[i].items[j];
+          var item = _.clone(this.channels[i].items[j]);
           item.channel = {name: this.subscriptions[i].name, url: this.channels[i].url};
           items.push(item);
         }
@@ -175,23 +259,23 @@ define([
       return items;
     },
     renderItems: function(items) {
-      var html = "";
+      var html = "", item = {};
 
       for (var i in items) {
-        items[i].created = moment(items[i].created);
-        items[i].stamp = moment(items[i].created).format();
-        items[i].score = parseInt(items[i].score) ?  this.formatScore(items[i].score) : false;
-        items[i].visible = (i <= this.pager) ? true : false;
-        items[i].className = items[i].visible ? "show" : "hide";
-        if (items[i].isnew) items[i].className += " new";
-        if (items[i].id && items[i].image) items[i].image_url = "/images/" + items[i].id + ".jpg";
+        item = _.clone(items[i]);
+        item.stamp = moment(item.created).format();
+        item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
+        item.visible = (i <= this.pager) ? true : false;
+        item.className = item.visible ? "show" : "hide";
+        if (item.isnew) item.className += " new";
+        if (item.id && item.image) item.image_url = "/images/" + item.id + ".jpg";
 
         // Reduce long channel names
-        if (items[i].channel.name.length > 30) {
-          items[i].channel.name = items[i].channel.name.substr(0, 30) + "...";
+        if (item.channel.name.length > 30) {
+          item.channel.name = item.channel.name.substr(0, 30) + "...";
         }
 
-        html += ich.channelItem(items[i], true);
+        html += ich.channelItem(item, true);
       }
 
       return html;
@@ -218,6 +302,7 @@ define([
       cacheKey = channel_id + ":" + variant;
 
       $("#channels .list li.channel-" + channel_id).addClass("loading");
+      $(".more").hide();
 
       if (bustCache) {
         this.cache = [];
@@ -235,7 +320,7 @@ define([
           html = self.renderItems(self.sortItems(self.aggregateAllItems(), variant));
         }
         else {
-          if ($.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
+          if (!_.isUndefined(self.channels[channel_id]) && $.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
             for (i in self.channels[channel_id].items) {
               self.channels[channel_id].items[i].channel = {name: self.subscriptions[channel_id].name, url: self.channels[channel_id].url};
             }
@@ -262,20 +347,19 @@ define([
         // Add "Load more" button.
         var selection = $(selector + " .items .hide");
         if (selection.size()) {
-          $(selector).append('<a class="more" href="#"><i class="icon-arrow-down"></i> Show more stories</a></div>');
+          $(".more").show();
         }
       }
 
       $('#channels .list li, a.variant').removeClass('active');
       $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
+      $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
       if (self.newItems) self.showUpdateNotification();
       this.cache[cacheKey] = true;
       self.activeChannel = channel_id;
       self.activeVariant = variant;
       window.scrollTo(0, 0);
-
-      $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
       return false;
     },
@@ -295,36 +379,79 @@ define([
         if (updates.length) {
           $.each(updates, function(index, value) {
             self.state.channels[value._id] = value.items_added;
-            self.updates[value._id] = value.items;
-            self.newItems = true;
-            self.showUpdateNotification();
+
+            // This function also attaches the "isnew" flag.
+            items = self.findNewItems(self, value._id, value.items);
+            self.updates[value._id] = items;
+
+            if (index == updates.length - 1) {
+              self.newItems = true;
+              self.showUpdateNotification();
+
+              console.log("some updates received");
+              console.dir(self.updates);
+            }
           });
         }
+        else {
+          console.log("no updates this time");
+        }
       });
+    },
+    findNewItems: function(self, channel_id, items) {
+      var count = items.length, found;
+
+      for (var i in items) {
+        found = false;
+
+        for (var j in this.channels[channel_id].items) {
+          if (self.channels[channel_id].items[j].id == items[i].id) {
+            found = true;
+            break;
+          }
+        }
+
+        for (var j in this.updates[channel_id]) {
+          if (this.updates[channel_id][j].id == items[i].id) {
+            found = true;
+            break;
+          }
+        }
+
+        if (!found) {
+          self.newItemsCount++;
+          items[i].isnew = true;
+        }
+      }
+
+      return items;
     },
     refreshChannels: function() {
       for (var channel_id in this.channels) {
         for (var i in this.channels[channel_id].items) {
+          // Clear the isnew status from all existing items,
+          // updates below will overwrite this with last items marked as new.
           this.channels[channel_id].items[i].isnew = false;
         }
       }
 
       for (var channel_id in this.updates) {
-        for (var i in this.updates[channel_id]) {
-          this.updates[channel_id][i].isnew = this.itemIsNew(channel_id, this.updates[channel_id][i]);
-        }
         this.channels[channel_id].items = this.updates[channel_id];
       }
 
       this.newItems = false;
+      this.newItemsCount = 0;
       this.updates = [];
       this.showChannel("all", "time", true);
+      amplify.store("channels", this.channels);
       //History.pushState({channel: "all", variant: "time"}, null, this.channelUrl("all", "time"));
       this.hideUpdateNotification();
     },
     showUpdateNotification: function() {
-      $(".app .runway").addClass("with-messages");
-      $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> New stories available. Click here to update.</a>');
+      if (this.newItemsCount > 0) {
+        $(".app .runway").addClass("with-messages");
+        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.newItemsCount + ' </span>new stories available. Click here to update.</a>');
+      }
     },
     hideUpdateNotification: function() {
       $(".app .runway").removeClass("with-messages");
@@ -349,7 +476,7 @@ define([
         });
       }
       else {
-        $(".channel-" + channel_id + "-" + variant + " .more").html("You have reached the end :)");
+        $(".more").hide();
       }
     },
     channelList: function() {
@@ -375,7 +502,7 @@ define([
       }
     },
     error: function(text, container) {
-      $("#" + container).html("<div class=\"alert alert-error\">" + text + "</div>");
+      $("." + (container ? container : "messages")).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");
     },
     clearMessages: function() {
       $(".messages").html("");

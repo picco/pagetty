@@ -1,68 +1,76 @@
-<div class="rule well clearfix">
-  <div class="form-element">
-    <label>Item selector *</label>
-    <input class="item input-xxlarge" type="text" name="channel:rule:item" value="{{item}}" />
-    <div class="form-description clearfix">
-      CSS selector that matches the container element of the items that you want to extract from the page.<br/>Examples: article, div.post, #posts .post:not(.promoted)
+<div class="rule clearfix">
+  <div class="well">
+    <h2>Rule</h2>
+    <div class="form-element">
+      <label>Item selector *</label>
+      <div class="input-append">
+        <input class="item input-xlarge" type="text" name="channel:rule:item" value="{{item}}" /><button class="btn btn-fetch-sample">Fetch sample</button>
+      </div>
+      <div class="form-description clearfix">
+        CSS selector that matches the container element of the items that you want to extract from the page.<br/>Examples: article, div.post, #posts .post:not(.promoted)
+      </div>
     </div>
   </div>
-  <div class="form-container-multiple clearfix">
-    <div class="form-element">
-      <label>Target selector *</label>
-      <input class="target-selector" type="text" name="channel:rule:target:selector" value="{{target.selector}}" />
+  <div class="sample code html"></div>
+  <div class="well">
+    <div class="form-container-multiple clearfix">
+      <div class="form-container-multiple clearfix">
+        <div class="form-element">
+          <label>Target selector *</label>
+          <input class="target-selector" type="text" name="channel:rule:target:selector" value="{{target.selector}}" />
+        </div>
+        <div class="form-element">
+          <label>URL attribute *</label>
+          <input class="target-url-attribute input-medium" type="text" name="channel:rule:target:url_attribute" value="{{target.url_attribute}}" />
+        </div>
+        <div class="form-element">
+          <label>Title attribute</label>
+          <input class="target-title-attribute input-medium" type="text" name="channel:rule:target:title_attribute" value="{{target.title_attribute}}" />
+        </div>
+        <div class="form-description clearfix">
+          Target selector: Matches an element (usually &lt;a&gt;) that contains the URL and title of the target article.<br/>
+          URL attribute: must contain the URL to the target article (this is usually "href").<br/>
+          Tile attribute: must contain the title of the article (this is usually empty - in that case element text value is used).
+        </div>
+      </div>
+      <div class="form-element">
+        <label>Image selector</label>
+        <input class="image-selector" type="text" name="channel:rule:image:selector" value="{{image.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="image-attribute input-medium" type="text" name="channel:rule:image:attribute" value="{{image.attribute}}" />
+      </div>
+      <div class="form-description clearfix">
+        Matches an element contains the image associated with the article. Selector is usually "img" and attribute "src".
+      </div>
     </div>
-    <div class="form-element">
-      <label>URL attribute *</label>
-      <input class="target-url-attribute input-medium" type="text" name="channel:rule:target:url_attribute" value="{{target.url_attribute}}" />
+    <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Score selector</label>
+        <input class="score-selector" type="text" name="channel:rule:score:selector" value="{{score.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="score-attribute input-medium" type="text" name="channel:rule:score:attribute" value="{{score.attribute}}" />
+      </div>
+      <div class="form-description clearfix">
+        Matches an element that contains the comment count, rating or some other similar property of the article.
+      </div>
     </div>
-    <div class="form-element">
-      <label>Title attribute</label>
-      <input class="target-title-attribute input-medium" type="text" name="channel:rule:target:title_attribute" value="{{target.title_attribute}}" />
+    <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Comments selector</label>
+        <input class="comments-selector" type="text" name="channel:rule:comments:selector" value="{{comments.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="comments-attribute input-medium" type="text" name="channel:rule:comments:attribute" value="{{comments.attribute}}" />
+      </div>
+      <div class="form-description clearfix">
+        Matches an element that points to the comments section of the article.
+      </div>
     </div>
-    <div class="form-description clearfix">
-      Target selector: Matches an element (usually &lt;a&gt;) that contains the URL and title of the target article.<br/>
-      URL attribute: must contain the URL to the target article (this is usually "href").<br/>
-      Tile attribute: must contain the title of the article (this is usually empty - in that case element text value is used).
-    </div>
+    <a href="#" class="btn btn-small btn-remove-rule">Remove this rule</a>
   </div>
-  <div class="form-container-multiple clearfix">
-    <div class="form-element">
-      <label>Image selector</label>
-      <input class="image-selector" type="text" name="channel:rule:image:selector" value="{{image.selector}}" />
-    </div>
-    <div class="form-element">
-      <label>attribute</label>
-      <input class="image-attribute input-medium" type="text" name="channel:rule:image:attribute" value="{{image.attribute}}" />
-    </div>
-    <div class="form-description clearfix">
-      Matches an element contains the image associated with the article. Selector is usually "img" and attribute "src".
-    </div>
-  </div>
-  <div class="form-container-multiple clearfix">
-    <div class="form-element">
-      <label>Score selector</label>
-      <input class="score-selector" type="text" name="channel:rule:score:selector" value="{{score.selector}}" />
-    </div>
-    <div class="form-element">
-      <label>attribute</label>
-      <input class="score-attribute input-medium" type="text" name="channel:rule:score:attribute" value="{{score.attribute}}" />
-    </div>
-    <div class="form-description clearfix">
-      Matches an element that contains the comment count, rating or some other similar property of the article.
-    </div>
-  </div>
-  <div class="form-container-multiple clearfix">
-    <div class="form-element">
-      <label>Comments selector</label>
-      <input class="comments-selector" type="text" name="channel:rule:comments:selector" value="{{comments.selector}}" />
-    </div>
-    <div class="form-element">
-      <label>attribute</label>
-      <input class="comments-attribute input-medium" type="text" name="channel:rule:comments:attribute" value="{{comments.attribute}}" />
-    </div>
-    <div class="form-description clearfix">
-      Matches an element that points to the comments section of the article.
-    </div>
-  </div>
-  <a href="#" class="btn btn-small btn-remove-rule">Remove this rule</a>
 </div>

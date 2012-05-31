@@ -75,7 +75,21 @@ header {
   color: #888;
   font-size: 11px;
 }
-
+.sample {
+  display: none;
+  margin-bottom: 20px;
+}
+.sample pre {
+  white-space: pre;
+  word-wrap: normal;
+}
+.sample pre code {
+  height: 20em;
+  overflow: auto;
+  font-size: 11px;
+  background: inherit;
+  padding: 0;
+}
 /* APP ---------------------------------------------------------------------- */
 
 #account {
@@ -100,6 +114,8 @@ header {
   border: 1px solid #eee;
   border-radius: 3px;
   margin-bottom: 20px;
+}
+#channels li {
 }
 #channels .header {
   border-bottom: 1px solid #eee;
@@ -158,6 +174,7 @@ header {
   padding-bottom: 20px;
 }
 .app .runway {
+  background: #fff;
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   box-shadow: 0 0 10px #eee;
@@ -170,7 +187,6 @@ header {
 .channel div.title {
   position: fixed;
   top: 0;
-  overflow: hidden;
   background: #fff;
   padding: 10px 0 0 0;
   width: 578px;
@@ -197,17 +213,18 @@ header {
 .channel .items {
   background: #fff;
 }
-.channel .more {
+.more {
+  display: none;
   margin: 20px;
   padding: 12px 6px !important;
   text-align: center;
 }
-.channel .more .button {
+.more .button {
   display: block;
   text-align: center;
 }
 .channel .new-stories,
-.channel .more {
+.more {
   display: block;
   background: #D9EDF7;
   font-size: 11px;
@@ -217,10 +234,10 @@ header {
   padding: 8px 6px;
 }
 .channel .new-stories:hover,
-.channel .more:hover {
+.more:hover {
   background: #bfe1f2;
 }
-.channel .more {
+.more {
   margin: 20px;
 }
 .channel .variants {
@@ -230,6 +247,10 @@ header {
   border-bottom: 1px solid #eee;
   margin-bottom: 20px;
   padding: 0 20px 20px 20px;
+}
+.channel .item:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
 }
 .channel .item.new .new {
   display: block !important;
@@ -252,8 +273,8 @@ header {
 .channel .item .title .new {
   display: none;
   position: absolute;
-  left: -26px;
-  top: 4px;
+  left: -20px;
+  top: 2px;
   background: red;
   width: 6px;
   height: 1em;
@@ -343,6 +364,7 @@ header {
   .app aside {
     position: static;
     width: auto;
+    margin-top: 20px;
     padding: 0 20px;
   }
   .app .runway {
@@ -358,8 +380,14 @@ header {
     position: static;
     width: auto;
   }
+  .channel .item:last-child {
+    border-bottom: 1px solid #eee;
+  }
   .channel .item .title .new {
     left: -20px;
+  }
+  .more {
+    margin-bottom: 0px !important;
   }
   #channels .list > li > a:hover {
     background: none;

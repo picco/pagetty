@@ -6,6 +6,7 @@ require.config({
     icanhaz: "libraries/icanhaz.min",
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
+    store: "libraries/amplify.store.min",
     timeago: "libraries/jquery.timeago.min",
     underscore: "libraries/underscore.min",
     url: "libraries/jquery.url.min"

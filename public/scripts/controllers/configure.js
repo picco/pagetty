@@ -1,8 +1,11 @@
 require([
   "pagetty",
   "text!templates/rule.html",
-  "icanhaz"
+  "icanhaz",
+  "/highlight/highlight.pack.js",
 ], function(Pagetty, ruleTemplate) {
+
+require();
 
 Controller = {
   init: function() {
@@ -34,9 +37,19 @@ Controller = {
 
     $('.btn-remove-rule').live('click', function(e) {
       if (confirm("Are you sure? This will affect all channels on this domain.")) {
-        $(this).parent().remove();
+        $(this).parent().parent().remove();
       }
       return false;
+    });
+
+    $('.btn-fetch-sample').bind("click", function() {
+      var rule = $(this).parents(".rule");
+      rule.find(".sample").html("<img src=\"/images/loading.gif\" />").show();
+
+      $.ajax("/api/channel/sample/" + channel_id + "/" + rule.find("input.item").val()).done(function(data) {
+        rule.find(".sample").html("<pre><code>" + data + "</code></pre>");
+        rule.find(".sample pre code").each(function(i, e) {hljs.highlightBlock(e)});
+      });
     });
   },
   getData: function() {

@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/highlight/styles/default.css">
 <header>
   <div class="container">
     <div class="row">
@@ -20,8 +21,8 @@
         <a class="btn btn-primary btn-save">Save all settings</a>
       </div>
       <div class="well">
-        <h2>Unsubscribe</h2>
-        <p style="margin: 1em 0">This will unsubscribe you from <strong>{{channel.name}}</strong>.<br/>You can subscribe again at any time.</p>
+        <h2 style="margin-bottom: 1em">Unsubscribe</h2>
+        <p style="margin: 1em 0">This will unsubscribe you from <strong>{{channel.name}}</strong>. You can subscribe again at any time.</p>
         <a class="btn btn-danger btn-unsubscribe">Unsubscribe</a>
       </div>
       <!-- END FORM -->

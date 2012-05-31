@@ -1,17 +1,17 @@
 <!-- LAYOUT -->
 <div class="container clearfix">
   <div class="row">
-    <div class="stage span10"><div class="runway"><div class="inner"></div></div></div>
+    <div class="stage span10"><div class="runway"><div class="inner"></div></div><a class="more" href="#"><i class="icon-arrow-down"></i> Show more stories</a></div></div>
     <div class="sidebar span6">
       <aside>
         <div id="account" class="clearfix">
-          <span class="user"><i class="icon-user"></i> {{user.name}}</span>
+          <span class="user username"><i class="icon-user"></i> </span>
           <a class="btn-logout" href="/signout" title="Sign out"><i class="icon-off"></i> Sign out</a>
         </div>
         <div id="channels">
           <div class="header clearfix">
             <h3>My channels</h3>
-            <a href="#add-subscription" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
+            <a href="/subscribe" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
           <ul class="nav nav-list list">
             <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
@@ -19,20 +19,6 @@
         </div>
       </aside>
     </div>
-  </div>
-</div>
-<!-- MODALS -->
-<div class="modal hide" id="add-subscription">
-  <div class="modal-header">
-    <a href="#" class="close" data-dismiss="modal">×</a>
-    <h2>Subscribe to a site</h2>
-  </div>
-  <div id="subscribe-messages" class="messages modal-messages"></div>
-  <div class="modal-body">
-    <input type="text" name="url" class="subscribe-url" placeholder="Enter the URL of the website..." />
-  </div>
-  <div class="modal-footer">
-    <a href="#" class="btn btn-primary btn-subscribe">Subscribe</a>
   </div>
 </div>
 <!-- CONTROLLER -->
