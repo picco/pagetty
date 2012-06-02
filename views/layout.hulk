@@ -10,6 +10,7 @@
   <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js"></script>
 </head>
 <body class="{{{bodyClass}}}">
+  <div class="stripe"></div>
   {{{ body }}}
   <script type='text/javascript'>
 

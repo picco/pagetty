@@ -45,7 +45,20 @@ h1, h2, h3 {
 header {
   border-bottom: 1px solid #eee;
   margin-bottom: 20px;
-  padding: 40px 0;
+  padding-bottom: 20px;
+}
+header h1 {
+  line-height: 87px;
+}
+header .logo {
+  margin-left: 21px;
+}
+.app-loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -10px;
+  margin-left: -110px;
 }
 .btn-a {
   font-size: 11px;
@@ -75,6 +88,24 @@ header {
   color: #888;
   font-size: 11px;
 }
+.logo {
+  display: block;
+  float: left;
+  color: #fff !important;
+  font-family: GraublauWeb, Helvetica, Arial;
+  font-size: 22px;
+  text-align: center;
+  line-height: 22px;
+  background: #00aeef;
+  margin-right: 20px;
+  width: 80px;
+  padding: 50px 0 10px 0;
+  border-bottom-left-radius: 3px;
+  border-bottom-right-radius: 3px;
+}
+.logo:hover {
+  opacity: .8;
+}
 .sample {
   display: none;
   margin-bottom: 20px;
@@ -84,17 +115,30 @@ header {
   word-wrap: normal;
 }
 .sample pre code {
-  height: 20em;
   overflow: auto;
   font-size: 11px;
   background: inherit;
   padding: 0;
 }
+.stripe {
+  position: fixed;
+  width: 100%;
+  height: 2px;
+  background: #00aeef;
+  z-index: 1000;
+}
+
+/* BOOTSTRAP OVERRIDES -------------------------------------------------------*/
+
+.nav-list > .active > a, .nav-list > .active > a:hover {
+  background-color: #00AEEF;
+}
+
 /* APP ---------------------------------------------------------------------- */
 
 #account {
   font-size: 11px;
-  margin: 15px;
+  margin: 15px 15px 0 15px;
 }
 #account .btn-logout {
   float: right;
@@ -113,7 +157,7 @@ header {
   background: #fff;
   border: 1px solid #eee;
   border-radius: 3px;
-  margin-bottom: 20px;
+  margin: 15px 0 20px 0;
 }
 #channels li {
 }
@@ -167,9 +211,14 @@ header {
   display: none;
 }
 .app .configure {
-  float: right;
+}
+.channel .logo {
+  position: absolute;
+  top: -16px;
+  left: 20px;
 }
 .app .stage {
+  position: relative;
   background: #fff;
   padding-bottom: 20px;
 }
@@ -178,7 +227,7 @@ header {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   box-shadow: 0 0 10px #eee;
-  padding: 115px 0 1px 0;
+  padding: 120px 0 1px 0;
   min-height: 100%;
 }
 .app .runway.with-messages {
@@ -193,13 +242,14 @@ header {
   z-index: 100;
 }
 .channel div.title .wrapper {
+  position: relative;
   border-bottom: 1px solid #eee;
   margin-bottom: 10px;
-  padding: 0 20px;
+  padding: 0 20px 0 20px;
 }
 .channel div.title h1 {
   line-height: 36px;
-  margin: 6px 0;
+  margin: 6px 0 6px 100px;
   height: 40px;
   overflow: hidden;
 }
@@ -241,7 +291,7 @@ header {
   margin: 20px;
 }
 .channel .variants {
-  margin-bottom: 15px;
+  margin: 0 0 15px 100px;
 }
 .channel .item {
   border-bottom: 1px solid #eee;
@@ -265,7 +315,7 @@ header {
   line-height: 28px;
 }
 .channel .item .title a:hover {
-  color: #08c;
+  color: #00AEEF;
 }
 .channel .item .title a:visited  {
   color: #999;
@@ -336,6 +386,12 @@ header {
 
 #subscription input {
   width: 90%;
+}
+input.generate {
+  width: 495px;
+}
+input.item {
+  width: 469px;
 }
 
 /* RESPONSIVE --------------------------------------------------------------- */

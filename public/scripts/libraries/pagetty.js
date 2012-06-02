@@ -11,60 +11,25 @@ define([
   "store",
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
 
-var JSONDate = (function() {
-	function isoDate(r, tz) {
-		// log(arguments);
-		return fixTimezone(new Date(r[0], r[1] - 1, r[2], r[3], r[4], r[5], r[6] || 0), tz);
-	}
-
-	function noop(it) {
-		return it;
-	}
-
-	function asDate(strValue, tz) {
-		return isoDate(strValue.split(/[-T:Z\."]/).filter(noop), tz);
-	}
-
-	// date.setHours(date.getUTCHours()); date.setUTCMinutes(date.getUTCMinutes());
-	function fixTimezone(date, tz) {
-		if (null == tz) {
-			tz = date.getTimezoneOffset() / 60 || 0;
-		}
-		if (tz) {
-			date.setHours(date.getHours() - tz);
-		}
-		return date;
-	}
-	function isBadDate(d) {
-		return String(d) === "Invalid Date"  || String(d.getFullYear()) === "NaN";
-	}
-	function fromJSON(dstr) {
-		var d = Date.create ? Date.create(dstr) : new Date(dstr);
-		if (isBadDate(d)) {
-			d = asDate(dstr);
-		}
-		return d;
-	}
-
-	return { fromJSON: fromJSON, isInvalidDate:isBadDate, toDate:asDate }
-})();
-
   var Pagetty = {
     channels: {},
     cache: [],
     subscriptions: {},
     activeChannel: false,
+    activeTitle: false,
     activeVariant: false,
     pager: 9,
     state: {channels: {}},
-    updates: [],
+    updates: {},
     newItemsCount: 0,
 
-    init: function(user, channels) {
+    init: function(user, channels, demo) {
       var self = this, navigation = [];
+
+      this.demo = demo;
       this.user = user;
       this.subscriptions = user.subscriptions;
-      this.storedChannels = amplify.store("channels");
+      this.storedChannels = this.demo ? amplify.store("channels") : false;
 
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
@@ -88,7 +53,7 @@ var JSONDate = (function() {
       console.log("channels from server");
       console.dir(channels);
       console.log("local sorage channels");
-      console.dir(amplify.store("channels"));
+      console.dir(this.storedChannels);
 
       this.channels = this.prepareChannels(this.subscriptions, channels, this.storedChannels);
 
@@ -106,21 +71,25 @@ var JSONDate = (function() {
         this.updateChannels();
       }
 
-      amplify.store("channels", this.channels);
+      if (!this.demo) amplify.store("channels", this.channels);
 
       $(".username").append(_.escape(user.name));
 
+      $(".app .logo").live("click", function() {
+        var channel = "all", variant = "time";
+        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        return false;
+      });
+
       $("#channels li.channel a").bind("click", function() {
         var channel = $(this).data("channel"), variant = $(this).data("variant");
-        //History.pushState({channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        self.showChannel($(this).data("channel"), $(this).data("variant"));
+        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         return false;
       });
 
       $(".channel a.variant").live("click", function() {
         var channel = $(this).data("channel"), variant = $(this).data("variant");
-        //History.pushState({channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        self.showChannel($(this).data("channel"), $(this).data("variant"));
+        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         return false;
       });
 
@@ -130,8 +99,17 @@ var JSONDate = (function() {
       });
 
       $(".new-stories").live("click", function(e) {
+        var stateData = History.getState().data;
+
         e.preventDefault();
         self.refreshChannels();
+
+        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
+          self.showChannel("all", "time");
+        }
+        else {
+          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
+        }
         return false;
       });
 
@@ -139,16 +117,16 @@ var JSONDate = (function() {
 
       $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
 
-      // Act on popstate
-/*
+      // Act on statechange.
+
       History.Adapter.bind(window, "statechange", function() {
         var stateData = History.getState().data;
 
-        if (stateData.channel) {
+        if (stateData.page == "channel") {
           self.showChannel(stateData.channel, stateData.variant);
         }
+
       });
-*/
 
       // Lazy load additional stories when the page is scrolled near to the bottom.
 
@@ -162,7 +140,7 @@ var JSONDate = (function() {
 
       window.setInterval(function() {
         self.updateChannels();
-      }, 10000);
+      }, 5000);
 
       // Open a requested channel.
 
@@ -179,16 +157,15 @@ var JSONDate = (function() {
       }
 
       if (channel == "all" || self.channels[channel]) {
-        self.showChannel(channel, variant);
-        //History.pushState({channel: channel, variant: variant}, null, this.channelUrl(channel, variant));
+        this.showChannel(channel, variant);
       }
       else {
         window.location = "/";
       }
 
       // Reveal the UI when everything is loaded.
+      $(".app-loading").hide();
       $(".app .container").show();
-
     },
     prepareChannels: function(subscriptions, channels, storedChannels) {
       var prepared = {};
@@ -196,14 +173,12 @@ var JSONDate = (function() {
       for (var channel_id in subscriptions) {
         var items = [];
 
-        for (var i in channels[channel_id].items) {
-          if (storedChannels && storedChannels[channel_id] && storedChannels[channel_id].items) {
+        if (storedChannels && storedChannels[channel_id] && storedChannels[channel_id].items) {
+          for (var i in channels[channel_id].items) {
             for (var j in storedChannels[channel_id].items) {
               if (channels[channel_id].items[i].id == storedChannels[channel_id].items[j].id) {
                 // The the new item as the base.
                 var item = _.clone(channels[channel_id].items[i]);
-                // We need to rewrite the dates, since Android cannot handle native Date objects propertly.
-                item.created = JSONDate.fromJSON(storedChannels[channel_id].items[j].created);
                 // We need to keep the isnew status.
                 item.isnew = storedChannels[channel_id].items[j].isnew || false;
                 // Push to the items array.
@@ -215,35 +190,14 @@ var JSONDate = (function() {
             prepared[channel_id] = _.clone(storedChannels[channel_id]);
             prepared[channel_id].items = items;
           }
-          else {
-            // There's no store, just use all the fresh items.
-            prepared[channel_id] = _.clone(channels[channel_id]);
-            prepared[channel_id].items = channels[channel_id].items;
-          }
+        }
+        else {
+          // There's no store, just use all the fresh items.
+          prepared[channel_id] = _.clone(channels[channel_id]);
         }
       }
 
       return prepared;
-    },
-    sortItems: function(items_reference, variant) {
-      var items = _.clone(items_reference);
-
-      if (variant == "time") {
-        return items.sort(function(a, b) {
-          var a = new Date(a.created);
-          var b = new Date(b.created);
-
-          return b.getTime() - a.getTime();
-        });
-      }
-      else if (variant == "score") {
-        return items.sort(function(a, b) {
-          return parseFloat(b.relative_score) - parseFloat(a.relative_score);
-        });
-      }
-      else {
-        return items;
-      }
     },
     aggregateAllItems: function() {
       var items = [];
@@ -257,6 +211,23 @@ var JSONDate = (function() {
       }
 
       return items;
+    },
+    sortItems: function(items_reference, variant) {
+      var items = _.clone(items_reference);
+
+      if (variant == "time") {
+        return items.sort(function(a, b) {
+          return b.created - a.created;
+        });
+      }
+      else if (variant == "score") {
+        return items.sort(function(a, b) {
+          return parseFloat(b.relative_score) - parseFloat(a.relative_score);
+        });
+      }
+      else {
+        return items;
+      }
     },
     renderItems: function(items) {
       var html = "", item = {};
@@ -291,7 +262,7 @@ var JSONDate = (function() {
       }
       return x1 + x2;
     },
-    showChannel: function(channel_id, variant, bustCache) {
+    showChannel: function(channel_id, variant) {
       var html = "", cacheKey = "", selector = "", self = this, channel = this.channels[channel_id], subscription = this.subscriptions[channel_id];
 
       if (!variant) {
@@ -303,19 +274,14 @@ var JSONDate = (function() {
 
       $("#channels .list li.channel-" + channel_id).addClass("loading");
       $(".more").hide();
+      $(".runway .channel").hide();
 
-      if (bustCache) {
-        this.cache = [];
-        $(".runway .channel").remove();
-      }
-      else {
-        $(".runway .channel").hide();
-      }
-
-      if (this.cache[cacheKey]) {
+      if (this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
       }
       else {
+        $(selector).remove();
+
         if (channel_id == "all") {
           html = self.renderItems(self.sortItems(self.aggregateAllItems(), variant));
         }
@@ -329,20 +295,17 @@ var JSONDate = (function() {
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({channel: channel, variant: variant, subscription: {name: "All stories"}, items: html}));
+          $(".runway .inner").append(ich.channelAll({channel: channel, variant: variant, subscription: {name: "All stories"}, items: html, demo: self.demo}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: channel, variant: variant, subscription: subscription, items: html}));
+          $(".runway .inner").append(ich.channel({channel: channel, variant: variant, subscription: subscription, items: html, demo: self.demo}));
         }
 
         // Time ago.
         $(selector + " abbr.timeago").timeago();
 
         // Lazy load images.
-        $(selector + " .items .show img").each(function() {
-          $(this).attr("src", $(this).data("src"));
-          $(this).error(function() {$(this).remove()});
-        });
+        self.loadImages($(selector + " .items .show"));
 
         // Add "Load more" button.
         var selection = $(selector + " .items .hide");
@@ -355,76 +318,86 @@ var JSONDate = (function() {
       $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
       $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
-      if (self.newItems) self.showUpdateNotification();
       this.cache[cacheKey] = true;
       self.activeChannel = channel_id;
       self.activeVariant = variant;
+      self.activeTitle = this.activeChannel == "all" ? "All stories" : this.subscriptions[channel_id].name;
+
+      if (self.newItems) {
+        self.showUpdateNotification();
+      }
+      else {
+        self.updateTitle();
+      }
+
       window.scrollTo(0, 0);
 
       return false;
     },
-    ISODateString: function(d) {
-      function pad(n){return n<10 ? '0'+n : n}
-      return d.getUTCFullYear()+'-'
-        + pad(d.getUTCMonth()+1)+'-'
-        + pad(d.getUTCDate())+'T'
-        + pad(d.getUTCHours())+':'
-        + pad(d.getUTCMinutes())+':'
-        + pad(d.getUTCSeconds())+'Z'
+    loadImages: function(items) {
+      $(items).find(".image").each(function() {
+        var item = this, image = new Image();
+        image.src = $(this).data("image");
+        image.onload = function() {
+          $(item).append(image);
+        };
+      });
     },
     updateChannels: function() {
       var self = this;
 
-      $.getJSON('/update', {state: JSON.stringify(this.state)}, function(updates) {
+      $.getJSON("/api/channel/updates", {state: JSON.stringify(this.state)}, function(updates) {
         if (updates.length) {
-          $.each(updates, function(index, value) {
-            self.state.channels[value._id] = value.items_added;
+          for (var i in updates) {
+            self.state.channels[updates[i]._id] = updates[i].items_added;
+            self.updates[updates[i]._id] = updates[i].items;
+          }
 
-            // This function also attaches the "isnew" flag.
-            items = self.findNewItems(self, value._id, value.items);
-            self.updates[value._id] = items;
-
-            if (index == updates.length - 1) {
-              self.newItems = true;
-              self.showUpdateNotification();
-
-              console.log("some updates received");
-              console.dir(self.updates);
-            }
-          });
+          console.log("some updates received");
+          console.dir(updates[i]);
+          console.dir(self.updates);
+          self.processUpdates();
         }
         else {
           console.log("no updates this time");
         }
       });
     },
-    findNewItems: function(self, channel_id, items) {
-      var count = items.length, found;
+    processUpdates: function() {
+      var count = 0;
 
-      for (var i in items) {
-        found = false;
+      console.log("in processUpdates");
 
-        for (var j in this.channels[channel_id].items) {
-          if (self.channels[channel_id].items[j].id == items[i].id) {
-            found = true;
-            break;
+      for (var channel_id in this.updates) {
+        for (var i in this.updates[channel_id]) {
+          if (this.updates[channel_id][i].recurring || this.itemExists(this.updates[channel_id][i], this.channels[channel_id].items)) {
+            this.updates[channel_id][i].isnew = false;
           }
-        }
-
-        for (var j in this.updates[channel_id]) {
-          if (this.updates[channel_id][j].id == items[i].id) {
-            found = true;
-            break;
+          else {
+            this.updates[channel_id][i].isnew = true;
+            console.log("new item found:");
+            console.dir(this.updates[channel_id][i]);
+            count++;
           }
-        }
-
-        if (!found) {
-          self.newItemsCount++;
-          items[i].isnew = true;
         }
       }
 
-      return items;
+      if (count) {
+        this.newItems = true;
+        this.newItemsCount = count;
+        this.showUpdateNotification();
+      }
+
+      console.log("updates after processUpdates");
+      console.dir(this.updates);
+    },
+    itemExists: function(item, list) {
+      for (var i in list) {
+        if (list[i].id == item.id) {
+          return true;
+        }
+      }
+      return false;
     },
     refreshChannels: function() {
       for (var channel_id in this.channels) {
@@ -439,40 +412,42 @@ var JSONDate = (function() {
         this.channels[channel_id].items = this.updates[channel_id];
       }
 
+      this.cache = [];
       this.newItems = false;
       this.newItemsCount = 0;
-      this.updates = [];
-      this.showChannel("all", "time", true);
-      amplify.store("channels", this.channels);
-      //History.pushState({channel: "all", variant: "time"}, null, this.channelUrl("all", "time"));
+      this.updates = {};
+      if (!this.demo) amplify.store("channels", this.channels);
       this.hideUpdateNotification();
     },
     showUpdateNotification: function() {
       if (this.newItemsCount > 0) {
         $(".app .runway").addClass("with-messages");
-        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.newItemsCount + ' </span>new stories available. Click here to update.</a>');
+        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.newItemsCount + ' </span>' + (this.newItemsCount == 1 ? 'new story' : 'new stories') + '. Click here to update.</a>');
+        this.updateTitle();
       }
     },
     hideUpdateNotification: function() {
       $(".app .runway").removeClass("with-messages");
-      $(".channel .messages").html();
+      $(".channel .messages").html("");
+      this.updateTitle();
     },
-    itemIsNew: function(channel_id, item) {
-      for (var j in this.channels[channel_id].items) {
-        if (this.channels[channel_id].items[j].id == item.id) {
-          return false;
-        }
+    updateTitle: function() {
+      if (this.newItemsCount) {
+        $("title").html("(" + this.newItemsCount + ") " + this.activeTitle + " - Pagetty");
       }
-      return true;
+      else {
+        $("title").html(this.activeTitle + " - Pagetty");
+      }
     },
     loadMore: function(channel_id, variant) {
-      var selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
+      var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
 
       if (selection.length) {
-        selection.slice(0, this.pager + 1).each(function(index, element) {
+        var slice = selection.slice(0, this.pager + 1);
+
+        self.loadImages(slice);
+        slice.each(function(index, element) {
           $(this).removeClass("hide").addClass("show");
-          var image = $(this).find("img").first();
-          image.attr("src", image.data("src"));
         });
       }
       else {

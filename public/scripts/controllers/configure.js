@@ -42,11 +42,29 @@ Controller = {
       return false;
     });
 
-    $('.btn-fetch-sample').bind("click", function() {
+    $('.btn-generate').live("click", function() {
+      var rule = $(this).parents(".rule");
+
+      $.ajax("/api/configure/generate/" + channel_id + "/" + rule.find("input.generate").val())
+        .done(function(data) {
+          if (confirm("Overwrite existing fields?")) {
+            rule.find("input.item").val(data);
+            rule.find("input.target-selector").val("a");
+            rule.find("input.target-url-attribute").val("href");
+            rule.find("input.image-selector").val("img");
+            rule.find("input.image-attribute").val("src");
+          }
+        })
+        .error(function() {
+          alert("Link could not be found. Try another one.");
+        });
+    });
+
+    $('.btn-fetch-sample').live("click", function() {
       var rule = $(this).parents(".rule");
       rule.find(".sample").html("<img src=\"/images/loading.gif\" />").show();
 
-      $.ajax("/api/channel/sample/" + channel_id + "/" + rule.find("input.item").val()).done(function(data) {
+      $.ajax("/api/configure/sample/" + channel_id + "/" + encodeURIComponent(rule.find("input.item").val())).done(function(data) {
         rule.find(".sample").html("<pre><code>" + data + "</code></pre>");
         rule.find(".sample pre code").each(function(i, e) {hljs.highlightBlock(e)});
       });
@@ -87,7 +105,7 @@ Controller = {
     return attrs;
   },
   saveSuccessCallback: function(data, status) {
-    window.location = "/#" + channel_id;
+    window.location = "/channel/" + channel_id;
   },
   saveErrorCallback: function(xhr, status, error) {
     alert(xhr.responseText);

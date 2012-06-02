@@ -79,20 +79,55 @@ pagetty.init(function (self) {
   /**
    * Render the app.
    */
-  app.get("/", function(req, res) {
-    if (req.session.user) {
-      res.render("app", {bodyClass: "app"});
+
+  function renderApp(req, res) {
+    if (req.headers.host == "demo.pagetty.com") {
+      res.render("app_demo", {bodyClass: "app"});
     }
     else {
-      res.render("index");
+      if (req.session.user) {
+        res.render("app", {bodyClass: "app"});
+      }
+      else {
+        res.render("index");
+      }
     }
-  });
+  }
+
+  app.get("/", renderApp);
+  app.get(/^\/channel\/.+/, renderApp);
 
   /**
    * API: send user information.
    */
   app.get("/api/user", restricted, function(req, res) {
     res.json(req.session.user);
+  });
+
+  /**
+   * API: demo user.
+   */
+  app.get("/api/demo/user", function(req, res) {
+    res.json(pagetty.loadDemoAccount());
+  });
+
+  /**
+   * API: demo channels.
+   */
+  app.get("/api/demo/channels", function(req, res) {
+    pagetty.loadDemoChannels(function(channels) {
+      var channelsObject = {};
+
+      for (var index in channels) {
+        for (var i in channels[index].items) {
+          channels[index].items[i].created = channels[index].items[i].created.getTime();
+        }
+        channels[index].items_added = channels[index].items_added ? channels[index].items_added.getTime() : null;
+        channels[index].items_updated = channels[index].items_updated ? channels[index].items_updated.getTime() : null;
+        channelsObject[channels[index]._id] = channels[index];
+      }
+      res.json(channelsObject);
+    });
   });
 
   /**
@@ -103,9 +138,13 @@ pagetty.init(function (self) {
       var channelsObject = {};
 
       for (var index in channels) {
+        for (var i in channels[index].items) {
+          channels[index].items[i].created = channels[index].items[i].created.getTime();
+        }
+        channels[index].items_added = channels[index].items_added ? channels[index].items_added.getTime() : null;
+        channels[index].items_updated = channels[index].items_updated ? channels[index].items_updated.getTime() : null;
         channelsObject[channels[index]._id] = channels[index];
       }
-
       res.json(channelsObject);
     });
   });
@@ -113,7 +152,7 @@ pagetty.init(function (self) {
   /**
    * API: send the whole source code of the channel.
    */
-  app.get("/api/channel/source/:id", restricted, function(req, res) {
+  app.get("/api/configure/source/:id", restricted, function(req, res) {
     pagetty.loadChannel(req.params.id, function(err, channel) {
       pagetty.request({url: channel.url}, function(err, response, body) {
         res.send(_.escape(body));
@@ -122,11 +161,30 @@ pagetty.init(function (self) {
   });
 
   /**
-   * API: send the whole source code of the channel.
+   * API: Autogenerate rule data
    */
-  app.get("/api/channel/sample/:id/:selector", restricted, function(req, res) {
+  app.get("/api/configure/generate/:id/:title", restricted, function(req, res) {
     pagetty.loadChannel(req.params.id, function(err, channel) {
       pagetty.request({url: channel.url}, function(err, response, body) {
+        pagetty.generateItemSelector(body, req.params.title, function(err, selector) {
+          if (err) {
+            res.send(400);
+          }
+          else {
+            res.send(selector);
+          }
+        })
+      });
+    });
+  });
+
+  /**
+   * API: send the whole source code of the channel.
+   */
+  app.get("/api/configure/sample/:id/:selector", restricted, function(req, res) {
+    pagetty.loadChannel(req.params.id, function(err, channel) {
+      pagetty.request({url: channel.url}, function(err, response, body) {
+        console.dir(req.params.selector);
         var html = $('<div>').append($(body).find(req.params.selector).first().clone()).remove().html();
         pagetty.tidy(html, function(formatted) {
           res.send(_.escape(formatted));
@@ -138,7 +196,7 @@ pagetty.init(function (self) {
   /**
    * Client auto-update call.
    */
-  app.get("/update", restricted, function(req, res) {
+  app.get("/api/channel/updates", restricted, function(req, res) {
     pagetty.loadUserChannelUpdates(req.session.user, JSON.parse(req.param("state")), function(updates) {
       res.json(updates);
     });
@@ -355,7 +413,13 @@ pagetty.init(function (self) {
   });
 
   app.get("/test/:test", function(req, res) {
-    var params = {layout: "layout_test.hulk", random_id: new Date().getTime()};
+    var params = {
+      layout: "layout_test.hulk",
+      random_id: new Date().getTime(),
+      history_test: Math.round(Math.random()),
+      stamp: new Date().getTime()
+    };
+
     res.render("tests/" + req.params.test, params);
   });
 

@@ -2,14 +2,15 @@
 <header>
   <div class="container">
     <div class="row">
-      <div class="span12">
+      <div class="span16">
+        <a class="logo" href="/">Pagetty</a>
         <h1>{{subscription.name}} - channel settings</h1>
       </div>
     </div>
   </div>
 </header>
 <div class="container">
-  <div class="row-fluid">
+  <div class="row">
     <div class="span4">
       <!-- BEGIN FORM -->
       <div id="subscription" class="well">
@@ -27,10 +28,10 @@
       </div>
       <!-- END FORM -->
     </div>
-    <div class="span8">
+    <div class="span12">
       <h1 style="margin-bottom: .5em;">Rules for {{channel.domain}}</h1>
       <div class="alert alert-danger">
-        <strong>Please remember</strong> - rules that you can modify here <strong>affect all the pages</strong> on {{channel.domain}}.
+        <strong>Please remember</strong> - rules that you can modify here <strong>affect all subscriptions </strong> to <strong>{{channel.domain}}</strong>.
       </div>
       <div id="rules">
         {{#rules}}
@@ -38,8 +39,8 @@
         {{/rules}}
       </div>
       <div class="form-actions">
-        <a class="btn btn-warning btn-add-rule">Add rule</a>
         <a class="btn btn-primary btn-save">Save all settings</a>
+        <a class="btn btn-warning btn-add-rule">Add rule</a>
       </div>
     </div>
   </div>

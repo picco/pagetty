@@ -4,8 +4,16 @@ var last_update = new Date().getTime();
 var timeout = 60 * 1000;
 
 pagetty.init(function() {
-  update(true);
-  setInterval(update, timeout);
+  if (process.argv[2]) {
+    pagetty.updateChannelItems(process.argv[2], function() {
+      logger.log.info("Update done.");
+      process.exit();
+    });
+  }
+  else {
+    update(true);
+    setInterval(update, timeout);
+  }
 });
 
 function update(force) {

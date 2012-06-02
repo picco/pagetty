@@ -1,6 +1,15 @@
 <div class="rule clearfix">
   <div class="well">
-    <h2>Rule</h2>
+    <h2>Rule definition</h2>
+    <div class="form-element">
+      <label>Autogenerate rule template from a link title</label>
+      <div class="input-append">
+        <input class="generate input-xlarge" type="text" name="channel:rule:generate-item" value="" /><button class="btn btn-generate">Generate</button>
+      </div>
+      <div class="form-description clearfix">
+        Copy one link title from <strong><a href="{{channel.url}}" target="_blank">{{channel.url}}</a></strong> to this field and we'll try to detect in the item selector, and some selector information automatically. Note that you still need to go over and optimize the item selector and all the settings after this.
+      </div>
+    </div>
     <div class="form-element">
       <label>Item selector *</label>
       <div class="input-append">

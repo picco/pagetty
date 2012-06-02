@@ -1,12 +1,13 @@
 <div class="channel channel-normal channel-{{channel._id}}-{{variant}}">
   <div class="title">
     <div class="wrapper">
+      <a class="logo" href="/">Pagetty</a>
       <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
       <div class="variants clearfix">
         <a class="btn-a variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#"><i class="icon-home"></i> As on site</a>
         <a class="btn-a variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a>
         <a class="btn-a variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
-        <a class="btn-a configure" href="/configure/{{channel._id}}"><i class="icon-cog"></i> Settings</a>
+        {{^demo}}<a class="btn-a configure" href="/configure/{{channel._id}}"><i class="icon-cog"></i> Settings</a>{{/demo}}
       </div>
       <div class="messages"></div>
     </div>
