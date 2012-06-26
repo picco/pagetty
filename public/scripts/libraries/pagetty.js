@@ -29,7 +29,7 @@ define([
       this.demo = demo;
       this.user = user;
       this.subscriptions = user.subscriptions;
-      this.storedChannels = this.demo ? amplify.store("channels") : false;
+      this.storedChannels = this.demo ? false : amplify.store("channels");
 
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
@@ -45,7 +45,7 @@ define([
       });
 
       for (var i in navigation) {
-        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="#' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + _.escape(navigation[i].name) + '</a></li>');
+        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="/channel/' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + _.escape(navigation[i].name) + '</a></li>');
       }
 
       console.log("subscriptions");
@@ -59,12 +59,7 @@ define([
 
       console.log("prepared channels");
       console.dir(this.channels);
-
-      for (var channel_id in this.channels) {
-        this.state.channels[this.channels[channel_id]._id] = _.clone(this.channels[channel_id].items_added);
-      }
-
-      console.log("state");
+      console.log("prepared state");
       console.dir(this.state);
 
       if (this.storedChannels) {
@@ -112,10 +107,6 @@ define([
         }
         return false;
       });
-
-      // Sidebar scroll
-
-      $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
 
       // Act on statechange.
 
@@ -166,6 +157,11 @@ define([
       // Reveal the UI when everything is loaded.
       $(".app-loading").hide();
       $(".app .container").show();
+
+      // Sidebar scroll
+      window.setTimeout(function() {
+        $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
+      }, 1000);
     },
     prepareChannels: function(subscriptions, channels, storedChannels) {
       var prepared = {};
@@ -187,14 +183,17 @@ define([
                 break;
               }
             }
-            prepared[channel_id] = _.clone(storedChannels[channel_id]);
-            prepared[channel_id].items = items;
           }
+          prepared[channel_id] = _.clone(storedChannels[channel_id]);
+          prepared[channel_id].items = items;
         }
         else {
           // There's no store, just use all the fresh items.
           prepared[channel_id] = _.clone(channels[channel_id]);
         }
+
+        // Save the state of channels.
+        this.state.channels[channel_id] = _.clone(prepared[channel_id].items_added);
       }
 
       return prepared;
@@ -239,7 +238,7 @@ define([
         item.visible = (i <= this.pager) ? true : false;
         item.className = item.visible ? "show" : "hide";
         if (item.isnew) item.className += " new";
-        if (item.id && item.image) item.image_url = "/images/" + item.id + ".jpg";
+        if (item.id && item.image) item.image_url = "/imagecache/" + item.id + ".jpg";
 
         // Reduce long channel names
         if (item.channel.name.length > 30) {
@@ -370,7 +369,7 @@ define([
 
       for (var channel_id in this.updates) {
         for (var i in this.updates[channel_id]) {
-          if (this.updates[channel_id][i].recurring || this.itemExists(this.updates[channel_id][i], this.channels[channel_id].items)) {
+          if (this.itemExists(this.updates[channel_id][i], this.channels[channel_id].items)) {
             this.updates[channel_id][i].isnew = false;
           }
           else {

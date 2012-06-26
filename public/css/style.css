@@ -4,6 +4,7 @@
 html,
 body {
   height: 100%;
+  background: fixed #fff -webkit-linear-gradient(top, #eee 0%,#fafafa 20px,#fafafa 100%) no-repeat !important;
 }
 a {
   text-decoration: none;
@@ -190,7 +191,7 @@ header .logo {
   background: #ddd;
 }
 .app {
-  background: #fafafa !important;
+  background: fixed #fafafa -webkit-linear-gradient(top, #eee 0%,#fafafa 20px,#fafafa 100%) no-repeat !important;
 }
 .app .container,
 .app .row,
@@ -338,7 +339,7 @@ header .logo {
   border-bottom: none;
 }
 .channel .item .image img {
-  padding-top: 10px;
+  margin-top: 10px;
 }
 .channel .item .score {
   color: #000;

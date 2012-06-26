@@ -412,6 +412,26 @@ pagetty.init(function (self) {
     });
   });
 
+  app.get("/api/profile/segments/:url", function(req, res) {
+    pagetty.getProfileSegments("http://www.techcrunch.com/", function(err, segments) {
+      //console.dir(err);
+      console.dir(segments);
+      res.json(segments);
+    });
+  });
+
+  app.get("/profile", function(req, res) {
+    pagetty.getProfileSegments("http://planetnodejs.com/", function(err, segments) {
+      res.render("profile", {segments: segments});
+    });
+  });
+
+  app.get("/profile/container", function(req, res) {
+    pagetty.getProfileSegments("http://www.engadget.com/", function(err, segments) {
+      res.render("profile", {segments: segments});
+    });
+  });
+
   app.get("/test/:test", function(req, res) {
     var params = {
       layout: "layout_test.hulk",

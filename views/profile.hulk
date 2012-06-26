@@ -1,0 +1,58 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span12">
+        <a class="logo" href="/">Pagetty</a>
+        <h1>Create a website profile</h1>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="row-fluid">
+    <div class="span12">
+      <div class="messages"></div>
+      <h2>Select what type of links should be tracked?</h2>
+      {{#segments}}
+        <div class="well">
+          <p>Path: {{path}}</p>
+          <p>SegmentRoot: {{segmentRoot}}</p>
+          <p>Weight: {{weight}}</p>
+          <ul>
+            {{#links}}
+              <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+            {{/links}}
+          </ul>
+        </div>
+      {{/segments}}
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+require(["/scripts/libraries/pagetty.js"], function(pagetty) {
+  (function() {
+
+    function submitForm() {
+      $.ajax("/subscribe", {
+        type: "POST",
+        data: {url: $(".subscribe-url").val()},
+        success: function(data) {
+          window.location = "/channel/" + data.channel_id + "/?new-subscription";
+        },
+        error: function(xhr, status, error) {
+          pagetty.error(xhr.responseText);
+        }
+      });
+    }
+
+    $(document).ready(function() {
+      $(".subscribe-url").focus();
+      $(".btn-subscribe").bind("click", submitForm);
+      $(".subscribe-url").bind("keypress", function(e) {
+        if ((e.keyCode || e.which) == 13) submitForm();
+      });
+    });
+
+  })();
+});
+</script>

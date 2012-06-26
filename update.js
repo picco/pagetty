@@ -3,6 +3,10 @@ var pagetty = require("./lib/pagetty.js");
 var last_update = new Date().getTime();
 var timeout = 60 * 1000;
 
+process.on("uncaughtException", function(e) {
+  logger.log.error("Uncaught exception: " + e);
+});
+
 pagetty.init(function() {
   if (process.argv[2]) {
     pagetty.updateChannelItems(process.argv[2], function() {
@@ -20,10 +24,11 @@ function update(force) {
   var now = new Date().getTime();
 
   if (force || now - last_update >= timeout) {
-    logger.log.info("Update: Executing new batch...");
+    logger.log.info("Executing new batch");
 
     pagetty.updateChannelItems(false, function() {
       last_update = new Date().getTime();
+      logger.log.info("Batch complete");
     });
   }
   else {
