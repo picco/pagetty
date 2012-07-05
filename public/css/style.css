@@ -18,6 +18,9 @@ a:focus {
 h1 {
   font-weight: bold !important;
 }
+.container {
+  padding: 0 20px;
+}
 .modal-messages .alert {
   border: none;
   border-radius: 0;
@@ -257,6 +260,10 @@ header .logo {
 .channel div.title a {
   color: #333;
 }
+.channel h1 a:active,
+.channel h2 a:active {
+  color: #333 !important;
+}
 .channel h1 a:hover,
 .channel h2 a:hover {
   color: #0D28B1 !important;
@@ -423,6 +430,9 @@ input.item {
     width: auto;
     margin-top: 20px;
     padding: 0 20px;
+  }
+  .app .container {
+    padding: 0;
   }
   .app .runway {
     border: none;
