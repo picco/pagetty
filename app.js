@@ -421,7 +421,7 @@ pagetty.init(function (self) {
   });
 
   app.get("/profile", function(req, res) {
-    pagetty.getProfileSegments("http://planetnodejs.com/", function(err, segments) {
+    pagetty.getProfileSegments("http://www.hongkiat.com/blog/", function(err, segments) {
       res.render("profile", {segments: segments});
     });
   });
