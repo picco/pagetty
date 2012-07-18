@@ -18,16 +18,16 @@ pagetty    = require('./lib/pagetty.js');
 /**
  * Create a HTTP server.
  */
-var app = express.createServer();
-
-/**
- * Create a secure HTTPS server.
- */
-var secure = express.createServer({
+var app = express.createServer({
   ca: fs.readFileSync(__dirname + "/ssl/ca.pem"),
   key: fs.readFileSync(__dirname + "/ssl/pagetty.key.nopass"),
   cert: fs.readFileSync(__dirname + "/ssl/pagetty.crt")
 });
+
+/**
+ * Create a secure HTTPS server.
+ */
+var unsecure = express.createServer();
 
 /**
  * Define server ports.
@@ -412,49 +412,40 @@ pagetty.init(function (self) {
     });
   });
 
-  app.get("/api/profile/segments/:url", function(req, res) {
-    pagetty.getProfileSegments("http://www.techcrunch.com/", function(err, segments) {
-      //console.dir(err);
-      console.dir(segments);
-      res.json(segments);
+  /**
+   * Display the channel profiling page.
+   */
+  app.get("/profile/:channel", function(req, res) {
+    pagetty.createProfile(req.params.channel, function(err, profile) {
+      req.session.profile = profile;
+      res.render("profile", {segments: profile.segments});
     });
-  });
-
-  app.get("/profile", function(req, res) {
-    pagetty.getProfileSegments("http://www.hongkiat.com/blog/", function(err, segments) {
-      res.render("profile", {segments: segments});
-    });
-  });
-
-  app.get("/profile/container", function(req, res) {
-    pagetty.getProfileSegments("http://www.engadget.com/", function(err, segments) {
-      res.render("profile", {segments: segments});
-    });
-  });
-
-  app.get("/test/:test", function(req, res) {
-    var params = {
-      layout: "layout_test.hulk",
-      random_id: new Date().getTime(),
-      history_test: Math.round(Math.random()),
-      stamp: new Date().getTime()
-    };
-
-    res.render("tests/" + req.params.test, params);
   });
 
   /**
-   * Redirect any accidental requests to the normal site.
+   * Display the channel profiling page.
    */
-  secure.get("*", function(req, res) {
-    console.log("Reditected user from HTTPS");
-    res.redirect("http://" + config.domain + req.url);
+  app.get("/rule/create/*", function(req, res) {
+    // TODO: TEST for profile in session
+    pagetty.createExtendedSegment(req.session.profile, req.query["segment"], function(err, segment) {
+      console.dir(segmrnt);
+    });
+
+    res.render("rule_create", {profile: req.session.profile});
+  });
+
+  /**
+   * Redirect any HTTP requests to the HTTPS site.
+   */
+  unsecure.get("*", function(req, res) {
+    console.log("Reditected user from HTTP");
+    res.redirect("https://" + config.domain + req.url);
   });
 
   /**
    * Start the web server.
    */
-  logger.log.info("Starting server on: " + config.domain + ":" + httpPort + " and " + config.secureDomain + ":" + httpsPort);
-  app.listen(httpPort);
-  secure.listen(httpsPort);
+  logger.log.info("Starting server on: " + config.domain + ":" + httpPort + " and " + config.domain + ":" + httpsPort);
+  app.listen(httpsPort);
+  unsecure.listen(httpPort);
 });

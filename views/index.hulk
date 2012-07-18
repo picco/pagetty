@@ -10,23 +10,26 @@
           <input class="password input-medium" type="password" name="password" placeholder="Password" />
           <input type="submit" class="btn btn-sign-in" value="Sign in" />
         </form>
+        <!--<a class="btn btn btn-primary" href="#">Sign in</a>-->
+        <div class="sign-up">
+          <a href="#">Create new account</a> - it's <strong>free</strong>, and takes just a second!
+        </div>
         <noscript>
           <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
         </noscript>
+        <!--
+        <h3>Sign in</h3>
         <div class="beta-message">
-          We are in early beta, signups will be available soon.
+          <h3>Create free beta account</h3>
+          <form class="sign-up form-inline" action="/signup" method="post">
+            <input class="mail input-medium" type="text" name="mail" placeholder="Your e-mail" />
+            <input type="submit" class="btn btn-sign-in" value="Sign up" />
+          </form>
         </div>
+        -->
       </div>
       <div class="logos">
-        <a href="http://nodejs.org">
-          <img src="/images/nodejs.png" alt="Powered by NodeJS" title="Powered by NodeJS" />
-        </a>
-        <a href="http://www.w3.org/html/logo/">
-          <img src="http://www.w3.org/html/logo/badge/html5-badge-h-solo.png" width="63" height="64" alt="HTML5 Powered" title="HTML5 Powered">
-        </a>
-        <a href="http://mongodb.org">
-          <img src="/images/mongodb.png" alt="Powered by MongoDB" title="Powered by MongoDB" />
-        </a>
+        <img src="/images/technology.png" alt="Powered by NodeJS, HTML5, MongoDB" title="Powered by NodeJS, HTML5, MongoDB" />
       </div>
     </div>
   </div>
