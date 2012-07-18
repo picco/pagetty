@@ -10,23 +10,12 @@
           <input class="password input-medium" type="password" name="password" placeholder="Password" />
           <input type="submit" class="btn btn-sign-in" value="Sign in" />
         </form>
-        <!--<a class="btn btn btn-primary" href="#">Sign in</a>-->
         <div class="sign-up">
-          <a href="#">Create new account</a> - it's <strong>free</strong>, and takes just a second!
+          <a href="/signup">Create new account</a> - it's <strong>free</strong>, and takes just a second!
         </div>
         <noscript>
           <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
-        </noscript>
-        <!--
-        <h3>Sign in</h3>
-        <div class="beta-message">
-          <h3>Create free beta account</h3>
-          <form class="sign-up form-inline" action="/signup" method="post">
-            <input class="mail input-medium" type="text" name="mail" placeholder="Your e-mail" />
-            <input type="submit" class="btn btn-sign-in" value="Sign up" />
-          </form>
-        </div>
-        -->
+        </noscript>      
       </div>
       <div class="logos">
         <img src="/images/technology.png" alt="Powered by NodeJS, HTML5, MongoDB" title="Powered by NodeJS, HTML5, MongoDB" />

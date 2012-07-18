@@ -352,15 +352,22 @@ pagetty.init(function (self) {
    * Display sign-up form.
    */
   app.post("/signup", function(req, res) {
-    pagetty.signup(req.body.mail, function(err) {
+    pagetty.signup(req.body.username, req.body.mail, function(err) {
       if (err) {
         res.send(err, 400);
       }
       else {
-        res.send(200);
+        res.redirect("/signup/confirm");
       }
     });
   });
+  
+  /**
+   * Display sign-up confirm page.
+   */
+  app.get("/signup/confirm", function(req, res) {
+    res.render('signup_confirm');
+  });  
 
   /**
    * Log the user out of the system.

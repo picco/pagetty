@@ -1,0 +1,21 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span12">
+        <a class="logo" href="/">Pagetty</a>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="page container">
+  <div class="row">
+    <div class="span12">
+      <div class="messages"></div>
+      <h1>Confirmation e-mail has been sent</h1>
+      <p>Please <strong>check your mailbox</strong>, open the confirmation e-mail and <strong>click on the activatation link</strong>!</p>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  require(['/scripts/controllers/signup.js']);
+</script>

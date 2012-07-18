@@ -110,6 +110,9 @@ header .logo {
 .logo:hover {
   opacity: .8;
 }
+.page h1 {
+  margin-bottom: .5em;  
+}
 .sample {
   display: none;
   margin-bottom: 20px;
