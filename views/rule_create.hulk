@@ -1,0 +1,74 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span12">
+        <a class="logo" href="/">Pagetty</a>
+        <h1>Create rule</h1>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="row-fluid">
+    <div class="span12">
+      <div class="messages"></div>
+      <div class="well">
+        {{profile.channel.url}}
+      </div>
+      <div class="well">
+        <h2>Title</h2>
+        configure title
+        <br/><br/>
+        <label>Selector</label>
+        <input type="text" />
+      </div>
+      <div class="well">
+        <h2>Image</h2>
+        configure images
+      </div>
+      <div class="well">
+        <h2>Comment count and link</h2>
+        configure comments
+      </div>
+      <div class="well">
+        <h2>Score</h2>
+        configure comments
+      </div>
+      <div class="well">
+        <h2>Source sample</h2>
+        ...
+      </div>
+      <div class="well">
+        <a class="btn btn-success">Create rule</a>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+require(["/scripts/libraries/pagetty.js"], function(pagetty) {
+  (function() {
+
+    function submitForm() {
+      $.ajax("/subscribe", {
+        type: "POST",
+        data: {url: $(".subscribe-url").val()},
+        success: function(data) {
+          window.location = "/channel/" + data.channel_id + "/?new-subscription";
+        },
+        error: function(xhr, status, error) {
+          pagetty.error(xhr.responseText);
+        }
+      });
+    }
+
+    $(document).ready(function() {
+      $(".subscribe-url").focus();
+      $(".btn-subscribe").bind("click", submitForm);
+      $(".subscribe-url").bind("keypress", function(e) {
+        if ((e.keyCode || e.which) == 13) submitForm();
+      });
+    });
+
+  })();
+});
+</script>
