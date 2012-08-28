@@ -1,7 +1,5 @@
 {
   "server": {
-    "port_shift": 8000,
     "domain": "pagetty.com",
-    "secureDomain": "secure.pagetty.com"
   }
 }

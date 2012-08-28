@@ -1,6 +1,6 @@
 var
 _          = require('underscore'),
-$          = require('jquery'),
+$          = require('cheerio'),
 async      = require("async"),
 fs         = require('fs'),
 util       = require('util'),
@@ -361,13 +361,13 @@ pagetty.init(function (self) {
       }
     });
   });
-  
+
   /**
    * Display sign-up confirm page.
    */
   app.get("/signup/confirm", function(req, res) {
     res.render('signup_confirm');
-  });  
+  });
 
   /**
    * Log the user out of the system.
