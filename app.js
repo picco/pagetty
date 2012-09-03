@@ -19,20 +19,15 @@ pagetty    = require('./lib/pagetty.js');
  * Create a HTTP server.
  */
 var app = express.createServer({
-  ca: fs.readFileSync(__dirname + "/ssl/ca.pem"),
-  key: fs.readFileSync(__dirname + "/ssl/pagetty.key.nopass"),
-  cert: fs.readFileSync(__dirname + "/ssl/pagetty.crt")
+  ca: fs.readFileSync(__dirname + "/ssl/" + config.domain + "/ca.crt"),
+  key: fs.readFileSync(__dirname + "/ssl/" + config.domain + "/server.key.nopass"),
+  cert: fs.readFileSync(__dirname + "/ssl/" + config.domain + "/server.crt")
 });
 
 /**
  * Create a secure HTTPS server.
  */
 var unsecure = express.createServer();
-
-/**
- * Define server ports.
- */
-var httpPort = config.port_shift + 80, httpsPort = config.port_shift + 443;
 
 /**
  * Define authentication middleware.
@@ -109,6 +104,10 @@ pagetty.init(function (self) {
    */
   app.get("/api/demo/user", function(req, res) {
     res.json(pagetty.loadDemoAccount());
+  });
+
+  app.get("/test", function(req, res) {
+    res.end("asd");
   });
 
   /**
@@ -452,7 +451,7 @@ pagetty.init(function (self) {
   /**
    * Start the web server.
    */
-  logger.log.info("Starting server on: " + config.domain + ":" + httpPort + " and " + config.domain + ":" + httpsPort);
-  app.listen(httpsPort);
-  unsecure.listen(httpPort);
+  logger.log.info("Starting server on: " + config.domain + ":" + 8080 + config.domain + ":" + 8443);
+  app.listen(8443);
+  unsecure.listen(8080);
 });
