@@ -1,5 +1,6 @@
 {
   "server": {
+    "db_name": "pagetty_development",
     "domain": "dev.pagetty.com"
   }
 }

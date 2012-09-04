@@ -28,11 +28,10 @@ node 'default' {
   firewall { '200 forward https to 8443':
     chain => 'PREROUTING',
     table => 'nat',      
-    proto  => 'tcp',
-    dport  => 80,
+    dport  => 443,
     jump => 'REDIRECT',
     toports => 8443
-  }     
+  }
   
   user { 'pagetty':
     ensure  => 'present',

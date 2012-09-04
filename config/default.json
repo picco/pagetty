@@ -1,6 +1,5 @@
 {
   "server": {
-    "db_name": "pagetty",
     "db_url": "mongodb://127.0.0.1/pagetty",
     "db_host": "127.0.0.1",
     "db_port": 27017,
