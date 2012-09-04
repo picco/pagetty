@@ -1,9 +1,12 @@
 load 'deploy'
 
+default_environment['NODE_ENV'] = "production"
+default_run_options[:pty] = true
+
 set :application, "pagetty"
 set :repository,  "git@github.com:picco/pagetty.git"
 set :scm, :git
-set :ssh_options, {:forward_agent => true}
+set :ssh_options, {:forward_agent => false}
 set :deploy_to, "/srv/pagetty"
 set :deploy_via, :remote_cache
 set :user, "root"
@@ -15,25 +18,16 @@ server "pagetty.com", :app, {
   }
 }
 
-# Bootstrap: Prepare the server for puppet.
-
-namespace :prepare do
-  task :default do
-    set :user, "root"
-    set :default_shell, "bash"
-    
-    run("hostname pagetty.com")
-    run("apt-get update")
-    run("apt-get install -y puppet")
-  end
-end
-
 # Configure: Configure the server using puppet.
 
 namespace :configure do
   task :default do
     set :user, "root"
+    set :default_shell, "bash"    
 
+    run("hostname pagetty.com")
+    run("apt-get install -y puppet")
+    
     system("tar czf 'puppet.tgz' puppet/")
     upload("puppet.tgz","/tmp/puppet.tgz",:via => :scp)
     system("rm puppet.tgz")
@@ -51,25 +45,22 @@ end
 namespace :deploy do
   set :user, "pagetty"
 
-  desc "Stop Forever"
   task :stop do
     run "forever stopall"
   end
 
-  desc "Start Forever"
   task :start do
-    run "forever start #{current_path}/app.js"
-    run "forever start #{current_path}/update.js"
+    run "env"
+    run "cd #{current_path} && forever start app.js"
+    run "cd #{current_path} && forever start update.js"
   end
 
-  desc "Restart Forever"
   task :restart do
     stop
     sleep 5
     start
   end
 
-  desc "Install node modules non-globally"
   task :npm_install do
     run "mkdir -p #{shared_path}/node_modules"
     run "ln -s #{shared_path}/node_modules #{release_path}/node_modules"      

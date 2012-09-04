@@ -1,17 +1,39 @@
-node 'default' {
+node 'default' { 
+  class { 'newrelic':
+    license => 'ddac5bb88c2c9f927a24a2797b18dd1af9ec9c71',
+  }    
+  
   class { 'nodejs':
     version => '0.8.8',
-  }
-  
-  package { ['g++', 'git-core', 'make', 'python']:
-    ensure => 'installed'
-  }
-  
+  }  
+
   package { ['forever']:
     provider => 'npm',
     ensure => 'installed',
   }  
-
+ 
+  package { ['g++', 'git-core', 'make', 'mongodb', 'python']:
+    ensure => 'installed'
+  }
+   
+  firewall { '100 forward http to 8080':
+    chain => 'PREROUTING',  
+    table => 'nat',      
+    proto  => 'tcp',
+    dport  => 80,
+    jump => 'REDIRECT',
+    toports => 8080
+  }
+  
+  firewall { '200 forward https to 8443':
+    chain => 'PREROUTING',
+    table => 'nat',      
+    proto  => 'tcp',
+    dport  => 80,
+    jump => 'REDIRECT',
+    toports => 8443
+  }     
+  
   user { 'pagetty':
     ensure  => 'present',
     managehome => true,
