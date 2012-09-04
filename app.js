@@ -15,7 +15,7 @@ mustache   = require('mustache'),
 MongoStore = require('connect-mongo')(express),
 pagetty    = require('./lib/pagetty.js');
 
-console.dir("DIR: " + process.env[DIR]);
+//console.dir("DIR: " + (process.env[DIR] ? process.env[DIR] : "na"));
 console.dir("CWD: " + process.cwd());
 
 
