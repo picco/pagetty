@@ -22,7 +22,7 @@ class mongodb::params{
       $pkg_10gen = 'mongodb-10gen'
     }
     default: {
-      fail ("mongodb: ${::operatingsystem} is not supported.")
+      fail ("mongodb: ${::operatingsystem} family ${::osfamily} is not supported.")
     }
   }
 }
