@@ -89,7 +89,7 @@ namespace :pushdb do
     system("rm -fr /tmp/dump");
     system("mongodump -d pagetty -o /tmp/dump")
     upload("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
-    run("mongorestore /tmp/dump")
+    run("mongorestore --drop /tmp/dump")
   end
 end
 
@@ -102,7 +102,7 @@ namespace :pulldb do
     run("rm -fr /tmp/dump");
     run("mongodump -d pagetty -o /tmp/dump")
     download("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
-    system("mongorestore /tmp/dump")
+    system("mongorestore --drop /tmp/dump")
   end
 end
 
