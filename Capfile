@@ -6,7 +6,7 @@ default_run_options[:pty] = true
 set :application, "pagetty"
 set :repository,  "git@github.com:picco/pagetty.git"
 set :scm, :git
-set :ssh_options, {:forward_agent => false}
+set :ssh_options, {:forward_agent => true}
 set :deploy_to, "/srv/pagetty"
 set :deploy_via, :remote_cache
 set :user, "root"

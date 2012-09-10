@@ -7,9 +7,6 @@ node 'default' {
     version => '0.8.8',
   }
   
-  class { 'mongodb':
-  }
-
   package { ['forever']:
     provider => 'npm',
     ensure => 'installed',
