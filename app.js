@@ -452,7 +452,7 @@ pagetty.init(function (self) {
   /**
    * Start the web server.
    */
-  logger.log.info("Pagetty server started on: " + config.domain);
+  logger.log.info("Server started on " + config.domain);
   app.listen(8443);
   unsecure.listen(8080);
 });
