@@ -35,8 +35,6 @@ namespace :configure do
     run("rm -rf /etc/puppet")
     run("mv /tmp/puppet /etc/puppet")
     run("puppet apply /etc/puppet/manifests/site.pp")
-    run("mkdir -p /srv/pagetty")
-    run("chown pagetty /srv/pagetty")
   end
 end
 

@@ -12,7 +12,7 @@ node 'default' {
     ensure => 'installed',
   }  
  
-  package { ['g++', 'git-core', 'make', 'mongodb', 'python']:
+  package { ['g++', 'git-core', 'imagemagick', 'make', 'mongodb', 'python']:
     ensure => 'installed'
   }
   
