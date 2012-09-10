@@ -5,7 +5,11 @@ node 'default' {
   
   class { 'nodejs':
     version => '0.8.8',
-  }  
+  }
+  
+  class { 'mongodb':
+    enable_10gen => true,
+  }
 
   package { ['forever']:
     provider => 'npm',
