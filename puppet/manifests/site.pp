@@ -15,7 +15,7 @@ node 'default' {
   package { ['g++', 'git-core', 'make', 'mongodb', 'python']:
     ensure => 'installed'
   }
-   
+  
   firewall { '100 forward http to 8080':
     chain => 'PREROUTING',  
     table => 'nat',      
@@ -48,10 +48,33 @@ node 'default' {
     user   => 'pagetty',
   }
 
+  file { '/home/pagetty/.ssh/pagetty_rsa':
+    ensure => 'file',
+    owner  => 'pagetty',
+    group  => 'pagetty',
+    mode   => 600,
+    content => template('pagetty/pagetty_rsa.erb'),
+  }
+
+  file { '/home/pagetty/.ssh/config':
+    ensure => 'file',
+    owner  => 'pagetty',
+    group  => 'pagetty',
+    mode   => 600,
+    content => template('pagetty/ssh_config.erb'),
+  }
+
   file { '/srv/pagetty':
     ensure => 'directory',
     owner  => 'pagetty',
     group  => 'pagetty',
-    mode   => 720,
-  }  
+    mode   => 720,    
+  }
+  
+  file { '/var/backups/pagetty':
+    ensure => 'directory',
+    owner  => 'pagetty',
+    group  => 'pagetty',
+    mode   => 720,    
+  }    
 }

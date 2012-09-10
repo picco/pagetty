@@ -6,7 +6,7 @@ default_run_options[:pty] = true
 set :application, "pagetty"
 set :repository,  "git@github.com:picco/pagetty.git"
 set :scm, :git
-set :ssh_options, {:forward_agent => true}
+set :ssh_options, {:forward_agent => false}
 set :deploy_to, "/srv/pagetty"
 set :deploy_via, :remote_cache
 set :user, "root"
@@ -50,15 +50,16 @@ namespace :deploy do
   end
 
   task :start do
-    run "env"
     run "cd #{current_path} && forever start app.js"
     run "cd #{current_path} && forever start update.js"
   end
 
   task :restart do
     stop
-    sleep 5
+    sleep 1
     start
+    sleep 1
+    run "forever list"
   end
 
   task :npm_install do
@@ -68,4 +69,42 @@ namespace :deploy do
   end
 end
 
+before "deploy:update_code", "backupdb"
 after "deploy:finalize_update", "deploy:npm_install"
+
+# Backup database
+
+namespace :backupdb do
+  task :default do
+    set :user, "pagetty"
+
+    run("mongodump -d pagetty -o /var/backups/pagetty/#{release_name}")
+  end
+end
+
+# Push database
+
+namespace :pushdb do
+  task :default do
+    set :user, "pagetty"
+
+    system("rm -fr /tmp/dump");
+    system("mongodump -d pagetty -o /tmp/dump")
+    upload("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
+    run("mongorestore /tmp/dump")
+  end
+end
+
+# Pull database
+
+namespace :pulldb do
+  task :default do
+    set :user, "pagetty"
+
+    run("rm -fr /tmp/dump");
+    run("mongodump -d pagetty -o /tmp/dump")
+    download("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
+    system("mongorestore /tmp/dump")
+  end
+end
+
