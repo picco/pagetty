@@ -8,7 +8,6 @@ node 'default' {
   }
   
   class { 'mongodb':
-    enable_10gen => true,
   }
 
   package { ['forever']:
