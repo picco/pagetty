@@ -14,7 +14,9 @@
       <ul id="tabs" class="nav nav-tabs">
         <li class="active"><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
         <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+        <li><a href="/channel/{{channel._id}}/profile">Profile</a></li>                
       </ul>
+      <p>Here you can change your subscription settings or unsubscribe from the channel.</p>            
       <div id="subscription">
         <div class="messages"></div>
         <div class="well">

@@ -14,14 +14,20 @@
       <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
         <li><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
         <li class="active"><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+        <li><a href="/channel/{{channel._id}}/profile">Profile</a></li>                        
       </ul>
+      <p>
+        Rules tell Pagetty how to find and extract the content from the target site.<br/>
+        Rules are based on standard CSS selectors so you can build a feed (channel) from basically any web page out there (which also means that some HTML/CSS knowledge is required in order to work with rules here, sorry).<br/><br/>
+        <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
+      </p>
       <div class="messages"></div>
       <div id="rules">        
         {{#rules}}{{>rule}}{{/rules}}
       </div>
       <div class="form-actions">
         <a class="btn btn-primary btn-save">Save</a>
-        <a class="btn btn-add-rule">Create new rule</a>
+        <a class="btn btn-success btn-add-rule">Create new rule</a>
       </div>      
     </div>    
   </div>

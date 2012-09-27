@@ -3,26 +3,38 @@
     <div class="row">
       <div class="span12">
         <a class="logo" href="/">Pagetty</a>
-        <h1>Create a website profile</h1>
+        <h1>{{subscription.name}}</h1>
       </div>
     </div>
   </div>
 </header>
 <div class="container">
-  <div class="row-fluid">
-    <div class="span12">
+  <div class="row">
+    <div class="span16">
+      <ul id="tabs" class="nav nav-tabs">
+        <li><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
+        <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+        <li class="active"><a href="/channel/{{channel._id}}/profile">Profile</a></li>        
+      </ul>
       <div class="messages"></div>
-      <h2>What kind of links should be tracked?</h2>
-      {{#segments}}
-        <div class="well">
-          <ul>
-            {{#links}}
-              <li><a href="{{href}}" target="_blank">{{title}}</a></li>
-            {{/links}}
-          </ul>
-          <a class="btn btn-success" href="{{{url}}}">Create rule</a>
-        </div>
-      {{/segments}}
+      <p>
+        The profile feature tries to find the main content from the site automatically by separating all links on the site to different segments.<br/>
+        For each segment you can easily create a new rule with an autodetected configuration already in place.
+      </p>
+      <p>Open <a href="{{channel.url}}" target="_blank">{{channel.url}}</a> to compare links to actual content. If the automatic segmentation doesn't work properly, you can create the rules manually.</p>
+      {{#profile}}
+        {{#segments}}
+          <div class="well">
+            <p>{{itemSelector}}</p>            
+            <ul>
+              {{#links}}
+                <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+              {{/links}}
+            </ul>
+            <a class="btn btn-success" href="/channel/{{channel._id}}/rules?add&itemSelector={{itemSelector}}&targetSelector={{targetSelector.selector}}&targetSelectorUrl={{targetSelector.url_attribute}}&targetSelectorTitle={{targetSelector.title_attribute}}">Create rule</a>
+          </div>
+        {{/segments}}
+      {{/profile}}      
     </div>
   </div>
 </div>

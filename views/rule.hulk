@@ -69,6 +69,6 @@
         Matches an element that points to the comments section of the article.
       </div>
     </div>
-    <a href="#" class="btn btn-small btn-remove-rule">Remove this rule</a>
+    <a href="#" class="btn btn-small btn-danger btn-remove-rule">Remove</a>
   </div>
 </div>

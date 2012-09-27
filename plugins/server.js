@@ -478,9 +478,21 @@ exports.attach = function (options) {
   /**
    * Display the channel profiling page.
    */
-  server.get("/profile/:channel", function(req, res) {
-    app.profiler.createProfile(req.params.channel, function(err, profile) {      
-      res.render("profile", {segments: profile.segments});
+  server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {
+      if (err) {
+        throw err;
+      }
+      else {
+        channel.createProfile(function(err, profile) {
+          if (err) {
+            throw err;  
+          }
+          else {
+            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
+          }
+        });
+      }
     });
   });  
 }
