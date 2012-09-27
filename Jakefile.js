@@ -3,6 +3,7 @@ task("reset", [], function() {
 	var pagetty = require(__dirname + "/lib/pagetty.js");
 	var logger = require(__dirname + "/lib/logger.js");
 	var sanitize = require('validator').sanitize;
+	var Channel = require('./lib/channel.js');
 
 	var channels = [
 		{name: "EnglishRussia", url: "http://englishrussia.com", domain: "englishrussia.com"},
@@ -166,7 +167,9 @@ task("reset", [], function() {
 				if (err) throw err;
 
 				for (var i in channels) {
-					pagetty.createChannel(channels[i], function(err, channel){
+					var channel = new Channel(channels[i]);
+					
+					channel.save(function(err) {
 						if (err) {
 							console.log(err);
 						}

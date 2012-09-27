@@ -475,6 +475,9 @@ define([
         return "/channel/" + channelId + ((!variant || variant == "original") ? "" : ("/" + variant));
       }
     },
+    success: function(text, container) {
+      $("." + (container ? container : "messages")).html("<div class=\"alert alert-success\">" + _.escape(text) + "</div>");
+    },    
     error: function(text, container) {
       $("." + (container ? container : "messages")).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");
     },

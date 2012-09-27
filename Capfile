@@ -12,7 +12,7 @@ set :deploy_via, :remote_cache
 set :user, "root"
 set :use_sudo, false
 
-server "pagetty.com", :app, {
+server "5.9.78.132", :app, {
   :ssh_options => {
     :keys => './config/keys/pagetty_rsa'
   }
@@ -49,7 +49,7 @@ namespace :deploy do
 
   task :start do
     run "cd #{current_path} && forever start app.js"
-    run "cd #{current_path} && forever start update.js"
+    run "cd #{current_path} && forever start crawler.js"
   end
 
   task :restart do

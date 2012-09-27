@@ -1,0 +1,217 @@
+exports.attach = function(options) {
+  var app = this;
+  var _ = require('underscore');
+  var $ = require('cheerio');
+  var async = require('async');
+  var mongoose = require('mongoose');
+  var parser = require('../../lib/parser.js');  
+  var profiler = require('../../lib/profiler.js');
+  
+  var channelSchema = mongoose.Schema({
+    url: String,
+    domain: String,
+    subscriptions: Number,
+    items: Array,
+    items_added: Date,
+    items_updated: Date,
+  });   
+   
+  /**
+   * TODO
+   */
+  channelSchema.methods.updateSubscriberCount = function(callback) {
+    var self = this;
+    var query = {};
+    
+    query["subscriptions." + this._id] = {$exists: 1};
+    
+    app.user.find(query).count(function(err, count) {
+      self.subscriptions = count;
+      self.save(function(err) {
+        callback(err);      
+      });
+    });
+  }   
+   
+  /**
+   * Update items.
+   */
+  channelSchema.methods.updateItems = function(callback) {
+    var self = this;
+    
+    async.waterfall([
+      function(next) {
+        self.fetchItems(function(err, items) {
+          next(err, items);
+        });
+      },
+      function(items, next) {
+        self.syncItems(items, function(err) {
+          next(err);
+        });
+      },
+      function(next) {
+        self.save(function(err) {
+          next(err);
+        })
+      }
+    ], function(err) {
+      callback(err);
+    });
+  }
+  
+  /**
+   * Fetch fresh items for the given channel.
+   */
+  channelSchema.methods.fetchItems = function(callback) {
+    var self = this;
+
+    async.waterfall([
+      function(next) {
+        app.download({url: self.url}, function(err, response, buffer, body) {
+          next(err, body);
+        });
+      },      
+      function(body, next) {
+        app.rule.find({$or: [{url: self.url}, {domain: self.domain}]}, function(err, rules) {
+          next(err, body, rules);
+        });
+      },
+      function(body, rules, next) {
+        parser.processHTML(self.url, body, rules, function(items) {
+          callback(null, items);
+          next();
+        });
+      },
+    ], function(err) {
+      if (err) callback(err);
+    });
+  }
+  
+  /**
+   * Update the existing items with new data while preserving existing item id.
+   */
+  channelSchema.methods.syncItems = function(new_items, callback) {
+    var items = [], synced_items = [], now = new Date(), new_items_found = false, self = this, counter = 0, tmp_item;
+  
+    if (new_items.length) {
+      for (var i in new_items) {
+        var exists = false;
+  
+        for (var j in this.items) {
+          if (this.items[j].target == new_items[i].target) {
+            exists = true;
+            tmp_item = new_items[i];
+            tmp_item.id = this.items[j].id;
+            synced_items.push(tmp_item);
+            break;
+          }
+        }
+  
+        if (!exists) {
+          tmp_item = new_items[i];
+          tmp_item.id = app.createObjectID();
+          tmp_item.created = null;
+          synced_items.push(tmp_item);
+        }
+      }
+    }
+
+    self.items_updated = now;
+  
+    if (synced_items.length) {
+      _.each(synced_items, function(item, key) {
+        if (item.created == null) {
+          // This is new item that's not present in current channel items.
+          app.history.findOne({"item.target": item.target}, function(err, doc) {
+            if (err) throw err;
+  
+            if (doc == null) {
+              // The item is not found in history, treat as new.
+              item.created = now;
+              self.items_added = now;
+              var historyRecord = new app.history({channel: self._id, item: item});
+              historyRecord.save(function(err) {
+                if (err) console.log("History write failed: " + err);
+              });
+            }
+            else {
+              // The item is present in the history, use the old "created" date.
+              item.created = doc.item.created;
+              // Client side update's don't know how to update themselves otherwise.
+              self.items_added = now;
+            }
+  
+            items.push(item);
+  
+            if (synced_items.length == items.length) {
+              self.items = parser.calculateRelativeScore(items);
+              callback();
+            }
+          });
+        }
+        else {
+          items.push(item);
+  
+          if (synced_items.length == items.length) {
+            self.items = parser.calculateRelativeScore(items);
+            callback();
+          }
+        }
+      });
+    }
+    else {
+      callback();
+    }
+  }    
+  
+  /**
+   * Find the different segments (types of links).
+   */
+  channelSchema.methods.createProfile = function(callback) {
+    var self = this;
+    
+    async.waterfall([
+      function(next) {
+        app.download({url: self.url}, function(err, response, buffer, body) {
+          err ? next(err) : next(null, $(body));
+        });
+      },
+      function(page, next) {
+        profiler.createProfile(page, function(segments) {
+          next(null, segments);
+        });
+      },
+    ], function(err, segments) {
+      err ? callback(err) : callback(null, {segments: segments});
+    });
+  }    
+  
+  /**
+   * TODO
+   */
+  channelSchema.statics.updateItemsBatch = function update(forceStart) {
+    var self = this;
+    var now = new Date().getTime();
+    var min_interval = 60 * 1000; // Do not start new loop if last update was less than this, in seconds.
+    var max_lifetime = 10; // Channel will be updated if time from the last update exceeds this, in minutes.
+    var check = new Date(now - (max_lifetime * 60 * 1000));
+        
+    if (forceStart || now - app.lastUpdate >= min_interval) {
+      console.log('Starting update batch. Last update was at: ' + app.lastUpdate);
+      app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).execFind(function(err, channels) {
+        _.each(channels, function(channel) {
+          channel.updateItems(function() {
+            app.lastUpdate = new Date().getTime();
+          });
+        })
+      });
+    
+    }
+    else {
+      console.log("Update: Waiting, only " + parseInt((now - app.lastUpdate) / 1000) + "sec has passed from last update...");
+    }
+  }
+  
+  this.channel = app.db.model('Channel', channelSchema, 'channels');
+}

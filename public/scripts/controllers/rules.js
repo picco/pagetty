@@ -3,31 +3,20 @@ require([
   "text!templates/rule.html",
   "icanhaz",
   "/highlight/highlight.pack.js",
-], function(Pagetty, ruleTemplate) {
-
-require();
+], function(pagetty, ruleTemplate) {
 
 Controller = {
   init: function() {
     var self = this;
-
+   
     ich.addTemplate("rule", ruleTemplate);
 
     $(".btn-save").click(function() {
-      $.ajax("/configure", {
+      $.ajax("/rules", {
         type: "POST",
         data: self.getData(),
         success: self.saveSuccessCallback,
         error: self.saveErrorCallback
-      });
-    });
-
-    $(".btn-unsubscribe").click(function() {
-      $.ajax("/unsubscribe", {
-        type: "POST",
-        data: {channel_id: channel_id},
-        success: self.unsubscribeSuccessCallback,
-        error: self.unsubscribeErrorCallback
       });
     });
 
@@ -42,24 +31,6 @@ Controller = {
       return false;
     });
 
-    $('.btn-generate').live("click", function() {
-      var rule = $(this).parents(".rule");
-
-      $.ajax("/api/configure/generate/" + channel_id + "/" + rule.find("input.generate").val())
-        .done(function(data) {
-          if (confirm("Overwrite existing fields?")) {
-            rule.find("input.item").val(data);
-            rule.find("input.target-selector").val("a");
-            rule.find("input.target-url-attribute").val("href");
-            rule.find("input.image-selector").val("img");
-            rule.find("input.image-attribute").val("src");
-          }
-        })
-        .error(function() {
-          alert("Link could not be found. Try another one.");
-        });
-    });
-
     $('.btn-fetch-sample').live("click", function() {
       var rule = $(this).parents(".rule");
       rule.find(".sample").html("<img src=\"/images/loading.gif\" />").show();
@@ -72,8 +43,7 @@ Controller = {
   },
   getData: function() {
     var attrs = {
-      _id: channel_id,
-      name: $("#subscription input.name").val(),
+      channel_id: channel_id,
       rules: []
     };
 
@@ -105,18 +75,11 @@ Controller = {
     return attrs;
   },
   saveSuccessCallback: function(data, status) {
-    window.location = "/channel/" + channel_id;
+    pagetty.success('Changes saved.');
   },
   saveErrorCallback: function(xhr, status, error) {
-    alert(xhr.responseText);
+    pagetty.error('Error saving rules.');
   },
-  unsubscribeSuccessCallback: function(data, status) {
-    window.location = "/";
-  },
-  unsubscribeErrorCallback: function(xhr, status, error) {
-    console.dir(xhr);
-    alert(xhr.responseText);
-  }
 };
 
 $(document).ready(function() {

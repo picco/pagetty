@@ -3,6 +3,7 @@
     <div class="row">
       <div class="span16">
         <a class="logo" href="/">Pagetty</a>
+        <h1>Subscribe to a site</h1>        
       </div>
     </div>
   </div>
@@ -10,8 +11,8 @@
 <div class="page container">
   <div class="row">
     <div class="span16">
-      <h1>Subscribe to a site</h1>
-      <div class="messages"></div>      
+      <h2>Site URL:</h2>
+      <div class="messages"></div>
       <div class="form-horizontal wexll">
         <div class="input-append">
           <input type="text" name="url" class="input-xxlarge subscribe-url" placeholder="http://" /><button class="btn btn-success btn-subscribe">Subscribe</button>
@@ -29,7 +30,7 @@ require(["/scripts/libraries/pagetty.js"], function(pagetty) {
         type: "POST",
         data: {url: $(".subscribe-url").val()},
         success: function(data) {
-          window.location = "/channel/" + data.channel_id + "/?new-subscription";
+          window.location = "/channel/" + data.channel_id;
         },
         error: function(xhr, status, error) {
           pagetty.error(xhr.responseText);

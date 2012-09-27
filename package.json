@@ -10,6 +10,7 @@
     "connect-mongo": "*",
     "dateformat": "*",
     "each": "*",
+    "expect": "*",    
     "express": "2.x.x",
     "feedparser": "*",
     "forever": "0.9",
@@ -23,6 +24,7 @@
     "mustache": "*",
     "nodemailer": "*",
     "request": "*",
+    "resourceful-mongo": "git://github.com/picco/resourceful-mongo.git",
     "underscore": "*",
     "validator": "*",
     "winston": "*"

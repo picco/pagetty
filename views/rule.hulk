@@ -1,15 +1,6 @@
 <div class="rule clearfix">
   <div class="well">
-    <h2>Rule definition</h2>
-    <div class="form-element">
-      <label>Autogenerate rule template from a link title</label>
-      <div class="input-append">
-        <input class="generate input-xlarge" type="text" name="channel:rule:generate-item" value="" /><button class="btn btn-generate">Generate</button>
-      </div>
-      <div class="form-description clearfix">
-        Copy one link title from <strong><a href="{{channel.url}}" target="_blank">{{channel.url}}</a></strong> to this field and we'll try to detect in the item selector, and some selector information automatically. Note that you still need to go over and optimize the item selector and all the settings after this.
-      </div>
-    </div>
+    <h2>Rule</h2>
     <div class="form-element">
       <label>Item selector *</label>
       <div class="input-append">
@@ -19,9 +10,7 @@
         CSS selector that matches the container element of the items that you want to extract from the page.<br/>Examples: article, div.post, #posts .post:not(.promoted)
       </div>
     </div>
-  </div>
-  <div class="sample code html"></div>
-  <div class="well">
+    <div class="sample code html"></div>    
     <div class="form-container-multiple clearfix">
       <div class="form-container-multiple clearfix">
         <div class="form-element">

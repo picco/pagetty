@@ -15,16 +15,12 @@
       <h2>What kind of links should be tracked?</h2>
       {{#segments}}
         <div class="well">
-          <p>selector: {{selector}}</p>
-          <p>segmentSelector: {{segmentSelector}}</p>
-          <p>itemSelector: {{itemSelector}}</p>
-          <p>weight: {{weight}}</p>
           <ul>
             {{#links}}
               <li><a href="{{href}}" target="_blank">{{title}}</a></li>
             {{/links}}
           </ul>
-          <a class="btn btn-success" href="{{{createRuleURL}}}">Create rule</a>
+          <a class="btn btn-success" href="{{{url}}}">Create rule</a>
         </div>
       {{/segments}}
     </div>

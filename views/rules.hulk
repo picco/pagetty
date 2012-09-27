@@ -1,0 +1,32 @@
+<link rel="stylesheet" href="/highlight/styles/default.css">
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span16">
+        <a class="logo" href="/">Pagetty</a>
+        <h1>{{subscription.name}}</h1>
+      </div>
+    </div>
+</header>
+<div class="container">
+  <div class="row">
+    <div class="span16">
+      <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
+        <li><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
+        <li class="active"><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+      </ul>
+      <div class="messages"></div>
+      <div id="rules">        
+        {{#rules}}{{>rule}}{{/rules}}
+      </div>
+      <div class="form-actions">
+        <a class="btn btn-primary btn-save">Save</a>
+        <a class="btn btn-add-rule">Create new rule</a>
+      </div>      
+    </div>    
+  </div>
+</div>
+<script type="text/javascript">
+  var channel_id = '{{channel._id}}';
+  require(['/scripts/controllers/rules.js']);
+</script>
