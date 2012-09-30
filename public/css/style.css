@@ -18,8 +18,17 @@ a:focus {
 h1 {
   font-weight: bold !important;
 }
+h1 a {
+  color: #333;
+}
 .container {
   padding: 0 20px;
+}
+.dropdown {
+  display: inline;
+}
+.dropdown-menu {
+  margin-top: 5px;
 }
 .modal-messages .alert {
   border: none;
@@ -471,4 +480,7 @@ input.item {
   #channels .list > li > a:hover {
     background: none;
   }
+  #ue-feedback-tab {
+    display: none;
+  }  
 }

@@ -4,7 +4,7 @@
     <div class="row">
       <div class="span16">
         <a class="logo" href="/">Pagetty</a>
-        <h1>{{subscription.name}}</h1>
+        <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
       </div>
     </div>
 </header>
@@ -12,9 +12,10 @@
   <div class="row">
     <div class="span16">
       <ul id="tabs" class="nav nav-tabs" data-tabs="tabs">
-        <li><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
+        <li><a href="/channel/{{channel._id}}">Channel</a></li>
+        <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
+        <li><a href="/channel/{{channel._id}}/profile">Channel content</a></li>        
         <li class="active"><a href="/channel/{{channel._id}}/rules">Rules</a></li>
-        <li><a href="/channel/{{channel._id}}/profile">Profile</a></li>                        
       </ul>
       <p>
         Rules tell Pagetty how to find and extract the content from the target site.<br/>
@@ -22,14 +23,14 @@
         <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
       </p>
       <div class="messages"></div>
-      <div id="rules">        
+      <div id="rules">
         {{#rules}}{{>rule}}{{/rules}}
       </div>
       <div class="form-actions">
         <a class="btn btn-primary btn-save">Save</a>
-        <a class="btn btn-success btn-add-rule">Create new rule</a>
-      </div>      
-    </div>    
+        <a class="btn btn-success btn-add-rule">Add rule</a>
+      </div>
+    </div>
   </div>
 </div>
 <script type="text/javascript">

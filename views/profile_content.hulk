@@ -1,0 +1,46 @@
+<h2>Currently recognized content</h2>
+<p>
+  The following is a list of content that Pagetty can currently recognize.<br/>
+</p>
+{{#profile}}
+  {{#content}}
+    <div class="well">
+      <p>{{itemSelector}}</p>            
+      <ul>
+        {{#links}}
+          <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+        {{/links}}
+      </ul>
+    </div>
+  {{/content}}
+  {{^content}}
+    <div class="well">There's no content on the site that Pagetty can recognize yet. Tell Pagetty what content to add from below.</div>
+  {{/content}}        
+{{/profile}}
+<h2>Content available on the site</h2>
+<p>
+  The following is a list of content our system has automagically identified.<br/>
+  When you add content to the channel from below, an according import rule is created that you can edit later on the <a href="/channel/{{channel._id}}/rules">rules page</a>.<br/>
+  In case Pagetty cannot recognize the content properly, you need to create the import rules manually (some HTML/CSS skills are required for this).
+</p>
+
+{{#profile}}
+  {{#segments}}
+    <div class="well">
+      <p>{{itemSelector}}</p>
+      <ul>
+        {{#links}}
+          <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+        {{/links}}
+      </ul>
+      <a class="btn btn-success btn-add" href="#"
+         data-item-selector="{{itemSelector}}"
+         data-target-selector="{{target.selector}}"
+         data-target-url="{{target.url_attribute}}"
+         data-target-title="{{target.title_attribute}}"
+         data-image-selector="{{image.selector}}"
+         data-image-attribute="{{image.attribute}}"
+      >Add to channel</a>
+    </div>
+  {{/segments}}
+{{/profile}}

@@ -31,8 +31,8 @@ exports.attach = function(options) {
         callback(err);      
       });
     });
-  }   
-   
+  }
+
   /**
    * Update items.
    */
@@ -170,6 +170,7 @@ exports.attach = function(options) {
    */
   channelSchema.methods.createProfile = function(callback) {
     var self = this;
+    var profile = {segments: [], content: {}};
     
     async.waterfall([
       function(next) {
@@ -178,12 +179,55 @@ exports.attach = function(options) {
         });
       },
       function(page, next) {
-        profiler.createProfile(page, function(segments) {
-          next(null, segments);
+        profiler.createSegments(page, function(segments) {
+          profile.segments = segments;
+          next();
         });
       },
-    ], function(err, segments) {
-      err ? callback(err) : callback(null, {segments: segments});
+      function(next) {
+        self.fetchItems(function(err, items) {
+          if (err) {
+            next(err);
+          }
+          else {            
+            for (var i in items) {
+              profile.content[items[i].rule] = {itemSelector: null, links: []};
+            }
+            
+            for (var i in items) {
+              profile.content[items[i].rule].links.push({title: items[i].title, href: items[i].target});    
+            }
+            
+            next();
+          }
+        });
+      },
+      function(next) {
+        if (_.size(profile.content)) {
+          for (var rule_id in profile.content) {
+            app.rule.findById(rule_id, function(err, rule) {
+              if (err) {
+                next(err);
+              }
+              else {
+                profile.content[rule_id].itemSelector = rule.item;
+                
+                if (++j >= _.size(profile.content)) {
+                  profile.content = _.toArray(profile.content);
+                  next();
+                }
+              }
+            });
+          }             
+        }
+        else {
+          profile.content = null;
+          next();
+        }     
+      }
+    ], function(err) {
+      console.dir(profile);
+      err ? callback(err) : callback(null, profile);
     });
   }    
   

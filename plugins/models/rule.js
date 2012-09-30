@@ -11,6 +11,6 @@ exports.attach = function(options) {
     score: mongoose.Schema.Types.Mixed,
     comments: mongoose.Schema.Types.Mixed,
   });
-    
+
   this.rule = this.db.model('Rule', ruleSchema, 'rules');
 }

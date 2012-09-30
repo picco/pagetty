@@ -29,8 +29,8 @@ define([
       this.demo = demo;
       this.user = user;
       this.subscriptions = user.subscriptions;
-      this.storedChannels = this.demo ? false : amplify.store("channels");
-
+      this.storedChannels = amplify.store("channels");
+      this.autoUpdate = window.location.href.match(/autoUpdate/);
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
@@ -63,11 +63,12 @@ define([
       console.dir(this.state);
 
       if (this.storedChannels) {
+        // This will complete later and this.channels will remain as-is.
         this.updateChannels();
       }
-
-      if (!this.demo) amplify.store("channels", this.channels);
-
+      
+      amplify.store("channels", this.channels);
+                 
       $(".username").append(_.escape(user.name));
 
       $(".app .logo").live("click", function() {
@@ -85,6 +86,18 @@ define([
       $(".channel a.variant").live("click", function() {
         var channel = $(this).data("channel"), variant = $(this).data("variant");
         History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        return false;
+      });
+      
+      $('.unsubscribe').live("click", function() {
+        var self = this;
+        
+        $.ajax("/unsubscribe", {
+          type: "POST",
+          data: {channel_id: $(self).data('channel')},
+          success: function() {window.location = '/'},
+          error: function() {alert('Could not unsubscribe.');},
+        });        
         return false;
       });
 
@@ -133,6 +146,17 @@ define([
         self.updateChannels();
       }, 5000);
 
+      // Sidebar scroll
+      window.setTimeout(function() {
+        $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
+      }, 1000);
+      
+      // Run the application.
+      this.runApp();
+    },
+    runApp: function() {
+      var self = this;
+      
       // Open a requested channel.
 
       var path = window.location.pathname.split("/"), channel = "all", variant;
@@ -156,12 +180,7 @@ define([
 
       // Reveal the UI when everything is loaded.
       $(".app-loading").hide();
-      $(".app .container").show();
-
-      // Sidebar scroll
-      window.setTimeout(function() {
-        $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
-      }, 1000);
+      $(".app .container").show();      
     },
     prepareChannels: function(subscriptions, channels, storedChannels) {
       var prepared = {};
@@ -360,6 +379,15 @@ define([
         else {
           console.log("no updates this time");
         }
+        
+        // With autoUpdate we will show the app when update is complete.
+        
+        /*
+        if (self.autoUpdate) {
+          self.refreshChannels();
+          self.runApp();
+        }
+        */
       });
     },
     processUpdates: function() {
@@ -415,7 +443,7 @@ define([
       this.newItems = false;
       this.newItemsCount = 0;
       this.updates = {};
-      if (!this.demo) amplify.store("channels", this.channels);
+      amplify.store("channels", this.channels);
       this.hideUpdateNotification();
     },
     showUpdateNotification: function() {

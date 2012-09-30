@@ -4,7 +4,7 @@
     <div class="row">
       <div class="span16">
         <a class="logo" href="/">Pagetty</a>
-        <h1>{{subscription.name}}</h1>
+        <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
       </div>
     </div>
 </header>
@@ -12,11 +12,12 @@
   <div class="row">
     <div class="span16">
       <ul id="tabs" class="nav nav-tabs">
-        <li class="active"><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
+        <li><a href="/channel/{{channel._id}}">Channel</a></li>
+        <li class="active"><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
+        <li><a href="/channel/{{channel._id}}/profile">Channel content</a></li>        
         <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
-        <li><a href="/channel/{{channel._id}}/profile">Profile</a></li>                
       </ul>
-      <p>Here you can change your subscription settings or unsubscribe from the channel.</p>            
+      <p>Here you can change your subscription settings or unsubscribe from the channel.</p>
       <div id="subscription">
         <div class="messages"></div>
         <div class="well">
@@ -27,10 +28,10 @@
         </div>
         <div class="form-actions">
           <a class="btn btn-primary btn-save">Save</a>
-          <a class="btn btn-danger btn-unsubscribe">Unsubscribe</a>                  
+          <a class="btn btn-danger btn-unsubscribe">Unsubscribe</a>
         </div>
-      </div>      
-    </div>    
+      </div>
+    </div>
   </div>
 </div>
 <script type="text/javascript">

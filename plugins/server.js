@@ -308,7 +308,7 @@ exports.attach = function (options) {
       function(channel, next) {
         for (var i in req.body.rules) {
           req.body.rules[i].domain = channel.domain;
-          req.body.rules[i].url = channel.url;          
+          req.body.rules[i].url = channel.url;
           app.rule.create(req.body.rules[i], console.log);   
         }
         next(null, channel);
@@ -319,6 +319,40 @@ exports.attach = function (options) {
           next();
         });
       }
+    ], function(err) {
+      err ? res.json(err, 400) : res.send(200);
+    });
+  });
+  
+  /**
+   * Create a rule from a profiler configuration.
+   */
+  server.post("/rule/create", app.middleware.restricted, function(req, res) {
+    async.waterfall([
+      // Load channel.
+      function(next) {
+        app.channel.findById(req.body.channel_id, function(err, channel) {
+          next(err, channel);
+        });
+      },
+      // Create new rule.
+      function(channel, next) {
+        var rule = req.body.rule;
+        
+        rule.domain = channel.domain;
+        rule.url = channel.url;
+        
+        app.rule.create(rule, function(err) {
+          next(err, channel);
+        });
+      },
+      // Update channel items.
+      function(channel, next) {
+        console.dir('here');
+        channel.updateItems(function(err) {
+          next();
+        });
+      },
     ], function(err) {
       err ? res.json(err, 400) : res.send(200);
     });
@@ -479,6 +513,20 @@ exports.attach = function (options) {
    * Display the channel profiling page.
    */
   server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {      
+      if (err) {
+        throw err;
+      }
+      else {
+         res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id]});                      
+      }
+    });
+  });
+
+  /**
+   * Display the channel profiling page.
+   */
+  server.get("/channel/:channel/profile/content", app.middleware.restricted, function(req, res) {
     app.channel.findById(req.params.channel, function(err, channel) {
       if (err) {
         throw err;
@@ -489,12 +537,12 @@ exports.attach = function (options) {
             throw err;  
           }
           else {
-            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
+            res.render("profile_content", {layout: false, channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
           }
         });
       }
     });
-  });  
+  });    
 }
 
 exports.init = function(done) {

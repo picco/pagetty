@@ -7,16 +7,19 @@
         <a class="btn-a variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#"><i class="icon-home"></i> As on site</a>
         <a class="btn-a variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a>
         <a class="btn-a variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
-        <a class="btn-a configure" href="/channel/{{channel._id}}/subscription"><i class="icon-cog"></i> Settings</a>
+        <div class="dropdown">
+          <a class="btn-a configure dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Configure</a>                  
+          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
+            <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
+            <li><a href="/channel/{{channel._id}}/profile">Channel content</a></li>
+            <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+            <li class="divider"></li>
+            <li><a class="unsubscribe" data-channel="{{channel._id}}" href="#">Unsubscribe</a></li>
+          </ul>
+        </div>
       </div>
       <div class="messages"></div>
     </div>
-  </div>
-  <div class="no-items well">
-    <h2>Configure this channel</h2>
-    <p>The channel does not have any stories yet.</p>
-    <a class="btn btn-small btn-success" href="/profile/{{channel._id}}">Create new rule</a>
-    <a class="btn btn-small" href="/channel/{{channel._id}}/rules">Edit current configuration</a>
   </div>
   <div class="items">{{{items}}}</div>
 </div>

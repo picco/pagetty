@@ -3,7 +3,7 @@
     <div class="row">
       <div class="span12">
         <a class="logo" href="/">Pagetty</a>
-        <h1>{{subscription.name}}</h1>
+        <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
       </div>
     </div>
   </div>
@@ -12,57 +12,56 @@
   <div class="row">
     <div class="span16">
       <ul id="tabs" class="nav nav-tabs">
-        <li><a href="/channel/{{channel._id}}/subscription">My subscription</a></li>
+        <li><a href="/channel/{{channel._id}}">Channel</a></li>
+        <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
+        <li class="active"><a href="/channel/{{channel._id}}/profile">Channel content</a></li>        
         <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
-        <li class="active"><a href="/channel/{{channel._id}}/profile">Profile</a></li>        
       </ul>
       <div class="messages"></div>
-      <p>
-        The profile feature tries to find the main content from the site automatically by separating all links on the site to different segments.<br/>
-        For each segment you can easily create a new rule with an autodetected configuration already in place.
-      </p>
-      <p>Open <a href="{{channel.url}}" target="_blank">{{channel.url}}</a> to compare links to actual content. If the automatic segmentation doesn't work properly, you can create the rules manually.</p>
-      {{#profile}}
-        {{#segments}}
-          <div class="well">
-            <p>{{itemSelector}}</p>            
-            <ul>
-              {{#links}}
-                <li><a href="{{href}}" target="_blank">{{title}}</a></li>
-              {{/links}}
-            </ul>
-            <a class="btn btn-success" href="/channel/{{channel._id}}/rules?add&itemSelector={{itemSelector}}&targetSelector={{targetSelector.selector}}&targetSelectorUrl={{targetSelector.url_attribute}}&targetSelectorTitle={{targetSelector.title_attribute}}">Create rule</a>
-          </div>
-        {{/segments}}
-      {{/profile}}      
+      <div class="content">
+        <div class="loading">Please wait, fetching remote content <img src="/images/loading.gif" /></div>
+      </div>
+      <p style="margin: 1em 0"><a href="/channel/{{channel._id}}" class="btn">View channel</a></p>
     </div>
   </div>
 </div>
 <script type="text/javascript">
+var channel_id = '{{channel._id}}';
 require(["/scripts/libraries/pagetty.js"], function(pagetty) {
   (function() {
-
-    function submitForm() {
-      $.ajax("/subscribe", {
-        type: "POST",
-        data: {url: $(".subscribe-url").val()},
-        success: function(data) {
-          window.location = "/channel/" + data.channel_id + "/?new-subscription";
-        },
-        error: function(xhr, status, error) {
-          pagetty.error(xhr.responseText);
-        }
-      });
-    }
-
-    $(document).ready(function() {
-      $(".subscribe-url").focus();
-      $(".btn-subscribe").bind("click", submitForm);
-      $(".subscribe-url").bind("keypress", function(e) {
-        if ((e.keyCode || e.which) == 13) submitForm();
-      });
+    $.ajax('/channel/' + channel_id + '/profile/content', {
+      success: function(data) {
+        $('.content').html(data);
+      },
+      error: function(xhr, status, error) {
+        pagetty.error("An error occurred.");
+        $('.loading').remove();
+      }
     });
-
+    
+    $('.btn-add').live("click", function() {
+      var data = {
+        channel_id: channel_id,
+        rule: {
+          item: $(this).data('item-selector'),
+          target: {selector: $(this).data('target-selector'), url_attribute: $(this).data('target-url'), title_attribute: $(this).data('target-title')},
+          image: {selector: $(this).data('image-selector'), attribute: $(this).data('image-attribute')},
+          score: {selector: '', attribute: ''},
+          comments: {selector: '', attribute: ''},          
+        },
+      };
+      
+      $.ajax({
+        type: 'POST',
+        url: '/rule/create',
+        data: data,
+        success: function() {window.location = '/channel/' + channel_id + '?autoUpdate'},
+        error: function() {alert('Error occurred.')},
+      });
+      
+      return false;
+    });
+    
   })();
 });
 </script>
