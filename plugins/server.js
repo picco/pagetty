@@ -80,7 +80,7 @@ exports.attach = function (options) {
                     }
                   }
   
-                  app.download({url: url}, function(err, response, buffer, body) {
+                  app.download({url: url}, function(err, buffer) {
                     if (err) {
                       console.log("Original unavailable: " + url + " " + cache_id);
                       res.writeHead(404);
@@ -231,8 +231,8 @@ exports.attach = function (options) {
     var $ = require('cheerio');
     
     app.channel.findById(req.params.id, function(err, channel) {
-      app.download({url: channel.url}, function(err, response, buffer, body) {
-        var html = $('<div>').append($(body).find(req.params.selector).first().clone()).remove().html();
+      app.fetch({url: channel.url}, function(err, buffer) {
+        var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
         app.tidy(html, function(formatted) {
           res.send(_.escape(formatted));
         });
@@ -348,7 +348,6 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        console.dir('here');
         channel.updateItems(function(err) {
           next();
         });
@@ -518,31 +517,17 @@ exports.attach = function (options) {
         throw err;
       }
       else {
-         res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id]});                      
-      }
-    });
-  });
-
-  /**
-   * Display the channel profiling page.
-   */
-  server.get("/channel/:channel/profile/content", app.middleware.restricted, function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {
-      if (err) {
-        throw err;
-      }
-      else {
         channel.createProfile(function(err, profile) {
           if (err) {
             throw err;  
           }
           else {
-            res.render("profile_content", {layout: false, channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
+            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
           }
-        });
+        });        
       }
     });
-  });    
+  }); 
 }
 
 exports.init = function(done) {

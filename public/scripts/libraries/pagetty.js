@@ -223,7 +223,7 @@ define([
       for (i in this.channels) {
         for (j in this.channels[i].items) {
           var item = _.clone(this.channels[i].items[j]);
-          item.channel = {name: this.subscriptions[i].name, url: this.channels[i].url};
+          item.channel = {id: this.channels[i]._id, name: this.subscriptions[i].name, url: this.channels[i].url};
           items.push(item);
         }
       }
@@ -306,7 +306,7 @@ define([
         else {
           if (!_.isUndefined(self.channels[channel_id]) && $.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
             for (i in self.channels[channel_id].items) {
-              self.channels[channel_id].items[i].channel = {name: self.subscriptions[channel_id].name, url: self.channels[channel_id].url};
+              self.channels[channel_id].items[i].channel = {id: self.channels[channel_id]._id, name: self.subscriptions[channel_id].name, url: self.channels[channel_id].url};
             }
             html = self.renderItems(self.sortItems(self.channels[channel_id].items, variant));
           }

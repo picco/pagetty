@@ -42,6 +42,8 @@ exports.attach = function(options) {
     async.waterfall([
       function(next) {
         self.fetchItems(function(err, items) {
+          console.log('Fetched items');
+          console.dir(items);
           next(err, items);
         });
       },
@@ -68,8 +70,8 @@ exports.attach = function(options) {
 
     async.waterfall([
       function(next) {
-        app.download({url: self.url}, function(err, response, buffer, body) {
-          next(err, body);
+        app.fetch({url: self.url}, function(err, buffer) {
+          next(err, buffer.toString());
         });
       },      
       function(body, next) {
@@ -174,8 +176,8 @@ exports.attach = function(options) {
     
     async.waterfall([
       function(next) {
-        app.download({url: self.url}, function(err, response, buffer, body) {
-          err ? next(err) : next(null, $(body));
+        app.fetch({url: self.url}, function(err, buffer) {
+          err ? next(err) : next(null, $(buffer.toString()));
         });
       },
       function(page, next) {
@@ -202,23 +204,22 @@ exports.attach = function(options) {
           }
         });
       },
-      function(next) {
+      function(next) {       
         if (_.size(profile.content)) {
-          for (var rule_id in profile.content) {
+          var loopCounter = 0;
+          
+          _.each(profile.content, function(el, rule_id) {
             app.rule.findById(rule_id, function(err, rule) {
               if (err) {
                 next(err);
               }
-              else {
+              else {                
                 profile.content[rule_id].itemSelector = rule.item;
-                
-                if (++j >= _.size(profile.content)) {
-                  profile.content = _.toArray(profile.content);
-                  next();
-                }
               }
+              
+              if (++loopCounter >= _.size(profile.content)) next();              
             });
-          }             
+          });
         }
         else {
           profile.content = null;
@@ -226,7 +227,7 @@ exports.attach = function(options) {
         }     
       }
     ], function(err) {
-      console.dir(profile);
+      if (profile.content) profile.content = _.toArray(profile.content);
       err ? callback(err) : callback(null, profile);
     });
   }    

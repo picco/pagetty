@@ -25,9 +25,7 @@ Controller = {
     });
 
     $('.btn-remove-rule').live('click', function(e) {
-      if (confirm("Are you sure? This will affect all channels on this domain.")) {
-        $(this).parent().parent().remove();
-      }
+      $(this).parent().parent().remove();
       return false;
     });
 

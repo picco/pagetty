@@ -16,7 +16,7 @@ app.init(function (err) {
           throw err;
         }
         else {
-          channel.updateItems(process.argv[2], function() {
+          channel.updateItems(function() {
             console.log("Update done.");
             process.exit();
           });          

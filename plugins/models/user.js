@@ -104,7 +104,9 @@ exports.attach = function(options) {
       },
       // Check that the URL returns some usable data and extract site name.
       function(next) {
-        app.download({url: url}, function(err, response, buffer, body) {
+        app.fetch({url: url}, function(err, buffer) {
+          var body = buffer.toString();
+          
           if (err || !body.length) {
             next("Unable to access the site.");
           }
@@ -132,9 +134,9 @@ exports.attach = function(options) {
       },
       // Update channel items.
       function(next) {
-        //channel.updateItems(function() {
-          next();                
-        //});
+        channel.updateItems(function() {
+          next();
+        });
       },
       // Check that the user is not yet subscribed.
       function(next) {

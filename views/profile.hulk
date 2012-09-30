@@ -14,13 +14,60 @@
       <ul id="tabs" class="nav nav-tabs">
         <li><a href="/channel/{{channel._id}}">Channel</a></li>
         <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
-        <li class="active"><a href="/channel/{{channel._id}}/profile">Channel content</a></li>        
         <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+        <li class="active"><a href="/channel/{{channel._id}}/profile">Add content</a></li>                
       </ul>
       <div class="messages"></div>
-      <div class="content">
-        <div class="loading">Please wait, fetching remote content <img src="/images/loading.gif" /></div>
-      </div>
+      <h2>Currently recognized content</h2>
+      <p>
+        The following is a list of content that Pagetty can currently recognize.<br/>
+      </p>
+      {{#profile}}
+        {{#content}}
+          <div class="well">
+            <p>{{itemSelector}}</p>            
+            <ul>
+              {{#links}}
+                <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+              {{/links}}
+            </ul>
+          </div>
+        {{/content}}
+        {{^content}}
+          <div class="well">There's no content on the site that Pagetty can recognize yet. Tell Pagetty what content to add from below.</div>
+        {{/content}}        
+      {{/profile}}
+      <h2>Content available on the site</h2>
+      <p>
+        The following is a list of content our system has automagically identified.<br/>
+        When you add content to the channel from below, an according import rule is created that you can edit later on the <a href="/channel/{{channel._id}}/rules">rules page</a>.<br/>
+        In case Pagetty cannot recognize the content properly, you need to create the import rules manually (some HTML/CSS skills are required for this).
+      </p>
+      
+      {{#profile}}
+        {{#segments}}
+          <div class="well">
+            <p>{{itemSelector}}</p>
+            <ul>
+              {{#links}}
+                <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+              {{/links}}
+            </ul>
+            <a class="btn btn-success btn-add" href="#"
+               data-item-selector="{{itemSelector}}"
+               data-target-selector="{{target.selector}}"
+               data-target-url="{{target.url_attribute}}"
+               data-target-title="{{target.title_attribute}}"
+               data-image-selector="{{image.selector}}"
+               data-image-attribute="{{image.attribute}}"
+               data-comments-selector="{{comments.selector}}"
+               data-comments-attribute="{{comments.attribute}}"
+               data-score-selector="{{score.selector}}"
+               data-score-attribute="{{score.attribute}}"
+            >Add to channel</a>
+          </div>
+        {{/segments}}
+      {{/profile}}
       <p style="margin: 1em 0"><a href="/channel/{{channel._id}}" class="btn">View channel</a></p>
     </div>
   </div>
@@ -28,17 +75,7 @@
 <script type="text/javascript">
 var channel_id = '{{channel._id}}';
 require(["/scripts/libraries/pagetty.js"], function(pagetty) {
-  (function() {
-    $.ajax('/channel/' + channel_id + '/profile/content', {
-      success: function(data) {
-        $('.content').html(data);
-      },
-      error: function(xhr, status, error) {
-        pagetty.error("An error occurred.");
-        $('.loading').remove();
-      }
-    });
-    
+  (function() { 
     $('.btn-add').live("click", function() {
       var data = {
         channel_id: channel_id,
@@ -46,8 +83,8 @@ require(["/scripts/libraries/pagetty.js"], function(pagetty) {
           item: $(this).data('item-selector'),
           target: {selector: $(this).data('target-selector'), url_attribute: $(this).data('target-url'), title_attribute: $(this).data('target-title')},
           image: {selector: $(this).data('image-selector'), attribute: $(this).data('image-attribute')},
-          score: {selector: '', attribute: ''},
-          comments: {selector: '', attribute: ''},          
+          comments: {selector: $(this).data('comments-selector'), attribute: $(this).data('comments-attribute')},          
+          score: {selector: $(this).data('score-selector'), attribute: $(this).data('score-attribute')},          
         },
       };
       
@@ -61,7 +98,6 @@ require(["/scripts/libraries/pagetty.js"], function(pagetty) {
       
       return false;
     });
-    
   })();
 });
 </script>

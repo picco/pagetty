@@ -1,5 +1,6 @@
 exports.attach = function (options) {
   var app = this;
+  var async = require('async');
   var fs = require('fs');
   var hogan = require('hogan.js');  
   var mongoose = require('mongoose');
@@ -12,6 +13,7 @@ exports.attach = function (options) {
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
   this.use(require('./models/channel.js'));
+  this.use(require('./models/cache.js'));
   this.use(require('./models/history.js'));
   this.use(require('./models/rule.js'));
   this.use(require('./models/user.js'));
@@ -19,44 +21,80 @@ exports.attach = function (options) {
   this.mailTransport = nodemailer.createTransport("SMTP");
   
   /**
-   * Request data from the given URL.
+   * Gets the data for a given URL from cache or
+   * downloads it realtime if cached copy is unavailable.
+   */
+  this.fetch = function(options, callback) {
+    app.cache.findOne({url: options.url}, function(err, cache) {
+      if (err) {
+        callback(err);
+      }
+      else if (cache) {
+        callback(null, cache.content);
+      }
+      else {
+        app.download(options, function(err, buffer) {
+          callback(err, buffer);
+        });
+      }
+    });    
+  }
+  
+  /**
+   * Downloads the data from a given URL in real-time.
    */
   this.download = function(options, callback) {
+    // When encoding is null the content is returned as a Buffer.
     var r = request.defaults({timeout: 10000, encoding: null});
 
     if (options.url == null || !options.url.match(/^(http|https):\/\//)) {
       callback("Invalid URL: " + options.url);
       return;
     }
-
-    r.get(options, function(err, response, body) {
-      if (err) {
-        callback(err);
-      }
-      else if (response.statusCode == 403) {
-        callback("HTTP 403: Access denied");
-      }
-      else if (response.statusCode == 404) {
-        callback("HTTP 404: Not found");
-      }
-      else {
-        if (response.headers["content-encoding"] == "gzip") {
-          zlib.gunzip(body, function(err, uncompressed) {
-            if (err) {
-              callback("Unable to parse gzipped content.");
+    
+    async.waterfall([
+      // Download content.
+      function(next) {
+        r.get(options, function(err, response, buffer) {
+          if (err) {
+            next(err);
+          }
+          else if (response.statusCode == 403) {
+            next("HTTP 403: Access denied");
+          }
+          else if (response.statusCode == 404) {
+            next("HTTP 404: Not found");
+          }
+          else {
+            if (response.headers["content-encoding"] == "gzip") {
+              zlib.gunzip(buffer, function(err, uncompressed) {
+                if (err) {
+                  callback("Unable to parse gzipped content.");
+                }
+                else {
+                  next(null, uncompressed);
+                }
+              });
             }
             else {
-              callback(null, response, uncompressed, uncompressed.toString());
+              next(null, buffer);
             }
-          });
+          }
+        });             
+      },
+      // Update cache.
+      function(buffer, next) {
+        if (buffer.toString().length) {
+          app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
+            next(err, buffer);
+          });          
         }
-        else {
-          callback(null, response, body, body.toString());
-        }
-      }
+      },
+    ], function(err, buffer) {
+      callback(err, buffer);
     });
   }
-  
+
   /**
    * Build a custom validator that does not throw exceptions.
    */

@@ -14,8 +14,8 @@
       <ul id="tabs" class="nav nav-tabs">
         <li><a href="/channel/{{channel._id}}">Channel</a></li>
         <li class="active"><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
-        <li><a href="/channel/{{channel._id}}/profile">Channel content</a></li>        
         <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
+        <li><a href="/channel/{{channel._id}}/profile">Add content</a></li>                
       </ul>
       <p>Here you can change your subscription settings or unsubscribe from the channel.</p>
       <div id="subscription">
