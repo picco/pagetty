@@ -13,28 +13,98 @@ exports.attach = function(options) {
     mail: String,
     pass: String,
     subscriptions: mongoose.Schema.Types.Mixed,
+    state: mongoose.Schema.Types.Mixed,
     verified: Boolean,
   });
+
+  /**
+   * Subscribe user to a given channel.
+   */
+  userSchema.methods.subscribe = function(url, callback) {
+    var self = this, channel = false, name = false;
+
+    var urlComponents = uri.parse(url);
+
+    async.series([
+      // Check that the URL is valid.
+      function(next) {
+        try {
+          check(url, "URL is required.").notEmpty();
+          check(url, "URL is not valid.").isUrl();
+        } catch (e) {
+          next(e.message);
+          return;
+        }
+        next();
+      },
+      // Check that the channel exists and create it if necessary.
+      function(next) {
+        app.channel.findOne({url: url}, function(err, doc) {
+          if (doc) {
+            channel = doc;
+            next();
+          }
+          else {
+            channel = new app.channel({url: url, domain: urlComponents.hostname});
+            channel.save(function(err) {
+              next(err);
+            });
+          }
+        });
+      },
+      // Check that the user is not yet subscribed.
+      function(next) {
+        if (self.subscriptions[channel._id]) {
+          next("You are already subscribed to this site.");
+        }
+        else {
+          next();
+        }
+      },
+      // Update channel items.
+      function(next) {
+        channel.updateItems(true, function() {
+          next();
+        });
+      },
+      // Add channel to user's subscriptions.
+      function(next) {
+        self.updateSubscription(channel._id, {name: urlComponents.hostname}, function(err) {
+          err ? next("Could not update user subscription.") : next();
+        });
+      },
+      // Increment channel's subscribers counter.
+      function(next) {
+        channel.updateSubscriberCount(function(err) {
+          err ? next("Could not increment subscribers.") : next();
+        });
+      }
+    ], function(err) {
+
+      console.log(err);
+      callback(err, channel);
+    });
+  }
 
   /**
    * Update the user's subscription information. Currently only name.
    */
   userSchema.methods.updateSubscription = function(channel_id, data, callback) {
     var validator = app.getValidator();
-   
-    validator.check(data.name, "Name must start with a character.").is(/\w+.*/);            
-    
+
+    validator.check(data.name, "Name must start with a character.").is(/\w+.*/);
+
     if (validator.hasErrors()) {
       callback(validator.getErrors()[0]);
     }
     else {
       this.subscriptions[channel_id] = data;
       this.markModified('subscriptions');
-  
+
       this.save(function(err) {
         callback(err);
       });
-    }    
+    }
   }
 
   /**
@@ -56,7 +126,7 @@ exports.attach = function(options) {
         self.save(function(err) {
           channel.updateSubscriberCount(function(err) {
             next(err);
-          });          
+          });
         });
       },
     ], function(err) {
@@ -85,95 +155,15 @@ exports.attach = function(options) {
   }
 
   /**
-   * Subscribe user to a given channel.
-   */
-  userSchema.methods.subscribe = function(url, callback) {
-    var self = this, channel = false, name = false;
-
-    async.series([
-      // Check that the URL is valid.
-      function(next) {
-        try {
-          check(url, "URL is required.").notEmpty();
-          check(url, "URL is not valid.").isUrl();
-        } catch (e) {
-          next(e.message);
-          return;
-        }
-        next();
-      },
-      // Check that the URL returns some usable data and extract site name.
-      function(next) {
-        app.fetch({url: url}, function(err, buffer) {
-          var body = buffer.toString();
-          
-          if (err || !body.length) {
-            next("Unable to access the site.");
-          }
-          else {
-           name = $("title", body).text().trim() || url;
-           next();
-          }
-        });
-      },
-      // Check that the channel exists and create it if necessary.
-      function(next) {
-        app.channel.findOne({url: url}, function(err, doc) {
-          if (doc) {
-            channel = doc;
-            next();
-          }
-          else {
-            var urlComponents = uri.parse(url);
-            channel = new app.channel({url: url, domain: urlComponents.hostname});
-            channel.save(function(err) {
-              next(err);
-            });
-          }
-        });
-      },
-      // Update channel items.
-      function(next) {
-        channel.updateItems(function() {
-          next();
-        });
-      },
-      // Check that the user is not yet subscribed.
-      function(next) {
-        if (self.subscriptions[channel._id]) {
-          next("Already subscribed.");
-        }
-        else {
-          next();
-        }
-      },
-      // Add channel to user's subscriptions.
-      function(next) {
-        self.updateSubscription(channel._id, {name: name}, function(err) {
-          err ? next("Could not update user subscription.") : next();          
-        });
-      },
-      // Increment channel's subscribers counter.
-      function(next) {
-        channel.updateSubscriberCount(function(err) {
-          err ? next("Could not increment subscribers.") : next();
-        });
-      }
-    ], function(err) {
-
-      console.log(err);
-      callback(err, channel);
-    });
-  }
-
-  /**
    * Load all channels that have been updated since the user last requested them.
    */
   userSchema.methods.getChannelUpdates = function(state, callback) {
-    var updates = [], ids = [];
+    var self = this;
+    var ids = [];
+    var updates = [];
 
     if (state) {
-      for (var id in state.channels) {
+      for (var id in state) {
         ids.push(app.objectId(id));
       }
 
@@ -183,14 +173,15 @@ exports.attach = function(options) {
         for (var i in results) {
           var time = results[i].items_added ? results[i].items_added.getTime() : 0;
 
-          if ((time > new Date(state.channels[results[i]._id]))) {
-            _.each(results[i].items, function(el, j) {
+          if ((time > new Date(state[results[i]._id]))) {
+            for (var j = 0; j < results[i].items.length; j++) {
               results[i].items[j].created = results[i].items[j].created.getTime();
-            });
+            }
 
             updates.push({_id: results[i]._id, items_added: results[i].items_added.getTime(), items: results[i].items});
           }
         }
+
         callback(updates);
       });
     }

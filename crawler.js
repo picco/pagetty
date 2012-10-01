@@ -16,10 +16,10 @@ app.init(function (err) {
           throw err;
         }
         else {
-          channel.updateItems(function() {
+          channel.updateItems(false, function() {
             console.log("Update done.");
             process.exit();
-          });          
+          });
         }
       })
     }

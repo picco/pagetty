@@ -12,28 +12,38 @@ define([
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
 
   var Pagetty = {
-    channels: {},
     cache: [],
-    subscriptions: {},
     activeChannel: false,
     activeTitle: false,
     activeVariant: false,
     pager: 9,
-    state: {channels: {}},
     updates: {},
     newItemsCount: 0,
 
-    init: function(user, channels, demo) {
-      var self = this, navigation = [];
+    init: function(user, channels, appState) {
+      var self = this;
 
-      this.demo = demo;
       this.user = user;
+      this.appState = appState;
       this.subscriptions = user.subscriptions;
-      this.storedChannels = amplify.store("channels");
-      this.autoUpdate = window.location.href.match(/autoUpdate/);
+      this.state = {};
+
+      this.channels = this.prepareChannels(this.subscriptions, channels, this.appState.channels);
+
+      if (this.appState.channels) {
+        // This will complete later and this.channels will remain as-is.
+        this.updateChannels();
+      }
+
+      this.saveState({channels: this.channels});
+
+      // Initialize theme.
+
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
+
+      var navigation = [];
 
       for (channel_id in this.subscriptions) {
         navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
@@ -48,33 +58,14 @@ define([
         $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="/channel/' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + _.escape(navigation[i].name) + '</a></li>');
       }
 
-      console.log("subscriptions");
-      console.dir(this.subscriptions);
-      console.log("channels from server");
-      console.dir(channels);
-      console.log("local sorage channels");
-      console.dir(this.storedChannels);
-
-      this.channels = this.prepareChannels(this.subscriptions, channels, this.storedChannels);
-
-      console.log("prepared channels");
-      console.dir(this.channels);
-      console.log("prepared state");
-      console.dir(this.state);
-
-      if (this.storedChannels) {
-        // This will complete later and this.channels will remain as-is.
-        this.updateChannels();
-      }
-      
-      amplify.store("channels", this.channels);
-                 
       $(".username").append(_.escape(user.name));
 
-      $(".app .logo").live("click", function() {
-        var channel = "all", variant = "time";
-        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        return false;
+      $(".app .logo").live("click", function(e) {
+        if (self.activeChannel != 'all') {
+          var channel = 'all', variant = 'time';
+          History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+          e.preventDefault();
+        }
       });
 
       $("#channels li.channel a").bind("click", function() {
@@ -88,16 +79,28 @@ define([
         History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         return false;
       });
-      
+
+      $(".channel .item .site a").live("click", function(e) {
+        var channel = $(this).data("channel");
+
+        if (self.activeChannel == channel) {
+          return true;
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
+          return false;
+        }
+      });
+
       $('.unsubscribe').live("click", function() {
         var self = this;
-        
+
         $.ajax("/unsubscribe", {
           type: "POST",
           data: {channel_id: $(self).data('channel')},
           success: function() {window.location = '/'},
           error: function() {alert('Could not unsubscribe.');},
-        });        
+        });
         return false;
       });
 
@@ -120,6 +123,15 @@ define([
         }
         return false;
       });
+
+      $('.btn-subscribe').click(function() {
+        $(".btn-subscribe-submit").bind("click", self.subscribe);
+        $(".subscribe-url").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe; });
+      });
+
+      $('#subscribeModal').on('shown', function () {
+        $('.subscribe-url').focus()
+      })
 
       // Act on statechange.
 
@@ -150,13 +162,13 @@ define([
       window.setTimeout(function() {
         $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
       }, 1000);
-      
+
       // Run the application.
       this.runApp();
     },
     runApp: function() {
       var self = this;
-      
+
       // Open a requested channel.
 
       var path = window.location.pathname.split("/"), channel = "all", variant;
@@ -180,10 +192,14 @@ define([
 
       // Reveal the UI when everything is loaded.
       $(".app-loading").hide();
-      $(".app .container").show();      
+      $(".app .container").show();
     },
     prepareChannels: function(subscriptions, channels, storedChannels) {
       var prepared = {};
+
+      console.dir(subscriptions);
+      console.dir(channels);
+      console.dir(storedChannels);
 
       for (var channel_id in subscriptions) {
         var items = [];
@@ -212,7 +228,7 @@ define([
         }
 
         // Save the state of channels.
-        this.state.channels[channel_id] = _.clone(prepared[channel_id].items_added);
+        this.state[channel_id] = _.clone(prepared[channel_id].items_added);
       }
 
       return prepared;
@@ -257,7 +273,7 @@ define([
         item.visible = (i <= this.pager) ? true : false;
         item.className = item.visible ? "show" : "hide";
         if (item.isnew) item.className += " new";
-        if (item.id && item.image) item.image_url = "/imagecache/" + item.id + ".jpg";
+        if (item.id && item.image) item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
 
         // Reduce long channel names
         if (item.channel.name.length > 30) {
@@ -361,39 +377,24 @@ define([
         };
       });
     },
+    saveState: function(stateInfo) {
+      $.post("/api/state", {data: JSON.stringify(stateInfo)});
+    },
     updateChannels: function() {
       var self = this;
 
       $.getJSON("/api/channel/updates", {state: JSON.stringify(this.state)}, function(updates) {
         if (updates.length) {
           for (var i in updates) {
-            self.state.channels[updates[i]._id] = updates[i].items_added;
+            self.state[updates[i]._id] = updates[i].items_added;
             self.updates[updates[i]._id] = updates[i].items;
           }
-
-          console.log("some updates received");
-          console.dir(updates[i]);
-          console.dir(self.updates);
           self.processUpdates();
         }
-        else {
-          console.log("no updates this time");
-        }
-        
-        // With autoUpdate we will show the app when update is complete.
-        
-        /*
-        if (self.autoUpdate) {
-          self.refreshChannels();
-          self.runApp();
-        }
-        */
       });
     },
     processUpdates: function() {
       var count = 0;
-
-      console.log("in processUpdates");
 
       for (var channel_id in this.updates) {
         for (var i in this.updates[channel_id]) {
@@ -402,8 +403,6 @@ define([
           }
           else {
             this.updates[channel_id][i].isnew = true;
-            console.log("new item found:");
-            console.dir(this.updates[channel_id][i]);
             count++;
           }
         }
@@ -414,9 +413,6 @@ define([
         this.newItemsCount = count;
         this.showUpdateNotification();
       }
-
-      console.log("updates after processUpdates");
-      console.dir(this.updates);
     },
     itemExists: function(item, list) {
       for (var i in list) {
@@ -443,7 +439,7 @@ define([
       this.newItems = false;
       this.newItemsCount = 0;
       this.updates = {};
-      amplify.store("channels", this.channels);
+      this.saveState({channels: this.channels});
       this.hideUpdateNotification();
     },
     showUpdateNotification: function() {
@@ -503,9 +499,21 @@ define([
         return "/channel/" + channelId + ((!variant || variant == "original") ? "" : ("/" + variant));
       }
     },
+    subscribe: function() {
+      $.ajax("/subscribe", {
+        type: "POST",
+        data: {url: $(".subscribe-url").val()},
+        success: function(data) {
+          window.location = "/channel/" + data.channel_id;
+        },
+        error: function(xhr, status, error) {
+          Pagetty.error(xhr.responseText, 'subscribe-messages');
+        }
+      });
+    },
     success: function(text, container) {
       $("." + (container ? container : "messages")).html("<div class=\"alert alert-success\">" + _.escape(text) + "</div>");
-    },    
+    },
     error: function(text, container) {
       $("." + (container ? container : "messages")).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");
     },

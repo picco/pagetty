@@ -2,11 +2,11 @@ exports.attach = function (options) {
   var app = this;
   var async = require('async');
   var fs = require('fs');
-  var hogan = require('hogan.js');  
+  var hogan = require('hogan.js');
   var mongoose = require('mongoose');
-  var nodemailer = require('nodemailer');  
+  var nodemailer = require('nodemailer');
   var request = require('request');
-  var spawn = require('child_process').spawn;    
+  var spawn = require('child_process').spawn;
   var zlib = require('zlib');
 
   this.conf = require('config').server;
@@ -17,9 +17,10 @@ exports.attach = function (options) {
   this.use(require('./models/history.js'));
   this.use(require('./models/rule.js'));
   this.use(require('./models/user.js'));
+  this.use(require('./models/state.js'));
 
   this.mailTransport = nodemailer.createTransport("SMTP");
-  
+
   /**
    * Gets the data for a given URL from cache or
    * downloads it realtime if cached copy is unavailable.
@@ -37,9 +38,9 @@ exports.attach = function (options) {
           callback(err, buffer);
         });
       }
-    });    
+    });
   }
-  
+
   /**
    * Downloads the data from a given URL in real-time.
    */
@@ -51,7 +52,7 @@ exports.attach = function (options) {
       callback("Invalid URL: " + options.url);
       return;
     }
-    
+
     async.waterfall([
       // Download content.
       function(next) {
@@ -80,14 +81,14 @@ exports.attach = function (options) {
               next(null, buffer);
             }
           }
-        });             
+        });
       },
       // Update cache.
       function(buffer, next) {
         if (buffer.toString().length) {
           app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
             next(err, buffer);
-          });          
+          });
         }
       },
     ], function(err, buffer) {
@@ -116,7 +117,7 @@ exports.attach = function (options) {
 
     return v;
   }
-  
+
   /**
    * TODO
    */
@@ -138,7 +139,7 @@ exports.attach = function (options) {
   this.createObjectID = function() {
     return new mongoose.Types.ObjectId(new Date().getTime() / 1000);
   }
-  
+
   this.mail = function(mail, template) {
     var self = this, body = mail.body;
 
@@ -206,5 +207,5 @@ exports.attach = function (options) {
 
     tidy.stdin.write(html);
     tidy.stdin.end();
-  }  
+  }
 }

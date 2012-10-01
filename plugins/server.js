@@ -11,8 +11,8 @@ exports.attach = function (options) {
   var hulk = require('hulk-hogan');
   var im = require('imagemagick');
   var mongoStore = require('connect-mongo')(express);
-  var mongoose = require('mongoose');  
-  
+  var mongoose = require('mongoose');
+
   this.middleware = {
     /**
      * Authentication middleware.
@@ -26,7 +26,7 @@ exports.attach = function (options) {
         res.end("Access denied");
       }
     },
-    
+
     /**
      * Session middleware.
      */
@@ -42,30 +42,31 @@ exports.attach = function (options) {
         next();
       }
     },
-    
+
     /**
      * Middleware for serving cached images.
      */
     imagecache: function(req, res, next) {
-      var match = /\/imagecache\/([\w\d]{24})\.jpg/.exec(req.url);
-  
+      var match = /\/imagecache\/(([\w\d]{24})-([\w\d]{8}))\.jpg/.exec(req.url);
+
       if (match) {
-  
         var self = this,
-            cache_id = match[1],
-            filename = "./imagecache/" + cache_id + ".jpg",
-            headers = {
-              "Content-Type": "image/jpeg",
-              "Cache-Control": "public, max-age=3153600",
-              ETag: cache_id
-            };
-  
+          cache_id = match[1], // the whole xxx-xx part
+          item_id = match[2], // only item id part
+          image_hash = match[3], // only image hash part
+          filename = "./imagecache/" + cache_id + ".jpg",
+          headers = {
+            "Content-Type": "image/jpeg",
+            "Cache-Control": "public, max-age=3153600",
+            ETag: cache_id
+          };
+
         fs.readFile(filename, function (err, existing_file) {
           if (err) {
             if (err.code == "ENOENT") {
-              app.channel.findOne({items: {$elemMatch: {id: new mongoose.Types.ObjectId(cache_id)}}}, function(err, channel) {
+              app.channel.findOne({items: {$elemMatch: {id: new mongoose.Types.ObjectId(item_id)}}}, function(err, channel) {
                 if (err) throw err;
-  
+
                 if (channel == null) {
                   console.log("Cache item not found: " + cache_id);
                   res.writeHead(404);
@@ -74,12 +75,12 @@ exports.attach = function (options) {
                 }
                 else {
                   for (var i in channel.items) {
-                    if (channel.items[i].id == cache_id) {
+                    if (channel.items[i].id == item_id) {
                       var url = channel.items[i].image;
                       break;
                     }
                   }
-  
+
                   app.download({url: url}, function(err, buffer) {
                     if (err) {
                       console.log("Original unavailable: " + url + " " + cache_id);
@@ -87,12 +88,12 @@ exports.attach = function (options) {
                       res.end("Original unavailable: " + url + " " + cache_id);
                       return;
                     }
-  
+
                     fs.writeFile(filename, buffer, function (err) {
                       if (err) throw err;
-  
+
                       var convertStart = new Date().getTime();
-  
+
                       im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
                         if (err) {
                           fs.unlink(filename);
@@ -103,7 +104,7 @@ exports.attach = function (options) {
                         }
                         else {
                           console.log("Image at " + url + " conveted in: " + app.timer(convertStart) + "ms");
-  
+
                           fs.readFile(filename, function (err, created_file) {
                             if (err) throw err;
                             console.log("Serving resized version: " + cache_id + " from: " + url);
@@ -133,7 +134,7 @@ exports.attach = function (options) {
       else {
         next();
       }
-    }    
+    }
   };
 
   // Create HTTP server.
@@ -159,7 +160,7 @@ exports.attach = function (options) {
   server.use(express.errorHandler({dumpExceptions: true, showStack: true}));
   server.use(gzippo.compress());
   server.use(server.router);
-  
+
   /**
    * Redirect any HTTP requests to the HTTPS site.
    */
@@ -185,30 +186,35 @@ exports.attach = function (options) {
    */
   server.get("/", this.renderApp);
   server.get(/^\/channel\/[^\/]+$/, this.renderApp);
+  server.get(/^\/channel\/[^\/]+\/(time|score)$/, this.renderApp);
 
   /**
-   * API: send user information.
+   * API: return authenticated user information.
    */
   server.get("/api/user", app.middleware.restricted, function(req, res) {
     res.json(req.session.user);
   });
 
   /**
-   * API: send user subscription information.
+   * API: return subscriptions for the authenticated users.
    */
   server.get("/api/user/channels", app.middleware.restricted, function(req, res) {
     var channelsObject = {};
 
     req.session.user.subscribedChannels(function(channels) {
-      for (var index in channels) {
-        _.each(channels[index].items, function(el, idx) {
-          channels[index].items[idx].created = channels[index].items[idx].created.getTime();
-        })
+      // Convert dates to timestamps as dates cause problems with different platforms.
+      for (var i in channels) {
+        for (var j = 0; j < channels[i].items.length; j++) {
+          channels[i].items[j].created = channels[i].items[j].created.getTime();
+        }
 
-        channels[index].items_added = channels[index].items_added ? channels[index].items_added.getTime() : null;
-        channels[index].items_updated = channels[index].items_updated ? channels[index].items_updated.getTime() : null;
-        channelsObject[channels[index]._id] = channels[index];
+        channels[i].items_added = channels[i].items_added ? channels[i].items_added.getTime() : null;
+        channels[i].items_updated = channels[i].items_updated ? channels[i].items_updated.getTime() : null;
+
+        // Return an object keyed by channel id instead of plain array.
+        channelsObject[channels[i]._id] = channels[i];
       }
+
       res.json(channelsObject);
     });
   });
@@ -229,7 +235,7 @@ exports.attach = function (options) {
    */
   server.get("/api/configure/sample/:id/:selector", app.middleware.restricted, function(req, res) {
     var $ = require('cheerio');
-    
+
     app.channel.findById(req.params.id, function(err, channel) {
       app.fetch({url: channel.url}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
@@ -241,11 +247,42 @@ exports.attach = function (options) {
   });
 
   /**
-   * Client auto-update call.
+   * API: Client auto-update call.
    */
   server.get("/api/channel/updates", app.middleware.restricted, function(req, res) {
     req.session.user.getChannelUpdates(JSON.parse(req.param("state")), function(updates) {
       res.json(updates);
+    });
+  });
+
+  /**
+   * API: Get app state.
+   */
+  server.get("/api/state", app.middleware.restricted, function(req, res) {
+    app.state.findOne({user: req.session.user._id}, function(err, state) {
+      err ? res.send(err, 400) : (state ? res.json(state.data) : res.json({}));
+    });
+  });
+
+  /**
+   * API: Get app state.
+   */
+  server.post("/api/state", app.middleware.restricted, function(req, res) {
+    app.state.findOne({user: req.session.user._id}, function(err, state) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else if (state) {
+        state.data = JSON.parse(req.body.data);
+        state.save(function(err) {
+          err ? res.send(err, 400) : res.send(200);
+        });
+      }
+      else {
+        app.state.create({user: req.session.user._id, data: JSON.parse(req.body.data)}, function(err) {
+          err ? res.send(err, 400) : res.send(200);
+        });
+      }
     });
   });
 
@@ -272,8 +309,8 @@ exports.attach = function (options) {
     req.session.user.updateSubscription(req.body.channel_id, {name: req.body.name}, function(err) {
       err ? res.send(err, 400) : res.send(200);
     });
-  });    
-  
+  });
+
   /**
    * Unsubscrbe user from a site.
    */
@@ -282,16 +319,17 @@ exports.attach = function (options) {
       err ? res.send(err, 400) : res.send(200);
     });
   });
-  
+
   /**
    * Save channel configuration.
    */
   server.post("/rules", app.middleware.restricted, function(req, res) {
-  //for (var i in rules) {
-  //  validator.check(rules[i].item, 'Item selector is always required.').notEmpty();
-  //  validator.check(rules[i].target.selector, 'Target selector is always required.').notEmpty();
-  //  validator.check(rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
-  //}        
+    //for (var i in rules) {
+    //  validator.check(rules[i].item, 'Item selector is always required.').notEmpty();
+    //  validator.check(rules[i].target.selector, 'Target selector is always required.').notEmpty();
+    //  validator.check(rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
+    //}
+
     async.waterfall([
       // Load channel.
       function(next) {
@@ -309,13 +347,13 @@ exports.attach = function (options) {
         for (var i in req.body.rules) {
           req.body.rules[i].domain = channel.domain;
           req.body.rules[i].url = channel.url;
-          app.rule.create(req.body.rules[i], console.log);   
+          app.rule.create(req.body.rules[i], console.log);
         }
         next(null, channel);
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(function(err, channel) {
+        channel.updateItems(true, function(err, channel) {
           next();
         });
       }
@@ -323,7 +361,7 @@ exports.attach = function (options) {
       err ? res.json(err, 400) : res.send(200);
     });
   });
-  
+
   /**
    * Create a rule from a profiler configuration.
    */
@@ -338,17 +376,17 @@ exports.attach = function (options) {
       // Create new rule.
       function(channel, next) {
         var rule = req.body.rule;
-        
+
         rule.domain = channel.domain;
         rule.url = channel.url;
-        
+
         app.rule.create(rule, function(err) {
           next(err, channel);
         });
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(function(err) {
+        channel.updateItems(true, function(err) {
           next();
         });
       },
@@ -356,7 +394,7 @@ exports.attach = function (options) {
       err ? res.json(err, 400) : res.send(200);
     });
   });
-  
+
   /**
    * Get subscription form.
    */
@@ -371,7 +409,7 @@ exports.attach = function (options) {
           subscription: req.session.user.subscriptions[channel._id]
         });
       }
-    })    
+    })
   });
 
   /**
@@ -512,26 +550,26 @@ exports.attach = function (options) {
    * Display the channel profiling page.
    */
   server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {      
+    app.channel.findById(req.params.channel, function(err, channel) {
       if (err) {
         throw err;
       }
       else {
         channel.createProfile(function(err, profile) {
           if (err) {
-            throw err;  
+            throw err;
           }
           else {
-            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});                      
+            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
           }
-        });        
+        });
       }
     });
-  }); 
+  });
 }
 
 exports.init = function(done) {
-  console.log('Starting web server');  
+  console.log('Starting web server');
   this.httpsServer.listen(8443);
   this.httpServer.listen(8080);
   done();

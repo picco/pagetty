@@ -11,7 +11,8 @@
           <input type="submit" class="btn btn-sign-in" value="Sign in" />
         </form>
         <div class="sign-up">
-          <a href="/signup">Create new account</a> - it's <strong>free</strong>, and takes just a second!
+          We will be lanching a public beta at the end of 2012.
+          <!--<a href="/signup">Create new account</a> - it's <strong>free</strong>, and takes just a second!-->
         </div>
         <noscript>
           <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>

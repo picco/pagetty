@@ -12,7 +12,7 @@
         <div id="channels">
           <div class="header clearfix">
             <h3>My channels</h3>
-            <a href="/subscribe" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
+            <a href="#subscribeModal" class="btn btn-small btn-success btn-subscribe" data-toggle="modal"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
           <ul class="nav nav-list list">
             <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
@@ -22,11 +22,29 @@
     </div>
   </div>
 </div>
+<!-- ASSETS -->
+<div class="assets">
+  <div class="modal hide" id="subscribeModal" tabindex="-1" role="dialog" aria-labelledby="Subscribe dialog" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="subscribeModalLabel">Subscribe to a site</h3>
+    </div>
+    <div class="modal-body">
+      <div class="subscribe-messages"></div>
+      <label>Enter URL:</label>
+      <input type="text" name="url" class="input-xxlarge subscribe-url" placeholder="http://example.com" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success btn-subscribe-submit">Subscribe</button>
+      <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+    </div>
+  </div>
+</div>
 <!-- CONTROLLER -->
 <script type="text/javascript">
-  require(["/scripts/libraries/pagetty.js", "json!/api/user", "json!/api/user/channels", "/bootstrap/bootstrap/js/bootstrap.min.js"], function(pagetty, user, channels) {
+  require(["/scripts/libraries/pagetty.js", "json!/api/user", "json!/api/user/channels", "json!/api/state", "/bootstrap/bootstrap/js/bootstrap.min.js"], function(pagetty, user, channels, appState) {
     $(document).ready(function() {
-      pagetty.init(user, channels, false);
+      pagetty.init(user, channels, appState);
     });
   });
 </script>

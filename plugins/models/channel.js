@@ -4,9 +4,9 @@ exports.attach = function(options) {
   var $ = require('cheerio');
   var async = require('async');
   var mongoose = require('mongoose');
-  var parser = require('../../lib/parser.js');  
+  var parser = require('../../lib/parser.js');
   var profiler = require('../../lib/profiler.js');
-  
+
   var channelSchema = mongoose.Schema({
     url: String,
     domain: String,
@@ -14,21 +14,21 @@ exports.attach = function(options) {
     items: Array,
     items_added: Date,
     items_updated: Date,
-  });   
-   
+  });
+
   /**
    * TODO
    */
   channelSchema.methods.updateSubscriberCount = function(callback) {
     var self = this;
     var query = {};
-    
+
     query["subscriptions." + this._id] = {$exists: 1};
-    
+
     app.user.find(query).count(function(err, count) {
       self.subscriptions = count;
       self.save(function(err) {
-        callback(err);      
+        callback(err);
       });
     });
   }
@@ -36,14 +36,12 @@ exports.attach = function(options) {
   /**
    * Update items.
    */
-  channelSchema.methods.updateItems = function(callback) {
+  channelSchema.methods.updateItems = function(useCache, callback) {
     var self = this;
-    
+
     async.waterfall([
       function(next) {
-        self.fetchItems(function(err, items) {
-          console.log('Fetched items');
-          console.dir(items);
+        self.fetchItems(useCache, function(err, items) {
           next(err, items);
         });
       },
@@ -61,19 +59,26 @@ exports.attach = function(options) {
       callback(err);
     });
   }
-  
+
   /**
    * Fetch fresh items for the given channel.
    */
-  channelSchema.methods.fetchItems = function(callback) {
+  channelSchema.methods.fetchItems = function(useCache, callback) {
     var self = this;
 
     async.waterfall([
       function(next) {
-        app.fetch({url: self.url}, function(err, buffer) {
-          next(err, buffer.toString());
-        });
-      },      
+        if (useCache) {
+          app.fetch({url: self.url}, function(err, buffer) {
+            next(err, buffer.toString());
+          });
+        }
+        else {
+          app.download({url: self.url}, function(err, buffer) {
+            next(err, buffer.toString());
+          });
+        }
+      },
       function(body, next) {
         app.rule.find({$or: [{url: self.url}, {domain: self.domain}]}, function(err, rules) {
           next(err, body, rules);
@@ -89,17 +94,17 @@ exports.attach = function(options) {
       if (err) callback(err);
     });
   }
-  
+
   /**
    * Update the existing items with new data while preserving existing item id.
    */
   channelSchema.methods.syncItems = function(new_items, callback) {
     var items = [], synced_items = [], now = new Date(), new_items_found = false, self = this, counter = 0, tmp_item;
-  
+
     if (new_items.length) {
       for (var i in new_items) {
         var exists = false;
-  
+
         for (var j in this.items) {
           if (this.items[j].target == new_items[i].target) {
             exists = true;
@@ -109,7 +114,7 @@ exports.attach = function(options) {
             break;
           }
         }
-  
+
         if (!exists) {
           tmp_item = new_items[i];
           tmp_item.id = app.createObjectID();
@@ -120,14 +125,14 @@ exports.attach = function(options) {
     }
 
     self.items_updated = now;
-  
+
     if (synced_items.length) {
       _.each(synced_items, function(item, key) {
         if (item.created == null) {
           // This is new item that's not present in current channel items.
           app.history.findOne({"item.target": item.target}, function(err, doc) {
             if (err) throw err;
-  
+
             if (doc == null) {
               // The item is not found in history, treat as new.
               item.created = now;
@@ -143,9 +148,9 @@ exports.attach = function(options) {
               // Client side update's don't know how to update themselves otherwise.
               self.items_added = now;
             }
-  
+
             items.push(item);
-  
+
             if (synced_items.length == items.length) {
               self.items = parser.calculateRelativeScore(items);
               callback();
@@ -154,7 +159,7 @@ exports.attach = function(options) {
         }
         else {
           items.push(item);
-  
+
           if (synced_items.length == items.length) {
             self.items = parser.calculateRelativeScore(items);
             callback();
@@ -165,15 +170,15 @@ exports.attach = function(options) {
     else {
       callback();
     }
-  }    
-  
+  }
+
   /**
    * Find the different segments (types of links).
    */
   channelSchema.methods.createProfile = function(callback) {
     var self = this;
     var profile = {segments: [], content: {}};
-    
+
     async.waterfall([
       function(next) {
         app.fetch({url: self.url}, function(err, buffer) {
@@ -187,51 +192,51 @@ exports.attach = function(options) {
         });
       },
       function(next) {
-        self.fetchItems(function(err, items) {
+        self.fetchItems(true, function(err, items) {
           if (err) {
             next(err);
           }
-          else {            
+          else {
             for (var i in items) {
               profile.content[items[i].rule] = {itemSelector: null, links: []};
             }
-            
+
             for (var i in items) {
-              profile.content[items[i].rule].links.push({title: items[i].title, href: items[i].target});    
+              profile.content[items[i].rule].links.push({title: items[i].title, href: items[i].target});
             }
-            
+
             next();
           }
         });
       },
-      function(next) {       
+      function(next) {
         if (_.size(profile.content)) {
           var loopCounter = 0;
-          
+
           _.each(profile.content, function(el, rule_id) {
             app.rule.findById(rule_id, function(err, rule) {
               if (err) {
                 next(err);
               }
-              else {                
+              else {
                 profile.content[rule_id].itemSelector = rule.item;
               }
-              
-              if (++loopCounter >= _.size(profile.content)) next();              
+
+              if (++loopCounter >= _.size(profile.content)) next();
             });
           });
         }
         else {
           profile.content = null;
           next();
-        }     
+        }
       }
     ], function(err) {
       if (profile.content) profile.content = _.toArray(profile.content);
       err ? callback(err) : callback(null, profile);
     });
-  }    
-  
+  }
+
   /**
    * TODO
    */
@@ -241,22 +246,22 @@ exports.attach = function(options) {
     var min_interval = 60 * 1000; // Do not start new loop if last update was less than this, in seconds.
     var max_lifetime = 10; // Channel will be updated if time from the last update exceeds this, in minutes.
     var check = new Date(now - (max_lifetime * 60 * 1000));
-        
+
     if (forceStart || now - app.lastUpdate >= min_interval) {
       console.log('Starting update batch. Last update was at: ' + app.lastUpdate);
       app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).execFind(function(err, channels) {
         _.each(channels, function(channel) {
-          channel.updateItems(function() {
+          channel.updateItems(false, function() {
             app.lastUpdate = new Date().getTime();
           });
         })
       });
-    
+
     }
     else {
       console.log("Update: Waiting, only " + parseInt((now - app.lastUpdate) / 1000) + "sec has passed from last update...");
     }
   }
-  
+
   this.channel = app.db.model('Channel', channelSchema, 'channels');
 }

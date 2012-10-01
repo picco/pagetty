@@ -47,6 +47,7 @@ h1, h2, h3 {
   font-family: GraublauWeb;
   src: url("/fonts/GraublauWeb.eot?") format("eot"), url("/fonts/GraublauWeb.woff") format("woff"), url("/fonts/GraublauWeb.otf") format("opentype");
 }
+
 @font-face {
   font-family: GraublauWeb;
   font-weight: bold;
@@ -62,6 +63,8 @@ header {
 }
 header h1 {
   line-height: 87px;
+  height: 87px;
+  overflow: hidden;
 }
 header .logo {
   margin-left: 21px;
@@ -75,7 +78,7 @@ header .logo {
 }
 .btn-a {
   font-size: 11px;
-  border-radius: 3px;
+  border-radius: 5px;
   border: 1px solid #fff;
   padding: 3px 6px;
   white-space: nowrap;
@@ -123,7 +126,7 @@ header .logo {
   margin: 1em 0;
 }
 .page h1 {
-  margin-bottom: .5em;  
+  margin-bottom: .5em;
 }
 .sample {
   display: none;
@@ -149,6 +152,9 @@ header .logo {
 
 /* BOOTSTRAP OVERRIDES -------------------------------------------------------*/
 
+.modal-backdrop {
+  opacity: .5;
+}
 .nav-list > .active > a, .nav-list > .active > a:hover {
   background-color: #00AEEF;
 }
@@ -168,6 +174,10 @@ header .logo {
   float: left;
   color: #333;
   font-size: 11px;
+}
+/* hide the channel nav scrollbar */
+#ascrail2000 {
+  display: none;
 }
 #add-subscription input {
   width: 95%;
@@ -339,6 +349,7 @@ header .logo {
   display: block;
   color: #333;
   line-height: 28px;
+  text-rendering: auto !important;
 }
 .channel .item .title a:hover {
   color: #00AEEF;
@@ -482,5 +493,5 @@ input.item {
   }
   #ue-feedback-tab {
     display: none;
-  }  
+  }
 }
