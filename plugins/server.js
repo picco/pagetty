@@ -400,13 +400,10 @@ exports.attach = function (options) {
    */
   server.get("/channel/:id/subscription", app.middleware.restricted, function(req, res) {
     app.channel.findById(req.params.id, function(err, channel) {
-      console.dir(channel.url);
       if (err) {
         res.send(500);
       }
       else {
-        console.dir(channel.url);
-        console.dir(req.session.user.subscriptions);
         res.render("subscription", {
           channel: channel,
           subscription: req.session.user.subscriptions[channel._id]
