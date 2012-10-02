@@ -166,7 +166,7 @@ exports.attach = function (options) {
    */
   this.httpServer.get("*", function(req, res) {
     console.log("Reditected user from HTTP");
-    res.redirect("https://" + config.domain + req.url);
+    res.redirect("https://" + app.conf.domain + req.url);
   });
 
   /**
@@ -569,7 +569,6 @@ exports.attach = function (options) {
 }
 
 exports.init = function(done) {
-  console.log('Starting web server');
   this.httpsServer.listen(8443);
   this.httpServer.listen(8080);
   done();
