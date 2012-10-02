@@ -48,8 +48,8 @@ namespace :deploy do
   end
 
   task :start do
-    run "cd #{current_path} && forever start -a -l #{current_path}/log/app.forever.log -o #{current_path}/log/app.log -e #{current_path}/log/app.err.log app.js"
-    run "cd #{current_path} && forever start -a -l #{current_path}/log/crawler.forever.log -o #{current_path}/log/crawler.log -e #{current_path}/log/crawler.err.log crawler.js"
+    run "cd #{current_path} && forever start -a -l #{shared_path}/log/app.forever.log -o #{shared_path}/log/app.log -e #{shared_path}/log/app.err.log app.js"
+    run "cd #{current_path} && forever start -a -l #{shared_path}/log/crawler.forever.log -o #{shared_path}/log/crawler.log -e #{shared_path}/log/crawler.err.log crawler.js"
   end
 
   task :restart do
