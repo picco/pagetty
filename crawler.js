@@ -26,6 +26,7 @@ app.init(function (err) {
     else {
       app.lastUpdate = new Date().getTime();
       app.channel.updateItemsBatch(true);
+      // Poll every 10 seconds, the actual limits are enforced by the method itself.
       setInterval(function() {app.channel.updateItemsBatch()}, 10000);
     }
   }

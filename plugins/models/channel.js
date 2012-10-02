@@ -52,6 +52,7 @@ exports.attach = function(options) {
       },
       function(next) {
         self.save(function(err) {
+          console.log('Updated: ' + self.url + ' items: ' + self.items.length);
           next(err);
         })
       }
@@ -75,7 +76,7 @@ exports.attach = function(options) {
         }
         else {
           app.download({url: self.url}, function(err, buffer) {
-            next(err, buffer.toString());
+            buffer ? next(err, buffer.toString()) : next("Unable to download from: " + self.url);
           });
         }
       },
@@ -99,7 +100,11 @@ exports.attach = function(options) {
    * Update the existing items with new data while preserving existing item id.
    */
   channelSchema.methods.syncItems = function(new_items, callback) {
-    var items = [], synced_items = [], now = new Date(), new_items_found = false, self = this, counter = 0, tmp_item;
+    var self = this;
+    var counter = 0;
+    var synced_items = [];
+    var tmp_item;
+    var now = new Date();
 
     if (new_items.length) {
       for (var i in new_items) {
@@ -149,19 +154,15 @@ exports.attach = function(options) {
               self.items_added = now;
             }
 
-            items.push(item);
-
-            if (synced_items.length == items.length) {
-              self.items = parser.calculateRelativeScore(items);
+            if (++counter == synced_items.length) {
+              self.items = parser.calculateRelativeScore(synced_items);
               callback();
             }
           });
         }
         else {
-          items.push(item);
-
-          if (synced_items.length == items.length) {
-            self.items = parser.calculateRelativeScore(items);
+          if (++counter == synced_items.length) {
+            self.items = parser.calculateRelativeScore(synced_items);
             callback();
           }
         }
@@ -243,13 +244,17 @@ exports.attach = function(options) {
   channelSchema.statics.updateItemsBatch = function update(forceStart) {
     var self = this;
     var now = new Date().getTime();
+    var batchSize = 10; // max number of channels updated during single run.
     var min_interval = 60 * 1000; // Do not start new loop if last update was less than this, in seconds.
     var max_lifetime = 10; // Channel will be updated if time from the last update exceeds this, in minutes.
     var check = new Date(now - (max_lifetime * 60 * 1000));
 
     if (forceStart || now - app.lastUpdate >= min_interval) {
-      console.log('Starting update batch. Last update was at: ' + app.lastUpdate);
-      app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).execFind(function(err, channels) {
+      console.log('Starting update batch. Last update was ' + parseInt((now - app.lastUpdate) / 1000) + 'sec ago.');
+
+      app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batchSize).execFind(function(err, channels) {
+        console.log('Expired channels found: ' + (channels ? channels.length : 0));
+
         _.each(channels, function(channel) {
           channel.updateItems(false, function() {
             app.lastUpdate = new Date().getTime();
@@ -259,7 +264,7 @@ exports.attach = function(options) {
 
     }
     else {
-      console.log("Update: Waiting, only " + parseInt((now - app.lastUpdate) / 1000) + "sec has passed from last update...");
+      console.log("Waiting, only " + parseInt((now - app.lastUpdate) / 1000) + "sec has passed from last update...");
     }
   }
 
