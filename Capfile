@@ -23,11 +23,11 @@ server "5.9.78.132", :app, {
 namespace :configure do
   task :default do
     set :user, "root"
-    set :default_shell, "bash"    
+    set :default_shell, "bash"
 
     run("hostname pagetty.com")
     run("apt-get install -y puppet")
-    
+
     system("tar czf 'puppet.tgz' puppet/")
     upload("puppet.tgz","/tmp/puppet.tgz",:via => :scp)
     system("rm puppet.tgz")
@@ -48,8 +48,8 @@ namespace :deploy do
   end
 
   task :start do
-    run "cd #{current_path} && forever start app.js"
-    run "cd #{current_path} && forever start crawler.js"
+    run "cd #{current_path} && forever start -a -l #{current_path}/logs/app.forever.log -o #{current_path}/logs/app.log -e #{current_path}/logs/app.err.log app.js"
+    run "cd #{current_path} && forever start -a -l #{current_path}/logs/crawler.forever.log -o #{current_path}/logs/crawler.log -e #{current_path}/logs/crawler.err.log crawler.js"
   end
 
   task :restart do
@@ -62,7 +62,7 @@ namespace :deploy do
 
   task :npm_install do
     run "mkdir -p #{shared_path}/node_modules"
-    run "ln -s #{shared_path}/node_modules #{release_path}/node_modules"      
+    run "ln -s #{shared_path}/node_modules #{release_path}/node_modules"
     run "cd #{release_path} && npm install"
   end
 end
@@ -105,4 +105,3 @@ namespace :pulldb do
     system("mongorestore --drop /tmp/dump")
   end
 end
-
