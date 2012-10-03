@@ -157,6 +157,8 @@ exports.attach = function (options) {
   server.use(app.middleware.session);
   server.set('view engine', 'hulk');
   server.set('views', './views');
+  // View cache is enabled by default for production in express, but this messes things up.
+  server.set('view cache', false);
   server.use(express.errorHandler({dumpExceptions: true, showStack: true}));
   server.use(gzippo.compress());
   server.use(server.router);
@@ -404,6 +406,7 @@ exports.attach = function (options) {
         res.send(500);
       }
       else {
+        console.dir(channel._id);
         res.render("subscription", {
           channel: channel,
           subscription: req.session.user.subscriptions[channel._id]
