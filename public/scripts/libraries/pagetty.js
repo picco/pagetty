@@ -27,6 +27,7 @@ define([
       this.appState = appState;
       this.subscriptions = user.subscriptions;
       this.state = {};
+      this.navigation = [];
 
       this.channels = this.prepareChannels(this.subscriptions, channels, this.appState.channels);
 
@@ -43,24 +44,22 @@ define([
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
-      var navigation = [];
-
       for (channel_id in this.subscriptions) {
-        navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
+        this.navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
       }
 
-      navigation.sort(function(a, b) {
+      this.navigation.sort(function(a, b) {
         var x = a.name.toLowerCase(), y = b.name.toLowerCase();
         return ( ( x == y ) ? 0 : ( ( x > y ) ? 1 : -1 ) );
       });
 
-      for (var i in navigation) {
-        $("#channels .list").append('<li class="channel channel-' + navigation[i].channel_id + '"><a href="/channel/' + navigation[i].channel_id + '" data-channel="' + navigation[i].channel_id + '">' + _.escape(navigation[i].name) + '</a></li>');
+      for (var i in this.navigation) {
+        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + '</a></li>');
       }
 
       $(".username").append(_.escape(user.name));
 
-      $(".app .logo").live("click", function(e) {
+      $(".app .logo, .app .mobile-logo").live("click", function(e) {
         if (self.activeChannel != 'all') {
           var channel = 'all', variant = 'time';
           History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
@@ -68,10 +67,10 @@ define([
         }
       });
 
-      $("#channels li.channel a").bind("click", function() {
+      $(".nav-list .channel a").live("click", function(e) {
+        e.preventDefault();
         var channel = $(this).data("channel"), variant = $(this).data("variant");
         History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        return false;
       });
 
       $(".channel a.variant").live("click", function() {
@@ -104,12 +103,7 @@ define([
         return false;
       });
 
-      $(".more").live("click", function() {
-        self.loadMore(Pagetty.activeChannel, Pagetty.activeVariant);
-        return false;
-      });
-
-      $(".new-stories").live("click", function(e) {
+      $(".new-stories, .refresh").live("click", function(e) {
         var stateData = History.getState().data;
 
         e.preventDefault();
@@ -133,6 +127,27 @@ define([
         $('.subscribe-url').focus()
       })
 
+      // Mobile
+
+      $('.toggle-channel-nav').live('click', function(e) {
+        e.preventDefault();
+
+        $('.channel-nav').addClass('hide');
+
+        if ($(this).hasClass('open')) {
+          $(this).removeClass('open');
+          $('.channel .items').removeClass('hide');
+        }
+        else {
+          $(this).addClass('open');
+          $('.channel .items').addClass('hide');
+          $('.channel-' + self.activeChannel + '-' + self.activeVariant + ' .channel-nav').removeClass('hide');
+        }
+
+        window.scrollTo(0, 0);
+
+      });
+
       // Act on statechange.
 
       History.Adapter.bind(window, "statechange", function() {
@@ -148,7 +163,7 @@ define([
 
       $(window).scroll(function() {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
-          if ($(window).width() > 960) self.loadMore(self.activeChannel, self.activeVariant);
+          self.loadMore(self.activeChannel, self.activeVariant);
         }
       });
 
@@ -307,8 +322,7 @@ define([
       cacheKey = channel_id + ":" + variant;
 
       $("#channels .list li.channel-" + channel_id).addClass("loading");
-      $(".more").hide();
-      $(".runway .channel").hide();
+      $(".runway > .inner > .channel").hide();
 
       if (this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
@@ -329,10 +343,10 @@ define([
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({channel: channel, variant: variant, subscription: {name: "All stories"}, items: html, demo: self.demo}));
+          $(".runway .inner").append(ich.channelAll({channel: channel, variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: channel, variant: variant, subscription: subscription, items: html, demo: self.demo}));
+          $(".runway .inner").append(ich.channel({channel: channel, variant: variant, subscription: subscription, items: html, nav: self.navigation}));
         }
 
         // Time ago.
@@ -340,17 +354,17 @@ define([
 
         // Lazy load images.
         self.loadImages($(selector + " .items .show"));
-
-        // Add "Load more" button.
-        var selection = $(selector + " .items .hide");
-        if (selection.size()) {
-          $(".more").show();
-        }
       }
 
       $('#channels .list li, a.variant').removeClass('active');
       $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
       $("#channels .list li.channel-" + channel_id).removeClass("loading");
+
+
+      $('.channel-nav').addClass('hide');
+      $('.channel-nav .channel-' + channel_id + ' a').addClass('active');
+      $('.channel .items').removeClass('hide');
+      $('.toggle-channel-nav').removeClass('open');
 
       this.cache[cacheKey] = true;
       self.activeChannel = channel_id;
@@ -446,12 +460,15 @@ define([
       if (this.newItemsCount > 0) {
         $(".app .runway").addClass("with-messages");
         $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.newItemsCount + ' </span>' + (this.newItemsCount == 1 ? 'new story' : 'new stories') + '. Click here to update.</a>');
+        $('.new-items-count').html(this.newItemsCount);
+        $('.refresh').show();
         this.updateTitle();
       }
     },
     hideUpdateNotification: function() {
       $(".app .runway").removeClass("with-messages");
       $(".channel .messages").html("");
+      $('.refresh').hide();
       this.updateTitle();
     },
     updateTitle: function() {
@@ -472,9 +489,6 @@ define([
         slice.each(function(index, element) {
           $(this).removeClass("hide").addClass("show");
         });
-      }
-      else {
-        $(".more").hide();
       }
     },
     channelList: function() {

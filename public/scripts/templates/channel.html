@@ -8,11 +8,11 @@
         <a class="btn-a variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a>
         <a class="btn-a variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
         <div class="dropdown">
-          <a class="btn-a configure dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Configure</a>                  
+          <a class="btn-a configure dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Configure</a>
           <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
             <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
             <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
-            <li><a href="/channel/{{channel._id}}/profile">Add content</a></li>                        
+            <li><a href="/channel/{{channel._id}}/profile">Add content</a></li>
             <li class="divider"></li>
             <li><a class="unsubscribe" data-channel="{{channel._id}}" href="#">Unsubscribe</a></li>
           </ul>
@@ -20,6 +20,27 @@
       </div>
       <div class="messages"></div>
     </div>
+  </div>
+  <div class="title-mobile">
+    <div class="wrapper">
+      <a href="/" class="mobile-logo"></a>
+      <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
+      <div class="action toggle-channel-nav"><a href="#"><i class="icon-th"></i></a></div>
+      <div class="action refresh"><a href="#"><i class="icon-refresh"></i> <span class="new-items-count"></span></a></div>
+    </div>
+  </div>
+  <div class="channel-nav hide">
+    <ul class="nav nav-list">
+      <li><a class="variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#"><i class="icon-home"></i> As on site</a></li>
+      <li><a class="variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a></li>
+      <li><a class="variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a></li>
+      <li class="configure"><a href="/channel/{{channel._id}}/subscription"><i class="icon-cog"></i> Configure</a></li>
+      <li class="section">All channels</li>
+      <li class="channel channel-all"><a href="/channel/all" data-channel="all">All stories</a></li>
+      {{#nav}}
+        <li class="channel channel-{{channel_id}}"><a href="/channel/{{channel_id}}" data-channel="{{channel_id}}">{{name}}</a></li>
+      {{/nav}}
+    </ul>
   </div>
   <div class="items">{{{items}}}</div>
 </div>

@@ -10,5 +10,25 @@
       <div class="messages"></div>
     </div>
   </div>
+  <div class="title-mobile">
+    <div class="wrapper">
+      <a href="/" class="mobile-logo"></a>
+      <h1><a href="{{channel.url}}">All stories</a></h1>
+      <div class="action toggle-channel-nav"><a href="#"><i class="icon-th"></i></a></div>
+      <div class="action refresh"><a href="#"><i class="icon-refresh"></i> <span class="new-items-count"></span></a></div>
+    </div>
+  </div>
+  <div class="channel-nav hide">
+    <ul class="nav nav-list">
+      <li><a class="variant all-original" data-channel="all" data-variant="original" href="#"><i class="icon-home"></i> As on site</a></li>
+      <li><a class="variant all-time" data-channel="all" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a></li>
+      <li><a class="variant all-score" data-channel="all" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a></li>
+      <li class="section">All channels</li>
+      <li class="channel channel-all"><a href="/channel/all" data-channel="all">All stories</a></li>
+      {{#nav}}
+        <li class="channel channel-{{channel_id}}"><a href="/channel/{{channel_id}}" data-channel="{{channel_id}}">{{name}}</a></li>
+      {{/nav}}
+    </ul>
+  </div>
   <div class="items">{{{items}}}</div>
 </div>

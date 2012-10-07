@@ -2,7 +2,7 @@
 <img class="app-loading" src="/images/loading.gif" />
 <div class="container clearfix">
   <div class="row">
-    <div class="stage span10"><div class="runway"><div class="inner"></div></div><a class="more" href="#"><i class="icon-arrow-down"></i> Show more stories</a></div></div>
+    <div class="stage span10"><div class="runway"><div class="inner"></div></div></div></div>
     <div class="sidebar span6">
       <aside>
         <div id="account" class="clearfix">
