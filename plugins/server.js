@@ -10,6 +10,7 @@ exports.attach = function (options) {
   var gzippo = require('gzippo');
   var hulk = require('hulk-hogan');
   var im = require('imagemagick');
+  var hash = require('mhash').hash;
   var mongoStore = require('connect-mongo')(express);
   var mongoose = require('mongoose');
 
@@ -176,7 +177,7 @@ exports.attach = function (options) {
    */
   this.renderApp = function(req, res) {
     if (req.session.user) {
-      res.render("app", {bodyClass: "app"});
+      res.render("app", {bodyClass: "app", user: req.session.user});
     }
     else {
       res.render("index");
@@ -194,7 +195,9 @@ exports.attach = function (options) {
    * API: return authenticated user information.
    */
   server.get("/api/user", app.middleware.restricted, function(req, res) {
-    res.json(req.session.user);
+    var user = _.clone(req.session.user);
+    delete user.pass;
+    res.json(user);
   });
 
   /**
@@ -262,7 +265,7 @@ exports.attach = function (options) {
    */
   server.get("/api/state", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
-      err ? res.send(err, 400) : (state ? res.json(state.data) : res.json({}));
+      err ? res.send(err, 400) : ((state && state.data) ? res.json(state.data) : res.json({}));
     });
   });
 
@@ -416,6 +419,27 @@ exports.attach = function (options) {
   });
 
   /**
+   * Display the channel profiling page.
+   */
+  server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {
+      if (err) {
+        throw err;
+      }
+      else {
+        channel.createProfile(function(err, profile) {
+          if (err) {
+            throw err;
+          }
+          else {
+            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
+          }
+        });
+      }
+    });
+  });
+
+  /**
    * Get new channel form.
    */
   server.get("/channel/:id/rules", app.middleware.restricted, function(req, res) {
@@ -460,7 +484,7 @@ exports.attach = function (options) {
    * Log the user in to the system.
    */
   server.post("/signin", function(req, res) {
-    app.user.authenticate(req.body.username, req.body.password, function(err, user) {
+    app.user.authenticate(req.body.mail, req.body.password, function(err, user) {
       if (err) {
         res.redirect("/");
       }
@@ -472,6 +496,14 @@ exports.attach = function (options) {
   });
 
   /**
+   * Log the user out of the system.
+   */
+  server.get("/signout", function(req, res) {
+    delete req.session.user;
+    res.redirect('/');
+  });
+
+  /**
    * Display sign-up form.
    */
   server.get("/signup", function(req, res) {
@@ -479,95 +511,109 @@ exports.attach = function (options) {
   });
 
   /**
-   * Display sign-up form.
+   * Process sign-up request.
    */
   server.post("/signup", function(req, res) {
-    pagetty.signup(req.body.username, req.body.mail, function(err) {
-      if (err) {
-        res.send(err, 400);
+    app.user.signup(req.body, function(err) {
+      err ? res.send(err, 400) : res.send(200);
+    });
+  });
+
+  /**
+   * Display sign-up confirmation page.
+   */
+  server.get("/signup/verification", function(req, res) {
+    res.render('signup_verification');
+  });
+
+  /**
+   * Activate the user account and log in automatically.
+   */
+  server.get('/activate/:verification', function(req, res) {
+    app.user.findOne({verification: req.params.verification, verified: false}, function(err, user) {
+      if (user) {
+        user.activate(function(err) {
+          if (err) throw err;
+
+          req.session.user = user;
+          res.redirect('/');
+        });
       }
       else {
-        res.redirect("/signup/confirm");
+        res.redirect('/');
       }
     });
   });
 
   /**
-   * Display sign-up confirm page.
+   * Display sign-up form.
    */
-  server.get("/signup/confirm", function(req, res) {
-    res.render('signup_confirm');
+  server.get("/account", app.middleware.restricted, function(req, res) {
+    var user = _.clone(req.session.user);
+
+    //user.created = user.created.toString('MMMM');
+    res.render('account', {user: user});
   });
 
   /**
-   * Log the user out of the system.
+   * Display sign-up form.
    */
-  server.get("/signout", function(req, res) {
-    delete req.session.user;
-    res.redirect("/");
-  });
-
-  /**
-   * Verify the user's e-mail address.
-   */
-  server.get('/signup/verify/:id', function(req, res) {
-    User.checkIfUnverified(req.params.id, function(err) {
-      if (err) {
-        res.render("message", {title: "Account verification failed", message: err});
-      }
-      else {
-        res.redirect("/signup/profile/" + req.params.id);
-      }
+  server.get('/account/delete', app.middleware.restricted, function(req, res) {
+    req.session.user.remove(function(err) {
+      delete req.session.user;
+      res.redirect('/');
     });
   });
 
   /**
-   * Let the user fill out initial user profile.
+   * Display sign-up form.
    */
-  server.get('/signup/profile/:id', function(req, res) {
-    pagetty.checkIfUserUnverified(req.params.id, function(err) {
-      if (err) {
-        res.render("message", {title: "Something went wrong", message: err});
-      }
-      else {
-        res.render("signup_profile");
-      }
-    });
+  server.get('/password', function(req, res) {
+    res.render('password');
   });
 
   /**
-   * Let the user fill out initial user profile.
+   * Display sign-up form.
    */
-  server.post('/signup/profile', function(req, res) {
-    pagetty.activate(req.body, function(err) {
-      if (err) {
-        res.json(err, 400);
+  server.post('/password', function(req, res) {
+    app.user.findOne({mail: req.body.mail}, function(err, user) {
+      if (err) throw err;
+
+      if (user) {
+        var new_pass = hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
+        user.pass = app.user.hashPassword(user._id, new_pass);
+        user.save(function(err) {
+          app.mail({to: user.mail, subject: 'A new password has been created', password: new_pass}, 'password');
+          res.send(200);
+        });
       }
       else {
+        // Do not reveal which e-mails are registered.
         res.send(200);
       }
     });
   });
 
   /**
-   * Display the channel profiling page.
+   * Update account settings.
    */
-  server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {
-      if (err) {
-        throw err;
-      }
-      else {
-        channel.createProfile(function(err, profile) {
-          if (err) {
-            throw err;
-          }
-          else {
-            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
-          }
-        });
-      }
-    });
+  server.post("/account", app.middleware.restricted, function(req, res) {
+    var validator = app.getValidator();
+
+    validator.check(app.user.hashPassword(req.session.user._id, req.body.existing_pass), 'Existing password is not correct.').equals(req.session.user.pass);
+    validator.check(req.body.pass, 'Password must contain at least 6 characters.').len(6);
+    validator.check(req.body.pass, 'Passwords do not match.').equals(req.body.pass2);
+
+    if (validator.hasErrors()) {
+      res.send(validator.getErrors()[0], 400);
+    }
+    else {
+      req.session.user.pass = app.user.hashPassword(req.session.user._id, req.body.pass);
+      req.session.user.save(function(err) {
+        if (err) throw err;
+        res.send(200);
+      });
+    }
   });
 }
 

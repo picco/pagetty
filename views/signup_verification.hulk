@@ -11,8 +11,8 @@
   <div class="row">
     <div class="span12">
       <div class="messages"></div>
-      <h1>Confirmation e-mail has been sent</h1>
-      <p>Please <strong>check your mailbox</strong>, open the confirmation e-mail and <strong>click on the activatation link</strong>!</p>
+      <h2>Confirm your e-mail address</h2>
+      <p>Please <strong>check your mailbox</strong>, open the confirmation e-mail we just sent you and <strong>click on the activatation link</strong>.</p>
     </div>
   </div>
 </div>

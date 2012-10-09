@@ -12,14 +12,12 @@ exports.attach = function (options) {
   this.conf = require('config').server;
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
+  this.use(require('./models/state.js'));
   this.use(require('./models/channel.js'));
   this.use(require('./models/cache.js'));
   this.use(require('./models/history.js'));
   this.use(require('./models/rule.js'));
   this.use(require('./models/user.js'));
-  this.use(require('./models/state.js'));
-
-  this.mailTransport = nodemailer.createTransport("SMTP");
 
   /**
    * Gets the data for a given URL from cache or
@@ -140,43 +138,42 @@ exports.attach = function (options) {
     return new mongoose.Types.ObjectId(new Date().getTime() / 1000);
   }
 
+  /**
+   * Send an email using a template.
+   */
   this.mail = function(mail, template) {
-    var self = this, body = mail.body;
+    var transport = nodemailer.createTransport("SMTP");
 
-    sequence.then(function(next) {
-      if (template) {
-        self.loadTemplate('mail/' + template + '.hulk', function(data) {
-          var compiled_template = hogan.compile(data.toString());
-          body = compiled_template.render(mail);
-          next();
-        })
-      }
-      else {
-        next();
-      }
-    })
-    .then(function(next, data) {
-      nodemailer.sendMail({
-        transport: self.mailTransport,
-        from : config.mail.from,
-        to : mail.to,
-        subject : mail.subject,
-        text: body
+    async.waterfall([
+      function(next) {
+        if (template) {
+          fs.readFile('./mail/' + template + '.hulk', function (err, data) {
+            if (err) {
+              next(err);
+            }
+            else {
+              mail.conf = app.conf;
+              next(null, hogan.compile(data.toString()).render(mail));
+            }
+          });
+        }
+        else {
+          next(null, mail.body);
+        }
       },
-      function(err) {
-        if (err) throw err;
-        self.mailTransport.close();
-      });
-    })
-  }
-
-  this.loadTemplate = function(file, callback) {
-    fs.readFile('./templates/' + file, function (err, data) {
-      if (err) throw err;
-      callback(data);
+      function(body, next) {
+        nodemailer.sendMail({transport: transport, from: app.conf.mail.from, to: mail.to, subject: mail.subject, text: body}, function(err) {
+          next(err);
+        });
+      }
+    ], function() {
+      transport.close();
     });
   }
 
+  /**
+   * TODO
+   */
   this.tidy = function(html, callback) {
     var buffer = '', err = '';
 

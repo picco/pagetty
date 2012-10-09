@@ -6,17 +6,19 @@
         <h1>Pagetty</h1>
         <h2>Forget RSS. Discover a totally different news reader.</h2>
         <form class="sign-in form-inline" action="/signin" method="post">
-          <input class="username input-medium" type="text" name="username" placeholder="Username" />
+          <input class="mail input-medium" type="email" name="mail" placeholder="E-mail" />
           <input class="password input-medium" type="password" name="password" placeholder="Password" />
           <input type="submit" class="btn btn-sign-in" value="Sign in" />
+          <a class="forgot" href="/password">Forgot password?</a>
         </form>
         <div class="sign-up">
-          We will be lanching a public beta at the end of 2012.
-          <!--<a href="/signup">Create new account</a> - it's <strong>free</strong>, and takes just a second!-->
+        </div><div>
+          <!--We will be lanching a public beta at the end of 2012.-->
+          <a href="/signup">Create a new account</a> - it's <strong>free</strong>, and takes just a second!
         </div>
         <noscript>
           <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
-        </noscript>      
+        </noscript>
       </div>
       <div class="logos">
         <img src="/images/technology.png" alt="Powered by NodeJS, HTML5, MongoDB" title="Powered by NodeJS, HTML5, MongoDB" />

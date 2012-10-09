@@ -2,27 +2,24 @@ require([
   'pagetty',
   'icanhaz',
   'url'
-], function(Pagetty) {
+], function(pagetty) {
 
 Controller = {
   init: function() {
-    $('#signup-profile a.activate').click(function() {
+    $('.btn-activate').click(function() {
       Controller.activate({
-        user_id: $.url().segment(3),
-        name: $('#signup-profile input.name').val(),
-        pass: $('#signup-profile input.pass').val(),
-        pass2: $('#signup-profile input.pass2').val()
+
       });
       return false;
     });
   },
   activate: function(data) {
-    $.ajax('/signup/profile/', {type: 'POST', data: data})
+    $.ajax(window.location.href, {type: 'POST', data: data})
       .success(function() {
-        alert("Success");
+        window.location = '/';
       })
-      .error(function() {
-        alert("Something went wrong while subscribing.");
+      .error(function(xhr, status, error) {
+        pagetty.error(xhr.responseText);
       }
     );
   }

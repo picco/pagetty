@@ -8,13 +8,15 @@ exports.attach = function(options) {
   var uri = require('url');
 
   var userSchema = mongoose.Schema({
-    created: Date,
-    name: String,
     mail: String,
     pass: String,
+    created: Date,
     subscriptions: mongoose.Schema.Types.Mixed,
-    state: mongoose.Schema.Types.Mixed,
+    verification: String,
     verified: Boolean,
+    state: mongoose.Schema.Types.Mixed,
+  }, {
+    minimize: false,
   });
 
   /**
@@ -194,71 +196,53 @@ exports.attach = function(options) {
    * Activate the user account and set the username, password.
    */
   userSchema.methods.activate = function(callback) {
-    var sequence = futures.sequence();
-    var validator = this.getValidator();
-    var self = this;
+    this.verified = true;
 
-    validator.check(account.name, 'Username is required.').notEmpty();
-    validator.check(account.name, 'Name must start with a character.').is(/\w+.*/);
-    validator.check(account.pass, 'Password is required.').notEmpty();
-    validator.check(account.pass, 'Password must contain at least 6 characters.').len(6);
-    validator.check(account.pass, 'Passwords do not match.').equals(account.pass2);
-
-    sequence.then(function(next) {
-      self.checkIfUsernameUnique(account.name, function(exists) {
-        if (exists) validator.error("Username already exists.");
-        next();
-      })
-    })
-    .then(function(next) {
-      if (validator.hasErrors()) {
-        callback(validator.getErrors());
-        return;
-      }
-      else {
-        next();
-      }
-    })
-    .then(function(next) {
-      var updates = {
-        "$set": {verified: true, name: account.name, pass: self.hashPassword(account.user_id, account.pass)}
-      }
-
-      app.user.update({_id: app.objectId(account.user_id)}, updates, function(err) {
-        if (err) throw err;
-        callback();
-      });
-    })
+    this.save(function(err) {
+      callback(err);
+    });
   }
 
-  userSchema.statics.signup = function(mail, callback) {
-    var self = this;
+  /**
+   * TODO
+   */
+  userSchema.statics.signup = function(data, callback) {
+    var validator = app.getValidator();
 
-    try {
-      check(mail).notEmpty().isEmail();
-    }
-    catch (e) {
-      callback("E-mail is not valid.");
+    validator.check(data.mail, 'E-mail is not valid.').isEmail();
+    validator.check(data.pass, 'Password is required.').notEmpty();
+    validator.check(data.pass, 'Password must contain at least 6 characters.').len(6);
+    validator.check(data.pass, 'Passwords do not match.').equals(data.pass2);
+
+    if (validator.hasErrors()) {
+      callback(validator.getErrors()[0]);
       return;
     }
 
-    app.user.findOne({mail: mail}, function(err, doc) {
+    async.series([
+      function(next) {
+        app.user.findOne({mail: data.mail}, function(err, user) {
+          user == null ? next(null) : next('E-mail is already in use.');
+        });
+      },
+    ], function(err) {
       if (err) {
-        callback("Could not check mail.");
-      }
-      else if (doc != null) {
-        callback("Mail is already in use.");
+        callback(err);
       }
       else {
-        var user = new User({mail: mail, created: new Date(), verified: false});
+        var id = new mongoose.Types.ObjectId(id);
+        var pass = app.user.hashPassword(id.toString(), data.pass);
+        var created = new Date();
+        var verification = require('crypto').createHash('sha1').update('qwmi39ds' + created.getTime(), 'utf8').digest('hex');
+        var user = new app.user({_id: id, mail: data.mail, pass: pass, subscriptions: {}, created: created, verification: verification, verified: false});
 
         user.save(function(err) {
           if (err) {
-            callback("Error while creating user account.");
+            callback("Unable to create user account.");
           }
           else {
-            self.mail({to: user.mail, subject: "Welcome to pagetty.com", user: user}, 'signup');
-            callback(null, docs[0]);
+            app.mail({to: user.mail, subject: "Welcome to pagetty.com", user: user}, 'signup');
+            callback(null, user);
           }
         });
       }
@@ -268,10 +252,10 @@ exports.attach = function(options) {
   /**
    * Check the user's login credentials.
    */
-  userSchema.statics.authenticate = function(name, plainPass, callback) {
+  userSchema.statics.authenticate = function(mail, plainPass, callback) {
     var self = this;
 
-    this.findOne({name: name}, function(err, user) {
+    this.findOne({mail: mail, verified: true}, function(err, user) {
       if (user == null || user.pass != self.hashPassword(user._id, plainPass)) {
         callback("Username or password does not match.");
       }
@@ -311,6 +295,30 @@ exports.attach = function(options) {
       }
     });
   }
+
+  /**
+   * Delete user's account and all associated data.
+   */
+  userSchema.post('remove', function() {
+    var self = this;
+
+    async.series([
+      function(next) {
+        app.state.remove({user: self._id}, function(err) {
+          next(err);
+        })
+      },
+      function(next) {
+        self.subscribedChannels(function(channels) {
+          for (var i in channels) {
+            channels[i].updateSubscriberCount(function() {});
+          }
+
+          next();
+        });
+      },
+    ]);
+  });
 
   this.user = this.db.model('User', userSchema, 'users');
 }

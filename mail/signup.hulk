@@ -1,0 +1,9 @@
+Hi,
+
+Thank you for signing up! Please verify your e-mail by clicking on the link below.
+
+https://{{conf.domain}}/activate/{{user.verification}}
+
+--
+Ivo Nellis
+Founder, Pagetty.com

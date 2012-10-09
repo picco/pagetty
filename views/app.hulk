@@ -6,7 +6,7 @@
     <div class="sidebar span6">
       <aside>
         <div id="account" class="clearfix">
-          <span class="user username"><i class="icon-user"></i> </span>
+          <a class="user mail" href="/account"><i class="icon-user"></i> {{user.mail}}</a>
           <a class="btn-logout" href="/signout" title="Sign out"><i class="icon-off"></i> Sign out</a>
         </div>
         <div id="channels">

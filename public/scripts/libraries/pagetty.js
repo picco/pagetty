@@ -57,8 +57,6 @@ define([
         $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + '</a></li>');
       }
 
-      $(".username").append(_.escape(user.name));
-
       $(".app .logo, .app .mobile-logo").live("click", function(e) {
         if (self.activeChannel != 'all') {
           var channel = 'all', variant = 'time';
@@ -312,7 +310,10 @@ define([
       return x1 + x2;
     },
     showChannel: function(channel_id, variant) {
-      var html = "", cacheKey = "", selector = "", self = this, channel = this.channels[channel_id], subscription = this.subscriptions[channel_id];
+      var self = this;
+      var html = "";
+      var cacheKey = "";
+      var selector = "";
 
       if (!variant) {
         variant = channel_id == "all" ? "time" : "original";
@@ -343,10 +344,10 @@ define([
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({channel: channel, variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation}));
+          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: channel, variant: variant, subscription: subscription, items: html, nav: self.navigation}));
+          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation}));
         }
 
         // Time ago.

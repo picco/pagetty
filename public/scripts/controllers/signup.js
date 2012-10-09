@@ -2,7 +2,7 @@ require([
   'pagetty',
   'icanhaz',
   'url'
-], function(Pagetty) {
+], function(pagetty) {
 
 Controller = {
   init: function() {
@@ -10,19 +10,20 @@ Controller = {
   },
   signup: function() {
     var data = {
-      username: $(".input-username").val(),
-      mail: $(".input-mail").val(),      
+      mail: $(".input-mail").val(),
+      pass: $('input.pass').val(),
+      pass2: $('input.pass2').val()
     }
-    
+
     $.ajax('/signup', {type: 'POST', data: data})
       .success(function() {
-        alert("Success");
+        window.location = '/signup/verification';
       })
-      .error(function() {
-        alert("Something went wrong while subscribing.");
+      .error(function(xhr, status, error) {
+        pagetty.error(xhr.responseText);
       }
     );
-      
+
     return false;
   }
 };
