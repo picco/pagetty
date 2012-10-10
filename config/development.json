@@ -1,5 +1,6 @@
 {
   "server": {
-    "domain": "dev.pagetty.com"
+    "domain": "dev.pagetty.com",
+    "env": "DEV"
   }
 }

@@ -527,10 +527,18 @@ define([
       });
     },
     success: function(text, container) {
-      $("." + (container ? container : "messages")).html("<div class=\"alert alert-success\">" + _.escape(text) + "</div>");
+      var selector = "." + (container ? container : "messages");
+
+      $(selector).animate({opacity: 0}, 100, function() {
+        $(selector).css('opacity', 1).html("<div class=\"alert alert-success\">" + _.escape(text) + "</div>");
+      });
     },
     error: function(text, container) {
-      $("." + (container ? container : "messages")).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");
+      var selector = "." + (container ? container : "messages");
+
+      $(selector).animate({opacity: 0}, 100, function() {
+        $(selector).css('opacity', 1).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");
+      });
     },
     clearMessages: function() {
       $(".messages").html("");

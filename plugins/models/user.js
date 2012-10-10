@@ -82,8 +82,7 @@ exports.attach = function(options) {
         });
       }
     ], function(err) {
-
-      console.log(err);
+      app.notify.onSubscribe(self, channel);
       callback(err, channel);
     });
   }
@@ -132,6 +131,7 @@ exports.attach = function(options) {
         });
       },
     ], function(err) {
+      app.notify.onUnSubscribe(self, channel);
       callback(err);
     });
   }
@@ -196,9 +196,12 @@ exports.attach = function(options) {
    * Activate the user account and set the username, password.
    */
   userSchema.methods.activate = function(callback) {
+    var self = this;
+
     this.verified = true;
 
     this.save(function(err) {
+      app.notify.onActivate(self);
       callback(err);
     });
   }
@@ -241,8 +244,9 @@ exports.attach = function(options) {
             callback("Unable to create user account.");
           }
           else {
-            app.mail({to: user.mail, subject: "Welcome to pagetty.com", user: user}, 'signup');
-            callback(null, user);
+            app.mail({to: user.mail, subject: 'Welcome to pagetty.com'}, 'signup', {user: user});
+            app.notify.onSignup(user);
+            callback(null, user);s
           }
         });
       }
@@ -317,6 +321,10 @@ exports.attach = function(options) {
           next();
         });
       },
+      function(next) {
+        app.notify.onAccountDelete(self);
+        next();
+      }
     ]);
   });
 

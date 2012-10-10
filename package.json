@@ -15,6 +15,7 @@
     "hogan.js": "*",
     "hulk-hogan": "*",
     "imagemagick": "*",
+    "jsondiffpatch": "*",
     "mhash": "*",
     "mongoose": "*",
     "mustache": "*",

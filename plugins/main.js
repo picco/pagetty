@@ -12,6 +12,7 @@ exports.attach = function (options) {
   this.conf = require('config').server;
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
+  this.use(require('./notify.js'));
   this.use(require('./models/state.js'));
   this.use(require('./models/channel.js'));
   this.use(require('./models/cache.js'));
@@ -106,7 +107,7 @@ exports.attach = function (options) {
     }
 
     v.hasErrors = function () {
-      return this._errors.length;
+      return this._errors ? this._errors.length : false;
     }
 
     v.getErrors = function () {
@@ -141,8 +142,9 @@ exports.attach = function (options) {
   /**
    * Send an email using a template.
    */
-  this.mail = function(mail, template) {
-    var transport = nodemailer.createTransport("SMTP");
+  this.mail = function(mail, template, templateData) {
+    mail.transport = nodemailer.createTransport("SMTP");
+    mail.from = app.conf.mail.from;
 
     async.waterfall([
       function(next) {
@@ -152,22 +154,22 @@ exports.attach = function (options) {
               next(err);
             }
             else {
-              mail.conf = app.conf;
-              next(null, hogan.compile(data.toString()).render(mail));
+              mail.text = hogan.compile(data.toString()).render(templateData);
+              next(null);
             }
           });
         }
         else {
-          next(null, mail.body);
+          next(null);
         }
       },
-      function(body, next) {
-        nodemailer.sendMail({transport: transport, from: app.conf.mail.from, to: mail.to, subject: mail.subject, text: body}, function(err) {
+      function(next) {
+        nodemailer.sendMail(mail, function(err) {
           next(err);
         });
       }
     ], function() {
-      transport.close();
+      mail.transport.close();
     });
   }
 

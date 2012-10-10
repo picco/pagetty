@@ -329,17 +329,35 @@ exports.attach = function (options) {
    * Save channel configuration.
    */
   server.post("/rules", app.middleware.restricted, function(req, res) {
-    //for (var i in rules) {
-    //  validator.check(rules[i].item, 'Item selector is always required.').notEmpty();
-    //  validator.check(rules[i].target.selector, 'Target selector is always required.').notEmpty();
-    //  validator.check(rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
-    //}
+    var validator = app.getValidator();
+    var old_rules = [];
+
+    for (var i in req.body.rules) {
+      validator.check(req.body.rules[i].item, 'Item selector is always required.').notEmpty();
+      validator.check(req.body.rules[i].target.selector, 'Target selector is always required.').notEmpty();
+      validator.check(req.body.rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
+    }
+
+    if (validator.hasErrors()) {
+      res.send(validator.getErrors()[0], 400);
+    }
 
     async.waterfall([
       // Load channel.
       function(next) {
         app.channel.findById(req.body.channel_id, function(err, channel) {
           next(err, channel);
+        });
+      },
+      // Extract existing rules for logging.
+      function(channel, next) {
+        app.rule.find({domain: channel.domain}, function(err, rules) {
+          for (var i in rules) {
+            // Objects contain functions an other shit.
+            old_rules.push(JSON.parse(JSON.stringify(rules[i])));
+          }
+
+          next(null, channel);
         });
       },
       // Delete existing rules for the domain.
@@ -352,15 +370,21 @@ exports.attach = function (options) {
         for (var i in req.body.rules) {
           req.body.rules[i].domain = channel.domain;
           req.body.rules[i].url = channel.url;
-          app.rule.create(req.body.rules[i], console.log);
+          app.rule.create(req.body.rules[i], function(err) {
+            if (err) throw err;
+          });
         }
         next(null, channel);
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(true, function(err, channel) {
-          next();
+        channel.updateItems(true, function(err) {
+          next(err, channel);
         });
+      },
+      function(channel, next) {
+        app.notify.onRulesChange(req.session.user, channel, old_rules, req.body.rules);
+        next();
       }
     ], function(err) {
       err ? res.json(err, 400) : res.send(200);
@@ -421,7 +445,7 @@ exports.attach = function (options) {
   /**
    * Display the channel profiling page.
    */
-  server.get("/channel/:channel/profile", app.middleware.restricted, function(req, res) {
+  server.get("/channel/:channel/configure", app.middleware.restricted, function(req, res) {
     app.channel.findById(req.params.channel, function(err, channel) {
       if (err) {
         throw err;
@@ -432,7 +456,7 @@ exports.attach = function (options) {
             throw err;
           }
           else {
-            res.render("profile", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
+            res.render("configure", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
           }
         });
       }
@@ -490,6 +514,7 @@ exports.attach = function (options) {
       }
       else {
         req.session.user = user;
+        app.notify.onSignin(user);
         res.redirect("/");
       }
     });
@@ -583,7 +608,8 @@ exports.attach = function (options) {
         var new_pass = hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
         user.pass = app.user.hashPassword(user._id, new_pass);
         user.save(function(err) {
-          app.mail({to: user.mail, subject: 'A new password has been created', password: new_pass}, 'password');
+          app.mail({to: user.mail, subject: 'A new password has been created'}, 'password', {password: new_pass});
+          app.notify.onPasswordReminder(user);
           res.send(200);
         });
       }
@@ -611,6 +637,7 @@ exports.attach = function (options) {
       req.session.user.pass = app.user.hashPassword(req.session.user._id, req.body.pass);
       req.session.user.save(function(err) {
         if (err) throw err;
+        app.notify.onAccountChange(req.session.user);
         res.send(200);
       });
     }

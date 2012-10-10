@@ -1,0 +1,127 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span12">
+        <a class="logo" href="/">Pagetty</a>
+        <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="page container">
+  <div class="row">
+    <div class="span12">
+      <div id="subscription" style="margin-bottom: 3em">
+        <h2>My subscription</h2>
+        <div class="messages"></div>
+        <div class="form-element">
+          <label>Channel name: *</label>
+          <input class="name input-xxlarge form-text" type="text" name="channel:name" value="{{subscription.name}}" />
+        </div>
+        <a class="btn btn-primary btn-save-subscription">Save</a>
+        <a class="btn btn-danger btn-unsubscribe">Unsubscribe</a>
+      </div>
+    </div>
+    <div class="span4">
+      <h2>Updates done?</h2>
+      <p>This takes you back to the application and opens the channel view. </p>
+      <a href="/channel/{{channel._id}}" class="btn btn-large">View channel</a>
+    </div>
+  </div>
+  <div class="row">
+    <div class="span16">
+      <ul id="tabs" class="nav nav-tabs">
+        <li class="active"><a href="#wizard-tab" data-toggle="tab">Content wizard</a></li>
+        <li><a href="#rules-tab" data-toggle="tab">Rules</a></li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane active" id="wizard-tab">
+          <div class="row">
+            <div class="span8">
+              <h2>Content available on the site</h2>
+              <!--
+              <p>
+                The following is a list of content our system has automagically identified.<br/>
+                When you add content to the channel from below, an according import rule is created that you can edit later on the <a href="/channel/{{channel._id}}/rules">rules page</a>.<br/>
+                In case Pagetty cannot recognize the content properly, you need to create the import rules manually (some HTML/CSS skills are required for this).
+              </p>
+              -->
+
+              {{#profile}}
+                {{#segments}}
+                  <div class="well">
+                    <p>Rule: {{itemSelector}}</p>
+                    <ul>
+                      {{#links}}
+                        <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+                      {{/links}}
+                    </ul>
+                    <div class="clearfix">
+                      <a class="btn btn-success btn-add-to-channel pull-right" href="#"
+                         data-item-selector="{{itemSelector}}"
+                         data-target-selector="{{target.selector}}"
+                         data-target-url="{{target.url_attribute}}"
+                         data-target-title="{{target.title_attribute}}"
+                         data-image-selector="{{image.selector}}"
+                         data-image-attribute="{{image.attribute}}"
+                         data-comments-selector="{{comments.selector}}"
+                         data-comments-attribute="{{comments.attribute}}"
+                         data-score-selector="{{score.selector}}"
+                         data-score-attribute="{{score.attribute}}"
+                      >Add to channel &raquo;</a>
+                    </div>
+                  </div>
+                {{/segments}}
+              {{/profile}}
+            </div>
+            <div class="span8">
+              <h2>Current channel content</h2>
+              <!--
+              <p>
+                The following is a list of content that Pagetty can currently recognize.<br/>
+              </p>
+              -->
+              {{#profile}}
+                {{#content}}
+                  <div class="well">
+                    <p>Rule: {{itemSelector}}</p>
+                    <ul>
+                      {{#links}}
+                        <li><a href="{{href}}" target="_blank">{{title}}</a></li>
+                      {{/links}}
+                    </ul>
+                    <a class="btn btn-remove btn-danger" href="#" data-rule="{{rule}}">&laquo; Remove from channel</a>
+                    <a class="btn btn-modify" href="#" data-rule="{{rule}}">Modify rule</a>
+                  </div>
+                {{/content}}
+                {{^content}}
+                  <div class="well">There's no content on the site that Pagetty can recognize yet. Add some content from the available content section.</div>
+                {{/content}}
+              {{/profile}}
+            </div>
+          </div>
+        </div>
+        <!-- RULES TAB -->
+        <div class="tab-pane" id="rules-tab">
+          <div class="rules-messages"></div>
+          <p>
+            Rules tell Pagetty how to find and extract the content from the target site.<br/>
+            Rules are based on standard CSS selectors so you can build a feed (channel) from basically any web page out there (which also means that some HTML/CSS knowledge is required in order to work with rules here, sorry).<br/><br/>
+            <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
+          </p>
+          <div id="rules">
+            {{#rules}}{{>rule}}{{/rules}}
+          </div>
+          <div class="form-actions">
+            <a class="btn btn-primary btn-save-rules">Save</a>
+            <a class="btn btn-success btn-add-rule">Add rule</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  var channel_id = '{{channel._id}}';
+  require(['/bootstrap/bootstrap/js/bootstrap.min.js', '/scripts/controllers/configure.js']);
+</script>

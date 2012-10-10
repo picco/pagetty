@@ -420,9 +420,6 @@ header .logo {
 
 /* PAGE: CONFIGURE ---------------------------------------------------------- */
 
-#subscription input {
-  width: 90%;
-}
 input.generate {
   width: 495px;
 }

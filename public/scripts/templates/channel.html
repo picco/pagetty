@@ -7,16 +7,7 @@
         <a class="btn-a variant {{channel._id}}-original" data-channel="{{channel._id}}" data-variant="original" href="#"><i class="icon-home"></i> As on site</a>
         <a class="btn-a variant {{channel._id}}-time" data-channel="{{channel._id}}" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a>
         <a class="btn-a variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
-        <div class="dropdown">
-          <a class="btn-a configure dropdown-toggle" data-toggle="dropdown" href="#"><i class="icon-cog"></i> Configure</a>
-          <ul class="dropdown-menu" role="menu" aria-labelledby="dLabel">
-            <li><a href="/channel/{{channel._id}}/subscription">Subscription</a></li>
-            <li><a href="/channel/{{channel._id}}/rules">Rules</a></li>
-            <li><a href="/channel/{{channel._id}}/profile">Add content</a></li>
-            <li class="divider"></li>
-            <li><a class="unsubscribe" data-channel="{{channel._id}}" href="#">Unsubscribe</a></li>
-          </ul>
-        </div>
+        <a class="btn-a configure" href="/channel/{{channel._id}}/configure"><i class="icon-cog"></i> Configure</a>
       </div>
       <div class="messages"></div>
     </div>

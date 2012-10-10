@@ -1,6 +1,6 @@
 {
   "server": {
-    "db_name": "pagetty",    
+    "db_name": "pagetty",
     "db_url": "mongodb://localhost/pagetty",
     "db_host": "127.0.0.1",
     "db_port": 27017,
@@ -8,7 +8,8 @@
       "smtp_host": "localhost",
       "smtp_port": 25,
       "domain": "pagetty.com",
-      "from": "ivo@pagetty.com"
+      "from": "ivo@pagetty.com",
+      "logs": "logs@pagetty.com"
     }
   }
 }
