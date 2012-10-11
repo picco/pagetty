@@ -154,6 +154,7 @@ exports.attach = function (options) {
               next(err);
             }
             else {
+              templateData.conf = app.conf;
               mail.text = hogan.compile(data.toString()).render(templateData);
               next(null);
             }

@@ -34,4 +34,11 @@
     </ul>
   </div>
   <div class="items">{{{items}}}</div>
+  {{^count}}
+    <div class="no-items">
+      <h2>Channel does not yet have any content</h2>
+      <p>Use the Content wizard or the Rules interface to set up some content aggregation rules.</p>
+      <a href="/channel/{{channel._id}}/configure" class="btn">Configure &raquo;</a>
+    </div>
+  {{/count}}
 </div>

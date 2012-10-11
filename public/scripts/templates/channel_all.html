@@ -31,4 +31,22 @@
     </ul>
   </div>
   <div class="items">{{{items}}}</div>
+  {{^count}}
+    <div class="no-items">
+      <h2>Welcome to Pagetty!</h2>
+      <p>Since Pagetty differs from any other news reader/aggregator out there, you need to know some important concepts:</p>
+      <ul>
+        <li>With Pagetty, you can turn practically any web page into a (RSS like) news feed.
+        <li>You achieve this by defining CSS selector based aggregation rules for the web page that you want to track.</li>
+        <li>When you subscribe to a webpage and define the aggregation rules you have what we call, <strong>a channel</strong>.</li>
+        <li>Each channel will be automatically and periodically updated (like a RSS feed).</li>
+        <li>Rules are managed by users - everyone has a shared access to a rules for the sites they are subscribed to.</li>
+        <li>Rules are domain-specific - you don't need to configure rules for every single web page. </li>
+        <li>If someone has already created aggreagtion rules for the site you want to subscribe to then you do not need to deal with the rules at all.</li>
+        <li>Some CSS skills are probably required if you want to set up a channel where no rules have not been defined.</li>
+        <li>Don't turn back yet - there is also a wizard available, that automates the oh-so-difficult rule creation process :)</li>
+      </ul>
+      <p>Awesome, right? Now, <strong>subscribe to some website</strong> to get started!</p>
+    </div>
+  {{/count}}
 </div>

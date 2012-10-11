@@ -302,8 +302,13 @@ exports.attach = function (options) {
    * Subscribe user to a site.
    */
   server.post("/subscribe", app.middleware.restricted, function(req, res) {
-    req.session.user.subscribe(req.body.url, function(err, channel) {
-      err ? res.send(err, 400) : res.json({channel_id: channel._id}, 200);
+    req.session.user.subscribe(req.body.url, req.body.name, function(err, channel) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else {
+        res.json({channel_id: channel._id, item_count: channel.items.length}, 200);
+      }
     });
   });
 
@@ -425,83 +430,53 @@ exports.attach = function (options) {
   });
 
   /**
-   * Get subscription form.
-   */
-  server.get("/channel/:id/subscription", app.middleware.restricted, function(req, res) {
-    app.channel.findById(req.params.id, function(err, channel) {
-      if (err) {
-        res.send(500);
-      }
-      else {
-        console.dir(channel._id);
-        res.render("subscription", {
-          channel: channel,
-          subscription: req.session.user.subscriptions[channel._id]
-        });
-      }
-    })
-  });
-
-  /**
    * Display the channel profiling page.
    */
   server.get("/channel/:channel/configure", app.middleware.restricted, function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {
-      if (err) {
-        throw err;
-      }
-      else {
-        channel.createProfile(function(err, profile) {
-          if (err) {
-            throw err;
-          }
-          else {
-            res.render("configure", {channel: channel, subscription: req.session.user.subscriptions[channel._id], profile: profile});
-          }
-        });
-      }
-    });
-  });
-
-  /**
-   * Get new channel form.
-   */
-  server.get("/channel/:id/rules", app.middleware.restricted, function(req, res) {
     var params = {};
 
     async.series([
       // Load channel.
-      function(callback) {
-        app.channel.findById(req.params.id, function(err, channel) {
+      function(next) {
+        app.channel.findById(req.params.channel, function(err, channel) {
           if (err) {
-            callback(err);
+            next(err);
           }
           else {
             params.channel = channel;
-            callback();
+            next();
           }
         })
       },
       // Load rules.
-      function(callback) {
+      function(next) {
         app.rule.find({domain: params.channel.domain}, function(err, rules) {
           params.rules = rules;
-          callback();
+          next();
         });
-      }
+      },
+      // Create profile.
+      function(next) {
+        params.channel.createProfile(function(err, profile) {
+          params.profile = profile;
+          next(err);
+        });
+      },
     // Send response.
     ], function(err) {
       if (err) {
         res.send(500);
       }
       else {
-        res.render("rules", {
+        res.render("configure", {
           channel: params.channel,
+          subscription: req.session.user.subscriptions[params.channel._id],
+          profile: params.profile,
           rules: params.rules,
-          subscription: req.session.user.subscriptions[params.channel._id]
         });
       }
     });
+
   });
 
   /**

@@ -22,9 +22,9 @@ exports.attach = function(options) {
   /**
    * Subscribe user to a given channel.
    */
-  userSchema.methods.subscribe = function(url, callback) {
-    var self = this, channel = false, name = false;
-
+  userSchema.methods.subscribe = function(url, name, callback) {
+    var self = this;
+    var channel = false;
     var urlComponents = uri.parse(url);
 
     async.series([
@@ -33,6 +33,7 @@ exports.attach = function(options) {
         try {
           check(url, "URL is required.").notEmpty();
           check(url, "URL is not valid.").isUrl();
+          check(name, "Name is required.").notEmpty();
         } catch (e) {
           next(e.message);
           return;
@@ -71,7 +72,7 @@ exports.attach = function(options) {
       },
       // Add channel to user's subscriptions.
       function(next) {
-        self.updateSubscription(channel._id, {name: urlComponents.hostname}, function(err) {
+        self.updateSubscription(channel._id, {name: name}, function(err) {
           err ? next("Could not update user subscription.") : next();
         });
       },
@@ -246,7 +247,7 @@ exports.attach = function(options) {
           else {
             app.mail({to: user.mail, subject: 'Welcome to pagetty.com'}, 'signup', {user: user});
             app.notify.onSignup(user);
-            callback(null, user);s
+            callback(null, user);
           }
         });
       }

@@ -11,6 +11,8 @@ Controller = {
 
     ich.addTemplate("rule", ruleTemplate);
 
+    if (window.location.href.match(/empty/)) $('#emptyModal').modal({show: true});
+
     $(".btn-save-subscription").click(self.saveSubscription);
 
     $("#subscription .name").keypress(function(e) {

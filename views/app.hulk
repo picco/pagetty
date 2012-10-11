@@ -31,8 +31,10 @@
     </div>
     <div class="modal-body">
       <div class="subscribe-messages"></div>
-      <label>Enter URL:</label>
+      <label>Enter URL: *</label>
       <input type="text" name="url" class="input-xxlarge subscribe-url" placeholder="http://example.com" />
+      <label>Give it a name: *</label>
+      <input type="text" name="name" class="input-xxlarge subscribe-name" />
     </div>
     <div class="modal-footer">
       <button class="btn btn-success btn-subscribe-submit">Subscribe</button>

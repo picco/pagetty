@@ -116,10 +116,8 @@ define([
         return false;
       });
 
-      $('.btn-subscribe').click(function() {
-        $(".btn-subscribe-submit").bind("click", self.subscribe);
-        $(".subscribe-url").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe; });
-      });
+      $(".btn-subscribe-submit").bind("click", self.subscribe);
+      $(".subscribe-url, .subscribe-name").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
 
       $('#subscribeModal').on('shown', function () {
         $('.subscribe-url').focus()
@@ -332,7 +330,8 @@ define([
         $(selector).remove();
 
         if (channel_id == "all") {
-          html = self.renderItems(self.sortItems(self.aggregateAllItems(), variant));
+          var all_items = self.aggregateAllItems();
+          html = self.renderItems(self.sortItems(all_items, variant));
         }
         else {
           if (!_.isUndefined(self.channels[channel_id]) && $.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
@@ -344,10 +343,10 @@ define([
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation}));
+          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: all_items.length}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation}));
+          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation, count: self.channels[channel_id].items.length}));
         }
 
         // Time ago.
@@ -517,9 +516,10 @@ define([
     subscribe: function() {
       $.ajax("/subscribe", {
         type: "POST",
-        data: {url: $(".subscribe-url").val()},
+        data: {url: $(".subscribe-url").val(), name: $(".subscribe-name").val()},
+        dataType: "json",
         success: function(data) {
-          window.location = "/channel/" + data.channel_id;
+          window.location = data.item_count ? ("/channel/" + data.channel_id) : ("/channel/" + data.channel_id + "/configure?empty");
         },
         error: function(xhr, status, error) {
           Pagetty.error(xhr.responseText, 'subscribe-messages');
