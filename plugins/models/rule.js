@@ -3,8 +3,8 @@ exports.attach = function(options) {
   var mongoose = require('mongoose');
 
   var ruleSchema = mongoose.Schema({
-    url: String,
-    domain: String,
+    url: {type: String, index: true},
+    domain: {type: String, index: true},
     item: String,
     target: mongoose.Schema.Types.Mixed,
     image: mongoose.Schema.Types.Mixed,

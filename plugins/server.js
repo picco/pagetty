@@ -195,9 +195,12 @@ exports.attach = function (options) {
    * API: return authenticated user information.
    */
   server.get("/api/user", app.middleware.restricted, function(req, res) {
-    var user = _.clone(req.session.user);
-    delete user.pass;
-    res.json(user);
+    res.json({
+      _id: req.session.user._id,
+      created: req.session.user.created,
+      mail: req.session.user.mail,
+      subscriptions: req.session.user.subscriptions
+    });
   });
 
   /**

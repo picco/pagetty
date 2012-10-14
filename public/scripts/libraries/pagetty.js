@@ -366,10 +366,10 @@ define([
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: all_items.length}));
+          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: all_items.length, user: self.user}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation, count: self.channels[channel_id].items.length}));
+          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation, count: self.channels[channel_id].items.length, user: self.user}));
         }
 
         // Time ago.
@@ -384,9 +384,9 @@ define([
       $('li.channel-' + channel_id).addClass('active');
       $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
+      $('.toggle-channel-nav').removeClass('open');
       $('.channel-nav').addClass('hide');
       $('.channel .items').removeClass('hide');
-      $('.toggle-channel-nav').removeClass('open');
 
       this.cache[cacheKey] = true;
       self.activeChannel = channel_id;

@@ -136,6 +136,9 @@ header .logo {
 .page h2 {
   margin-bottom: .5em;
 }
+.space-bottom {
+  padding-bottom: 20px;
+}
 .sample {
   display: none;
   margin-bottom: 20px;
@@ -398,7 +401,7 @@ header .logo {
 /* PAGE: FRONT -------------------------------------------------------------- */
 
 .sign-up {
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 .btn-sign-up {
   font-size: 22px;
@@ -436,7 +439,10 @@ header .logo {
   text-shadow: 1px 1px #008CC0;
 }
 .frontpage .sign-in {
+  max-width: 250px;
   box-shadow: 3px 3px #008CC0;
+  margin: auto;
+  text-align: left;
 }
 .frontpage .forgot {
   color: #999;
@@ -547,7 +553,13 @@ input.item {
     padding-bottom: 15px;
   }
   .hero {
+    text-align: center;
     padding-top: 20px;
+    padding-bottom: 40px;
+  }
+  .hero h1.heading {
+    font-size: 40px;
+    line-height: 40px;
   }
   .frontpage input {
     margin-bottom: .5em;
@@ -586,9 +598,6 @@ input.item {
   .nav li a:hover {
     color: #08c !important;
     background-color: inherit !important;
-  }
-  .nav li a:active {
-    background-color: #eee;
   }
   .action {
     position: absolute;

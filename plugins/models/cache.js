@@ -3,8 +3,8 @@ exports.attach = function(options) {
   var mongoose = require('mongoose');
 
   var cacheSchema = mongoose.Schema({
-    url: String,
-    created: Date,    
+    url: {type: String, index: {unique: true}},
+    created: Date,
     content: Buffer,
   });
 

@@ -1,0 +1,29 @@
+<header>
+  <div class="container">
+    <div class="row">
+      <div class="span16">
+        <a class="logo" href="/">Pagetty</a>
+        <h1>Subscribe to a site</h1>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="page container">
+  <div class="row">
+    <div class="span16">
+      <div class="messages"></div>
+      <form class="subscribe-form" action="/signup" method="post">
+        <label>Enter URL: *</label>
+        <input class="subscribe-url input-xlarge" type="text" name="url" value="" />
+        <label>Give it a name: *</label>
+        <input class="subscribe-name input-xlarge" type="text" name="name" value="" />
+        <div style="margin-top: .5em">
+          <button class="btn btn-success btn-subscribe" href="#">Subscribe</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script type="text/javascript">
+  require(['/scripts/controllers/subscribe.js']);
+</script>

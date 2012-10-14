@@ -3,7 +3,7 @@ exports.attach = function(options) {
   var mongoose = require('mongoose');
 
   var historySchema = mongoose.Schema({
-    channel: mongoose.Schema.Types.ObjectId,
+    channel: {type: mongoose.Schema.Types.ObjectId, index: true},
     item: mongoose.Schema.Types.Mixed,
   });
 

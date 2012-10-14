@@ -3,7 +3,7 @@ exports.attach = function(options) {
   var mongoose = require('mongoose');
 
   var stateSchema = mongoose.Schema({
-    user: mongoose.Schema.Types.ObjectId,
+    user: {type: mongoose.Schema.Types.ObjectId, index: {unique: true}},
     data: mongoose.Schema.Types.Mixed,
   });
 

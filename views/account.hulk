@@ -8,15 +8,11 @@
     </div>
   </div>
 </header>
-<div class="page container">
-  <div class="row">
-    <div class="span16">
-      <div class="messages"></div>
-    </div>
-  </div>
+<div class="page container space-bottom">
   <div class="row section">
     <div class="span16">
       <h2>Account information</h2>
+      <div class="messages"></div>
       <dl class="dl-horizontal">
         <dt>Account e-mail:</dt>
         <dd>{{user.mail}}</dd>

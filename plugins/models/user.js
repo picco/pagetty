@@ -8,13 +8,12 @@ exports.attach = function(options) {
   var uri = require('url');
 
   var userSchema = mongoose.Schema({
-    mail: String,
+    mail: {type: String, index: {unique: true}},
     pass: String,
     created: Date,
     subscriptions: mongoose.Schema.Types.Mixed,
-    verification: String,
-    verified: Boolean,
-    state: mongoose.Schema.Types.Mixed,
+    verification: {type: String, index: true},
+    verified: {type: Boolean, index: true},
   }, {
     minimize: false,
   });
@@ -31,6 +30,7 @@ exports.attach = function(options) {
       // Check that the URL is valid.
       function(next) {
         try {
+          check(url, "URL must start with http:// or https://").regex(/^https?:\/\//);
           check(url, "URL is required.").notEmpty();
           check(url, "URL is not valid.").isUrl();
           check(name, "Name is required.").notEmpty();

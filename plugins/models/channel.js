@@ -8,7 +8,7 @@ exports.attach = function(options) {
   var profiler = require('../../lib/profiler.js');
 
   var channelSchema = mongoose.Schema({
-    url: String,
+    url: {type: String, index: {unique: true}},
     domain: String,
     subscriptions: Number,
     items: Array,

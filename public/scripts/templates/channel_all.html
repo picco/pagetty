@@ -20,6 +20,7 @@
   </div>
   <div class="channel-nav hide">
     <ul class="nav nav-list">
+      <li class="section">Current channel</li>
       <li><a class="variant all-original" data-channel="all" data-variant="original" href="#"><i class="icon-home"></i> As on site</a></li>
       <li><a class="variant all-time" data-channel="all" data-variant="time" href="#"><i class="icon-time"></i> Most recent</a></li>
       <li><a class="variant all-score" data-channel="all" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a></li>
@@ -28,6 +29,13 @@
       {{#nav}}
         <li class="channel channel-{{channel_id}}"><a href="/channel/{{channel_id}}" data-channel="{{channel_id}}">{{name}}</a></li>
       {{/nav}}
+      <li class="section">Add subscription</li>
+      <li>
+        <a href="/subscribe"><i class="icon-plus"></i> Subscribe to a site</a>
+      </li>
+      <li class="section">My account</li>
+      <li><a href="/account"><i class="icon-user"></i> {{user.mail}}</a></li>
+      <li><a href="/signout"><i class="icon-off"></i> Sign out</a></li>
     </ul>
   </div>
   <div class="items">{{{items}}}</div>
