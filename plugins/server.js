@@ -537,7 +537,7 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get("/signup", function(req, res) {
+  server.get("/signuphidden", function(req, res) {
     res.render('signup');
   });
 

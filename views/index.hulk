@@ -13,7 +13,8 @@
           <h1 class="heading">Pagetty reader</h1>
           <h2 class="heading">Forget RSS. Discover a totally new kind of news reader.</h2>
           <div class="sign-up">
-            <a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>
+            <!--<a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>-->
+            Signup is not available, We will launch a public beta at the end of 2012.
           </div>
       </div>
       <div class="span4">
@@ -72,12 +73,14 @@
       <img src="/images/screen.jpg" title="Pagetty screenshot" />
     </div>
   </div>
+  <!--
   <div class="row" style="text-align: center; margin-bottom: 40px">
     <div class="span16">
       <h1>Try it out, it's totally free!</h1>
       <a class="btn btn-success btn-large btn-sign-up" href="/signup">Sign up now!</a>
     </div>
   </div>
+  -->
 </div>
 <div style="border-top: 1px solid #ccc">
   <div class="container">

@@ -591,6 +591,10 @@ input.item {
     background: #eee;
     font-weight: bold;
   }
+  .nav .active a:hover {
+    color: white !important;
+    background: #00AEEF !important;
+  }
   .nav a.variant.active {
     background: inherit;
     font-weight: bold;
