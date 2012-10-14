@@ -1,25 +1,87 @@
+<!--[if IE]>
+<style>
+  .ie9 {
+    display: block;
+  }
+</style>
+<![endif]-->
 <!-- LAYOUT -->
+<div class="hero">
+  <div class="frontpage container">
+    <div class="row">
+      <div class="span12">
+          <h1 class="heading">Pagetty reader</h1>
+          <h2 class="heading">Forget RSS. Discover a totally new kind of news reader.</h2>
+          <div class="sign-up">
+            <a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>
+          </div>
+      </div>
+      <div class="span4">
+        <div class="sign-in" style="background: #fff; padding: 20px; border-radius: 5px">
+          <h2>Sign in</h2>
+          <form action="/signin" method="post">
+            <label class="ie9">E-mail:</label>
+            <input class="mail input-medium" type="email" name="mail" placeholder="E-mail" />
+            <label class="ie9">Password:</label>
+            <input class="password input-medium" type="password" name="password" placeholder="Password" />
+            <div>
+              <input type="submit" class="btn btn-sign-in" value="Sign in" />
+              <a class="forgot" href="/password">Forgot password?</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <noscript>
+      <div class="row noscript">
+        <div class="span16">
+          <div><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
+        </div>
+      </div>
+    </noscript>
+  </div>
+</div>
 <div class="frontpage container">
   <div class="row">
+    <div class="span16" style="text-align: center">
+      <h1>This is how it works</h1>
+      <h2>Instead of using RSS feeds, Pagetty aggregates content directly from the website itself.</h2>
+    </div>
+  </div>
+  <div class="row" style="margin-bottom: 40px">
+    <div class="span4">
+      <h3>Subscribe to any webpage</h3>
+      <p>You can turn any webpage into a content channel that you can browse and track through our reader.</p>
+    </div>
+    <div class="span4">
+      <h3>Select content using rules</h3>
+      <p>Select only the content that you need using a wizard or by setting up CSS selector based aggregation rules.</p>
+    </div>
+    <div class="span4">
+      <h3>Configure only once</h3>
+      <p>The aggregation rules have to be set up only once. Existing rules are shared between all subscribers.</p>
+    </div>
+    <div class="span4">
+      <h3>Read anyhere</h3>
+      <p>Pagetty reader is web based and optimized for mobile use. Use it anywhere with any device!</p>
+    </div>
+  </div>
+  <div class="row" style="text-align: center; margin-bottom: 20px">
     <div class="span16">
-      <div class="hero-unit">
-        <h1>Pagetty</h1>
-        <h2>Forget RSS. Discover a totally different news reader.</h2>
-        <form class="sign-in form-inline" action="/signin" method="post">
-          <input class="mail input-medium" type="email" name="mail" placeholder="E-mail" />
-          <input class="password input-medium" type="password" name="password" placeholder="Password" />
-          <input type="submit" class="btn btn-sign-in" value="Sign in" />
-          <a class="forgot" href="/password">Forgot password?</a>
-        </form>
-        <div class="sign-up">
-        </div><div>
-          <!--We will be lanching a public beta at the end of 2012.-->
-          <a href="/signup">Create a new account</a> - it's <strong>free</strong>, and takes just a second!
-        </div>
-        <noscript>
-          <div class="noscript"><strong>Javascript is disabled</strong> - We're in a bit of a pickle since Pagetty requires a modern Javascript enabled browser...</div>
-        </noscript>
-      </div>
+      <h1>This is how it looks like</h1>
+      <img src="/images/screen.jpg" title="Pagetty screenshot" />
+    </div>
+  </div>
+  <div class="row" style="text-align: center; margin-bottom: 40px">
+    <div class="span16">
+      <h1>Try it out, it's totally free!</h1>
+      <a class="btn btn-success btn-large btn-sign-up" href="/signup">Sign up now!</a>
+    </div>
+  </div>
+</div>
+<div style="border-top: 1px solid #ccc">
+  <div class="container">
+    <div class="row" style="margin: 40px 0; text-align: center">
       <div class="logos">
         <img src="/images/technology.png" alt="Powered by NodeJS, HTML5, MongoDB" title="Powered by NodeJS, HTML5, MongoDB" />
       </div>

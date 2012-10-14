@@ -30,13 +30,8 @@ define([
       this.navigation = [];
 
       this.channels = this.prepareChannels(this.subscriptions, channels, this.appState.channels);
-
-      if (this.appState.channels) {
-        // This will complete later and this.channels will remain as-is.
-        this.updateChannels();
-      }
-
       this.saveState({channels: this.channels});
+      this.updateChannels();
 
       // Initialize theme.
 
@@ -167,7 +162,7 @@ define([
 
       window.setInterval(function() {
         self.updateChannels();
-      }, 5000);
+      }, 60000);
 
       // Sidebar scroll
       window.setTimeout(function() {
@@ -208,16 +203,13 @@ define([
     prepareChannels: function(subscriptions, channels, storedChannels) {
       var prepared = {};
 
-      console.dir(subscriptions);
-      console.dir(channels);
-      console.dir(storedChannels);
-
       for (var channel_id in subscriptions) {
         var items = [];
 
         if (storedChannels && storedChannels[channel_id] && storedChannels[channel_id].items) {
           for (var i in channels[channel_id].items) {
             for (var j in storedChannels[channel_id].items) {
+              // Process all the items that are present in stored state and update them.
               if (channels[channel_id].items[i].id == storedChannels[channel_id].items[j].id) {
                 // The the new item as the base.
                 var item = _.clone(channels[channel_id].items[i]);
@@ -234,12 +226,38 @@ define([
           prepared[channel_id].items = items;
         }
         else {
-          // There's no store, just use all the fresh items.
+          // There's no existing state, just use all the fresh items.
           prepared[channel_id] = _.clone(channels[channel_id]);
+
+          // And mark them as new.
+          for (var i in prepared[channel_id].items) {
+            prepared[channel_id].items[i].isnew = true;
+          }
         }
 
-        // Save the state of channels.
-        this.state[channel_id] = _.clone(prepared[channel_id].items_added);
+        if (window.location.href.match(/autoUpdate/)) {
+          var temp = _.clone(prepared[channel_id].items);
+          prepared[channel_id].items = channels[channel_id].items;
+
+          // Add all new items with a new state as well.
+          for (var i in prepared[channel_id].items) {
+            prepared[channel_id].items[i].isnew = true;
+
+            for (var j in temp) {
+              if (prepared[channel_id].items[i].id == temp[j].id) {
+                prepared[channel_id].items[i].isnew = temp[j].isnew;
+                break;
+              }
+            }
+          }
+
+          // Items_added gets updated to the current state as well.
+          this.state[channel_id] = _.clone(channels[channel_id].items_added);
+        }
+        else {
+          // Save the state of channels (items_added will remain the same until manually updated).
+          this.state[channel_id] = _.clone(prepared[channel_id].items_added);
+        }
       }
 
       return prepared;
@@ -267,7 +285,12 @@ define([
       }
       else if (variant == "score") {
         return items.sort(function(a, b) {
-          return parseFloat(b.relative_score) - parseFloat(a.relative_score);
+          if (a.relative_score == b.relative_score) {
+            return b.created - a.created;
+          }
+          else {
+            return parseFloat(b.relative_score) - parseFloat(a.relative_score);
+          }
         });
       }
       else {
@@ -356,13 +379,12 @@ define([
         self.loadImages($(selector + " .items .show"));
       }
 
-      $('#channels .list li, a.variant').removeClass('active');
-      $('#channels .list li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
+      $('li.channel, a.variant').removeClass('active');
+      $('li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
+      $('li.channel-' + channel_id).addClass('active');
       $("#channels .list li.channel-" + channel_id).removeClass("loading");
 
-
       $('.channel-nav').addClass('hide');
-      $('.channel-nav .channel-' + channel_id + ' a').addClass('active');
       $('.channel .items').removeClass('hide');
       $('.toggle-channel-nav').removeClass('open');
 
@@ -405,6 +427,9 @@ define([
           }
           self.processUpdates();
         }
+      }).error(function(xhr, status, error) {
+        // The session has timed out.
+        if (xhr.status == 403) window.location.href = '/';
       });
     },
     processUpdates: function() {

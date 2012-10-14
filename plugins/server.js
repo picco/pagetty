@@ -430,6 +430,34 @@ exports.attach = function (options) {
   });
 
   /**
+  * Create a rule from a profiler configuration.
+  */
+  server.post("/rule/delete", app.middleware.restricted, function(req, res) {
+    async.waterfall([
+      // Load channel.
+      function(next) {
+        app.channel.findById(req.body.channel_id, function(err, channel) {
+          next(err, channel);
+        });
+      },
+      // Delete rule.
+      function(channel, next) {
+        app.rule.findByIdAndRemove(req.body.rule_id, function(err) {
+          next(err, channel);
+        });
+      },
+      // Update channel items.
+      function(channel, next) {
+        channel.updateItems(true, function(err) {
+          next();
+        });
+      },
+    ], function(err) {
+      err ? res.json(err, 400) : res.send(200);
+    });
+  });
+
+  /**
    * Display the channel profiling page.
    */
   server.get("/channel/:channel/configure", app.middleware.restricted, function(req, res) {

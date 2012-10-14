@@ -104,6 +104,11 @@ header .logo {
   color: #888;
   font-size: 11px;
 }
+.hero {
+  background: #00AEEF;
+  padding: 60px 0;
+  margin-bottom: 40px;
+}
 .logo {
   display: block;
   float: left;
@@ -145,9 +150,6 @@ header .logo {
   background: inherit;
   padding: 0;
 }
-.section {
-  margin-bottom: 2em;
-}
 .stripe {
   position: fixed;
   width: 100%;
@@ -166,6 +168,12 @@ header .logo {
 }
 .nav-list > .active > a, .nav-list > .active > a:hover {
   background-color: #00AEEF;
+}
+
+/* BROWSER SPECIFIC --------------------------------------------------------- */
+
+.ie9 {
+  display: none;
 }
 
 /* APP ---------------------------------------------------------------------- */
@@ -225,7 +233,10 @@ header .logo {
   background: #ddd;
 }
 .app {
-  background: fixed #fafafa -webkit-linear-gradient(top, #eee 0%,#fafafa 20px,#fafafa 100%) no-repeat !important;
+  background-color: #fafafa;
+  background-image: -moz-linear-gradient(top, #eee 0%, #fafafa 20px, #fafafa 100%);
+  background-image: -webkit-linear-gradient(top, #eee 0%, #fafafa 20px, #fafafa 100%);
+  background-attachment: fixed;
 }
 .app .container,
 .app .row,
@@ -386,8 +397,14 @@ header .logo {
 
 /* PAGE: FRONT -------------------------------------------------------------- */
 
+.sign-up {
+  margin-bottom: 20px;
+}
+.btn-sign-up {
+  font-size: 22px;
+  font-family: GraublauWeb, Helvetica, Arial;
+}
 .frontpage {
-  padding: 20px;
 }
 .frontpage .logos {
   text-align: center;
@@ -395,27 +412,46 @@ header .logo {
 .frontpage .logos a {
   padding: 0 1em;
 }
+.hero {
+  margin-bottom: 20px;
+}
 .frontpage h1 {
   margin-bottom: 20px;
 }
 .frontpage h2 {
   margin-bottom: 1em;
 }
+.frontpage h3 {
+  margin-bottom: .5em;
+}
+.hero h1.heading {
+  font-size: 80px;
+  line-height: 80px;
+  color: white;
+  text-shadow: 3px 3px #008CC0;
+  position: relative;
+}
+.hero h2.heading {
+  color: white;
+  text-shadow: 1px 1px #008CC0;
+}
 .frontpage .sign-in {
-  margin-bottom: 20px;
+  box-shadow: 3px 3px #008CC0;
 }
 .frontpage .forgot {
   color: #999;
   font-size: 10px;
   padding-left: .5em;
 }
-.frontpage .noscript {
-  display: block;
+
+.noscript {
   color: yellow;
   background: red;
-  border-radius: 5px;
-  margin-bottom: 20px;
+  margin: 20px 0;
   padding: 1em;
+}
+.noscript * {
+  text-align: center;
 }
 
 /* PAGE: CONFIGURE ---------------------------------------------------------- */
@@ -425,8 +461,6 @@ input.generate {
 }
 input.item {
   width: 469px;
-}
-.btn-action {
 }
 
 /* RESPONSIVE --------------------------------------------------------------- */
@@ -512,10 +546,13 @@ input.item {
     background: #fafafa;
     padding-bottom: 15px;
   }
+  .hero {
+    padding-top: 20px;
+  }
   .frontpage input {
     margin-bottom: .5em;
   }
-  .logo {
+  .app .logo {
     top: 0 !important;
     border-radius: 0;
     line-height: 45px;
@@ -540,6 +577,11 @@ input.item {
   }
   .nav a.active {
     background: #eee;
+    font-weight: bold;
+  }
+  .nav a.variant.active {
+    background: inherit;
+    font-weight: bold;
   }
   .nav li a:hover {
     color: #08c !important;

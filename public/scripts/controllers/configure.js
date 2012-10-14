@@ -90,6 +90,22 @@ Controller = {
 
       return false;
     });
+
+    $('.btn-remove-from-channel').live("click", function() {
+      $.ajax({
+        type: 'POST',
+        url: '/rule/delete',
+        data: {channel_id: channel_id, rule_id: $(this).data('rule')},
+        success: function() {
+          window.location = '/channel/' + channel_id + '/configure';
+        },
+        error: function() {
+          alert('Error occurred.')
+        },
+      });
+
+      return false;
+    });
   },
   saveSubscription: function() {
     $.ajax("/subscription", {

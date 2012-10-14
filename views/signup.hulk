@@ -3,14 +3,14 @@
     <div class="row">
       <div class="span16">
         <a class="logo" href="/">Pagetty</a>
-        <h1>Create an account</h1>
+        <h1>Create a free account</h1>
       </div>
     </div>
   </div>
 </header>
 <div class="page container">
   <div class="row">
-    <div class="span16">
+    <div class="span10">
       <div class="messages"></div>
       <form class="signup-form" action="/signup" method="post">
         <label>E-mail: *</label>
@@ -23,6 +23,13 @@
           <button class="btn btn-success btn-signup" href="#">Sign up</button>
         </div>
       </form>
+    </div>
+    <div class="span6">
+      <h2>We respect your privacy</h2>
+      <p>We only ask for your e-mail address.</p>
+      <p>We do not disclose any of our user information to third parties.</p>
+      <p>We do not spam you but we might send you occasional messages concerning your subscription and important information related to our service.</p>
+      <p>You may delete your account at any time.</p>
     </div>
   </div>
 </div>

@@ -187,7 +187,7 @@ exports.attach = function(options) {
         });
       },
       function(page, next) {
-        profiler.createSegments(page, function(segments) {
+        profiler.createSegments(self.url, page, function(segments) {
           profile.segments = segments;
           next();
         });
@@ -199,11 +199,24 @@ exports.attach = function(options) {
           }
           else {
             for (var i in items) {
-              profile.content[items[i].rule] = {itemSelector: null, links: []};
+              profile.content[items[i].rule] = {itemSelector: null, rule: items[i].rule, links: []};
             }
 
             for (var i in items) {
               profile.content[items[i].rule].links.push({title: items[i].title, href: items[i].target});
+            }
+
+            // Remove those links from segments that are already present in content.
+
+            for (var i in items) {
+              for (var j in profile.segments) {
+                for (var k in profile.segments[j].links) {
+                  if (items[i].target  == profile.segments[j].links[k].href) {
+                    profile.segments[j].links.splice(k, 1);
+                    if (!profile.segments[j].links.length) profile.segments.splice(j, 1);
+                  }
+                }
+              }
             }
 
             next();

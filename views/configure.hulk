@@ -29,7 +29,7 @@
     <div class="span4">
       <h2>&nbsp;</h2>
       <div style="text-align: center">
-        <a href="/channel/{{channel._id}}" class="btn btn-large">View channel &raquo;</a>
+        <a href="/channel/{{channel._id}}?autoUpdate" class="btn btn-large">View channel &raquo;</a>
         <p style="margin: 1em 0">
           <a href="{{channel.url}}" target="_blank">Open target website &raquo;</a>
         </p>
@@ -55,18 +55,10 @@
             </div>
             <div class="span8">
               <h2>Content available on the site</h2>
-              <!--
-              <p>
-                The following is a list of content our system has automagically identified.<br/>
-                When you add content to the channel from below, an according import rule is created that you can edit later on the <a href="/channel/{{channel._id}}/rules">rules page</a>.<br/>
-                In case Pagetty cannot recognize the content properly, you need to create the import rules manually (some HTML/CSS skills are required for this).
-              </p>
-              -->
-
               {{#profile}}
                 {{#segments}}
                   <div class="well">
-                    <p>Rule: {{itemSelector}}</p>
+                    <p>Rule: {{itemSelector}}<br/>Combined: {{combinedSelector}}<br/>Weight: {{weight}}</p>
                     <ul>
                       {{#links}}
                         <li><a href="{{href}}" target="_blank">{{title}}</a></li>
@@ -92,11 +84,6 @@
             </div>
             <div class="span8">
               <h2>Current channel content</h2>
-              <!--
-              <p>
-                The following is a list of content that Pagetty can currently recognize.<br/>
-              </p>
-              -->
               {{#profile}}
                 {{#content}}
                   <div class="well">
@@ -106,7 +93,7 @@
                         <li><a href="{{href}}" target="_blank">{{title}}</a></li>
                       {{/links}}
                     </ul>
-                    <a class="btn btn-remove btn-danger" href="#" data-rule="{{rule}}">&laquo; Remove from channel</a>
+                    <a class="btn btn-remove-from-channel btn-danger" href="#" data-rule="{{rule}}">&laquo; Remove from channel</a>
                   </div>
                 {{/content}}
                 {{^content}}
