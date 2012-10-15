@@ -164,6 +164,12 @@ exports.attach = function (options) {
   server.use(gzippo.compress());
   server.use(server.router);
 
+  server.dynamicHelpers({
+    build: function(req, res) {
+      return process.env.RELEASE_NAME || 'dev';
+    },
+  });
+
   /**
    * Redirect any HTTP requests to the HTTPS site.
    */

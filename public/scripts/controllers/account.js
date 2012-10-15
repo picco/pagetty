@@ -1,6 +1,5 @@
 require([
   'pagetty',
-  'icanhaz',
 ], function(pagetty) {
 
 Controller = {

@@ -1,6 +1,7 @@
 load 'deploy'
 
 default_environment['NODE_ENV'] = "production"
+default_environment['RELEASE_NAME'] = "#{release_name}"
 default_run_options[:pty] = true
 
 set :application, "pagetty"
@@ -65,10 +66,14 @@ namespace :deploy do
     run "ln -s #{shared_path}/node_modules #{release_path}/node_modules"
     run "cd #{release_path} && npm install"
   end
+
+  task :uglify do
+    run "uglifyjs -mt --overwrite #{release_path}/public/scripts/libraries/pagetty.js"
+  end
 end
 
 before "deploy:update_code", "backupdb"
-after "deploy:finalize_update", "deploy:npm_install"
+after "deploy:finalize_update", "deploy:npm_install", "deploy:uglify"
 
 # Backup database
 

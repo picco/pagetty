@@ -7,8 +7,11 @@
   <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap/css/bootstrap.min.css">
   <link rel="stylesheet" type="text/css" href="/css/style.css">
   <meta name="description" content="Pagetty is a unique news reader that can follow any webpage. No RSS required." />
-  <script src="/scripts/libraries/modernizr.js"></script>
-  <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js"></script>
+  <script type="text/javascript">
+    var build = '{{build}}';
+  </script>
+  <script src="/scripts/libraries/modernizr.js?b={{build}}"></script>
+  <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js?b={{build}}"></script>
 </head>
 <body class="{{{bodyClass}}}">
   <div class="stripe"></div>

@@ -8,7 +8,6 @@ define([
   "timeago",
   "history",
   "moment",
-  "store",
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
 
   var Pagetty = {
