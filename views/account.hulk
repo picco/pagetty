@@ -44,5 +44,5 @@
   </div>
 </div>
 <script type="text/javascript">
-  require(['/scripts/controllers/account.js']);
+  require(['/scripts/controllers/account.js?b=' + build]);
 </script>

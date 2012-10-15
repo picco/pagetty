@@ -140,5 +140,5 @@
 <!-- CONTROLLER -->
 <script type="text/javascript">
   var channel_id = '{{channel._id}}';
-  require(['/bootstrap/bootstrap/js/bootstrap.min.js', '/scripts/controllers/configure.js']);
+  require(['/bootstrap/bootstrap/js/bootstrap.min.js?b=' + build, '/scripts/controllers/configure.js?b=' + build]);
 </script>

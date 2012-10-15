@@ -44,7 +44,7 @@
 </div>
 <!-- CONTROLLER -->
 <script type="text/javascript">
-  require(["/scripts/libraries/pagetty.js", "json!/api/user", "json!/api/user/channels", "json!/api/state", "/bootstrap/bootstrap/js/bootstrap.min.js"], function(pagetty, user, channels, appState) {
+  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/user/channels", "json!/api/state", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, channels, appState) {
     $(document).ready(function() {
       pagetty.init(user, channels, appState);
     });

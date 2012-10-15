@@ -34,5 +34,5 @@
   </div>
 </div>
 <script type="text/javascript">
-  require(['/scripts/controllers/signup.js']);
+  require(['/scripts/controllers/signup.js?b=' + build]);
 </script>

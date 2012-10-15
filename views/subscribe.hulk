@@ -25,5 +25,5 @@
   </div>
 </div>
 <script type="text/javascript">
-  require(['/scripts/controllers/subscribe.js']);
+  require(['/scripts/controllers/subscribe.js?b=' + build]);
 </script>
