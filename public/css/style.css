@@ -420,9 +420,6 @@ header .logo {
 .frontpage .logos a {
   padding: 0 1em;
 }
-.hero {
-  margin-bottom: 20px;
-}
 .frontpage h1 {
   margin-bottom: 20px;
 }
@@ -483,6 +480,9 @@ input.item {
 }
 
 @media (max-width: 960px) {
+  header .logo {
+    margin-left: 0;
+  }
   .container {
     width: auto;
   }
@@ -563,8 +563,8 @@ input.item {
     padding-bottom: 40px;
   }
   .hero h1.heading {
-    font-size: 40px;
-    line-height: 40px;
+    font-size: 60px;
+    line-height: 60px;
   }
   .frontpage input {
     margin-bottom: .5em;

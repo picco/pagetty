@@ -12,7 +12,7 @@ node 'default' {
     ensure => 'installed',
   }
 
-  package { ['g++', 'git-core', 'imagemagick', 'make', 'mongodb', 'python']:
+  package { ['g++', 'git-core', 'imagemagick', 'mailutils', 'make', 'mongodb', 'python']:
     ensure => 'installed'
   }
 
@@ -48,12 +48,26 @@ node 'default' {
     user   => 'pagetty',
   }
 
+  cron { mongobackup:
+    command => "/root/mongodb-backup.sh",
+    user    => root,
+    hour    => 3,
+  }
+
   file { '/home/pagetty/.ssh/pagetty_rsa':
     ensure => 'file',
     owner  => 'pagetty',
     group  => 'pagetty',
     mode   => 600,
     content => template('pagetty/pagetty_rsa.erb'),
+  }
+
+  file { '/root/mongodb-backup.sh':
+    ensure => 'file',
+    owner  => 'root',
+    group  => 'root',
+    mode   => 700,
+    content => template('pagetty/mongodb-backup.sh.erb'),
   }
 
   file { '/home/pagetty/.ssh/config':
@@ -68,6 +82,13 @@ node 'default' {
     ensure => 'directory',
     owner  => 'pagetty',
     group  => 'pagetty',
+    mode   => 720,
+  }
+
+  file { '/var/backups/mongodb':
+    ensure => 'directory',
+    owner  => 'root',
+    group  => 'root',
     mode   => 720,
   }
 

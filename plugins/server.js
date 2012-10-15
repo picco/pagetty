@@ -64,7 +64,7 @@ exports.attach = function (options) {
 
         fs.readFile(filename, function (err, existing_file) {
           if (err) {
-            if (err.code == "ENOENT") {
+            if (1 || err.code == "ENOENT") {
               app.channel.findOne({items: {$elemMatch: {id: new mongoose.Types.ObjectId(item_id)}}}, function(err, channel) {
                 if (err) throw err;
 
