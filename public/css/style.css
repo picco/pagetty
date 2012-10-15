@@ -170,7 +170,8 @@ header .logo {
   padding: 8px 15px !important;
 }
 .nav-list > .active > a, .nav-list > .active > a:hover {
-  background-color: #00AEEF;
+  color: white !important;
+  background-color: #00AEEF !important;
 }
 
 /* BROWSER SPECIFIC --------------------------------------------------------- */
@@ -235,6 +236,12 @@ header .logo {
   text-shadow: none;
   background: #ddd;
 }
+.touch #channels .list a:active,
+.touch #channels .list a:hover {
+  color: #08c;
+  text-shadow: inherit;
+  background: inherit;
+}
 .app {
   background-color: #fafafa;
   background-image: -moz-linear-gradient(top, #eee 0%, #fafafa 20px, #fafafa 100%);
@@ -258,8 +265,6 @@ header .logo {
 }
 .app .container {
   display: none;
-}
-.app .configure {
 }
 .channel .logo {
   position: absolute;
