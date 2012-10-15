@@ -63,7 +63,10 @@ namespace :deploy do
 
   task :npm_install do
     run "mkdir -p #{shared_path}/node_modules"
+    run "mkdir -p #{shared_path}/imagecache"
     run "ln -s #{shared_path}/node_modules #{release_path}/node_modules"
+    run "rm -fr #{release_path}/imagecache"
+    run "ln -s #{shared_path}/imagecache #{release_path}/imagecache"
     run "cd #{release_path} && npm install"
   end
 
