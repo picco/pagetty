@@ -82,7 +82,7 @@ exports.attach = function (options) {
                     }
                   }
 
-                  app.download({url: url}, function(err, buffer) {
+                  app.fetch({url: url, evaluateScripts: false, useCache: false}, function(err, buffer) {
                     if (err) {
                       console.log("Original unavailable: " + url + " " + cache_id);
                       res.writeHead(404);
@@ -251,7 +251,7 @@ exports.attach = function (options) {
     var $ = require('cheerio');
 
     app.channel.findById(req.params.id, function(err, channel) {
-      app.fetch({url: channel.url}, function(err, buffer) {
+      app.fetch({url: channel.url, evaluateScripts: true, useCache: true}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
         app.tidy(html, function(formatted) {
           res.send(_.escape(formatted));

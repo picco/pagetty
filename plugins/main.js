@@ -1,6 +1,7 @@
 exports.attach = function (options) {
   var app = this;
   var async = require('async');
+  var exec = require('child_process').exec;
   var fs = require('fs');
   var hogan = require('hogan.js');
   var mongoose = require('mongoose');
@@ -21,29 +22,9 @@ exports.attach = function (options) {
   this.use(require('./models/user.js'));
 
   /**
-   * Gets the data for a given URL from cache or
-   * downloads it realtime if cached copy is unavailable.
-   */
-  this.fetch = function(options, callback) {
-    app.cache.findOne({url: options.url}, function(err, cache) {
-      if (err) {
-        callback(err);
-      }
-      else if (cache) {
-        callback(null, cache.content);
-      }
-      else {
-        app.download(options, function(err, buffer) {
-          callback(err, buffer);
-        });
-      }
-    });
-  }
-
-  /**
    * Downloads the data from a given URL in real-time.
    */
-  this.download = function(options, callback) {
+  this.fetch = function(options, callback) {
     // When encoding is null the content is returned as a Buffer.
     var r = request.defaults({timeout: 10000, encoding: null});
 
@@ -52,42 +33,67 @@ exports.attach = function (options) {
       return;
     }
 
+    // Retrieve item from cache if available.
+
+    if (options.useCache) {
+      app.cache.findOne({url: options.url}, function(err, cache) {
+        if (err) {
+          callback(err);
+          return;
+        }
+        else if (cache) {
+          callback(null, cache.content);
+          return;
+        }
+      });
+    }
+
     async.waterfall([
       // Download content.
       function(next) {
-        r.get(options, function(err, response, buffer) {
-          if (err) {
-            next(err);
-          }
-          else if (response.statusCode == 403) {
-            next("HTTP 403: Access denied");
-          }
-          else if (response.statusCode == 404) {
-            next("HTTP 404: Not found");
-          }
-          else {
-            if (response.headers["content-encoding"] == "gzip") {
-              zlib.gunzip(buffer, function(err, uncompressed) {
-                if (err) {
-                  callback("Unable to parse gzipped content.");
-                }
-                else {
-                  next(null, uncompressed);
-                }
-              });
+        if (options.evaluateScripts) {
+          exec('phantomjs --load-images=no ./lib/phantom.js ' + options.url, {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
+            next(error, new Buffer(stdout));
+          });
+        }
+        else {
+          r.get(options, function(err, response, buffer) {
+            if (err) {
+              next(err);
+            }
+            else if (response.statusCode == 403) {
+              next("HTTP 403: Access denied");
+            }
+            else if (response.statusCode == 404) {
+              next("HTTP 404: Not found");
             }
             else {
-              next(null, buffer);
+              if (response.headers["content-encoding"] == "gzip") {
+                zlib.gunzip(buffer, function(err, uncompressed) {
+                  if (err) {
+                    callback("Unable to parse gzipped content.");
+                  }
+                  else {
+                    next(null, uncompressed);
+                  }
+                });
+              }
+              else {
+                next(null, buffer);
+              }
             }
-          }
-        });
+          });
+        }
       },
       // Update cache.
       function(buffer, next) {
-        if (buffer.toString().length) {
+        if (buffer.toString().length && options.useCache) {
           app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
             next(err, buffer);
           });
+        }
+        else {
+          next(null, buffer);
         }
       },
     ], function(err, buffer) {

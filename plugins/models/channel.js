@@ -69,16 +69,9 @@ exports.attach = function(options) {
 
     async.waterfall([
       function(next) {
-        if (useCache) {
-          app.fetch({url: self.url}, function(err, buffer) {
-            next(err, buffer.toString());
-          });
-        }
-        else {
-          app.download({url: self.url}, function(err, buffer) {
-            buffer ? next(err, buffer.toString()) : next("Unable to download from: " + self.url);
-          });
-        }
+        app.fetch({url: self.url, evaluateScripts: true, useCache: useCache}, function(err, buffer) {
+          buffer ? next(err, buffer.toString()) : next("Unable to download from: " + self.url);
+        });
       },
       function(body, next) {
         app.rule.find({$or: [{url: self.url}, {domain: self.domain}]}, function(err, rules) {
@@ -182,7 +175,7 @@ exports.attach = function(options) {
 
     async.waterfall([
       function(next) {
-        app.fetch({url: self.url}, function(err, buffer) {
+        app.fetch({url: self.url, evaluateScripts: true, useCache: true}, function(err, buffer) {
           err ? next(err) : next(null, $(buffer.toString()));
         });
       },
