@@ -7,7 +7,7 @@ node 'default' {
     version => '0.8.8',
   }
 
-  package { ['forever', 'uglify-js']:
+  package { ['forever', 'phantomjs', 'uglify-js']:
     provider => 'npm',
     ensure => 'installed',
   }
