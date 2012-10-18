@@ -1,0 +1,14 @@
+description "pagetty"
+
+start on (local-filesystems and net-device-up IFACE=eth0)
+stop on shutdown
+
+respawn
+
+setuid pagetty
+
+script
+  export NODE_ENV=production
+  cd /srv/pagetty/current
+  node /srv/pagetty/current/app.js 2>&1 | logger -t "app.js"
+end script

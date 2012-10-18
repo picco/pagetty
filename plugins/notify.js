@@ -9,62 +9,71 @@ exports.attach = function (options) {
      * Send notification on signin.
      */
     onSignin: function(user) {
-      this.mail('signin account:' + user.mail);
+      var msg = 'signin account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on signup.
      */
     onSignup: function(user) {
-      this.mail('signup account:' + user.mail);
+      var msg = 'signup account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onActivate: function(user) {
-      this.mail('activate account:' + user.mail);
+      var msg = 'activate account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onAccountChange: function(user) {
-      this.mail('accountChange account:' + user.mail);
+      var msg = 'accountChange account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onPasswordReminder: function(user) {
-      this.mail('passwordReminder account:' + user.mail);
+      var msg = 'passwordReminder account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onAccountDelete: function(user) {
-      this.mail('accountDelete account:' + user.mail);
+      var msg = 'accountDelete account:' + user.mail;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onSubscribe: function(user, channel) {
-      this.mail('subscribe account:' + user.mail + ' url:' + channel.url, JSON.stringify(channel, null, 2));
+      var msg = 'subscribe account:' + user.mail + ' url:' + channel.url;
+      console.log('notify: ' + msg), this.mail(msg, JSON.stringify(channel, null, 2));
     },
 
     /**
      * Send notification on account activation.
      */
     onUnSubscribe: function(user, channel) {
-      this.mail('unsubscribe account:' + user.mail + ' url:' + channel.url);
+      var msg = 'unsubscribe account:' + user.mail + ' url:' + channel.url;
+      console.log('notify: ' + msg), this.mail(msg);
     },
 
     /**
      * Send notification on account activation.
      */
     onRulesChange: function(user, channel, old_rules, new_rules) {
+      var msg = 'rulesChange account:' + user.mail + ' domain:' + channel.domain + ' url:' + channel.url;
       var body = '';
 
       body += "Old rules:\n" + JSON.stringify(old_rules, null, 2) + "\n\n";
@@ -72,7 +81,7 @@ exports.attach = function (options) {
       body += "Rules diff\n" + JSON.stringify(diff.diff(old_rules, new_rules), null, 2) + "\n\n";
       body += "Channel after change:\n" + JSON.stringify(channel, null, 2);
 
-      this.mail('rulesChange account:' + user.mail + ' domain:' + channel.domain + ' url:' + channel.url, body);
+      console.log(msg), this.mail(msg, body);
     },
 
     /**

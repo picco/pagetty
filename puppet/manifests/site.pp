@@ -78,6 +78,22 @@ node 'default' {
     content => template('pagetty/ssh_config.erb'),
   }
 
+  file { '/etc/init/pagetty.conf':
+    ensure => 'file',
+    owner  => 'root',
+    group  => 'root',
+    mode   => 644,
+    content => template('pagetty/upstart/pagetty.conf.erb'),
+  }
+
+  file { '/etc/init/pagetty_crawler.conf':
+    ensure => 'file',
+    owner  => 'root',
+    group  => 'root',
+    mode   => 644,
+    content => template('pagetty/upstart/pagetty_crawler.conf.erb'),
+  }
+
   file { '/srv/pagetty':
     ensure => 'directory',
     owner  => 'pagetty',

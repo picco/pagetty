@@ -2,8 +2,8 @@ load 'deploy'
 
 default_environment['NODE_ENV'] = "production"
 default_environment['RELEASE_NAME'] = "#{release_name}"
-default_run_options[:shell] = '/bin/bash'
-default_run_options[:pty] = false
+#default_run_options[:shell] = '/bin/bash'
+default_run_options[:pty] = true
 
 set :application, "pagetty"
 set :repository,  "git@github.com:picco/pagetty.git"
@@ -43,18 +43,16 @@ end
 # Deply
 
 namespace :deploy do
-  set :user, "pagetty"
+  set :user, "root"
 
   task :stop do
-    run "forever stopall"
+    run "stop pagetty"
+    run "stop pagetty_crawler"
   end
 
   task :start do
-    run "cd #{current_path} && ./run.sh"
-    #run "cd #{current_path} && forever start -a -l #{shared_path}/log/app.forever.log -o #{shared_path}/log/app.log -e #{shared_path}/log/app.err.log app.js"
-    #run "cd #{current_path} && forever start -a -l #{shared_path}/log/crawler.forever.log -o #{shared_path}/log/crawler.log -e #{shared_path}/log/crawler.err.log crawler.js"
-    #run "cd #{current_path} && forever start -a -l >(logger -t forever) -o >(logger -t app.js) -e >(logger -t app.js) app.js &"
-    #run "cd #{current_path} && forever start -a -l >(logger -t forever) -o >(logger -t crawler.js) -e >(logger -t crawler.js) crawler.js &"
+    run "start pagetty"
+    run "start pagetty_crawler"
   end
 
   task :restart do
@@ -62,7 +60,8 @@ namespace :deploy do
     sleep 1
     start
     sleep 1
-    run "forever list"
+    run "status pagetty"
+    run "status pagetty_crawler"
   end
 
   task :npm_install do
