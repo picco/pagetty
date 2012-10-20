@@ -41,7 +41,7 @@
             <td class="center vertical-center">{{subscriptions}}</td>
             <td class="center vertical-center channel-{{_id}} {{status}}">
               <a href="#" class="btn btn-success btn-channel-subscribe" data-channel="{{_id}}"><i class="icon-plus icon-white"></i> Subscribe</a>
-              <a href="#" class="btn btn-danger btn-channel-unsubscribe" data-channel="{{_id}}"><i class="icon-minus icon-white"></i> Unsubscribe</a>
+              <a href="#" class="btn btn-danger btn-channel-unsubscribe" data-channel="{{_id}}">Unsubscribe</a>
             </td>
           </tr>
         {{/channels}}
