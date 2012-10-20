@@ -106,7 +106,6 @@ exports.attach = function (options) {
         }
       }
     ], function(err, buffer) {
-      console.log('Fetched fresh content: ' + options.url);
       callback(err, buffer);
     });
   }
