@@ -39,12 +39,13 @@ exports.attach = function (options) {
           callback(err);
         }
         else if (cache) {
+          console.log('Fetched from cache: ' + options.url);
           callback(null, cache.content);
         }
         else {
           app.fetchWithoutCache(options, function(err, buffer) {
             if (buffer.toString().length) app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
-            console.log('Fetched from cache (cache updated): ' + options.url);
+            console.log('Fetched fresh content (cache updated): ' + options.url);
             callback(err, buffer);
           });
         }
@@ -53,7 +54,7 @@ exports.attach = function (options) {
     else {
       app.fetchWithoutCache(options, function(err, buffer) {
         if (buffer.toString().length) app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
-        console.log('Fetched from cache (cache updated): ' + options.url);
+        console.log('Fetched fresh content (cache updated): ' + options.url);
         callback(err, buffer);
       });
     }
