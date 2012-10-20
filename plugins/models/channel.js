@@ -65,8 +65,8 @@ exports.attach = function(options) {
    * Fetch fresh items for the given channel.
    */
   channelSchema.methods.fetchItems = function(useCache, callback) {
-    var self = this;
-
+    var self = this, params = [];
+    
     async.waterfall([
       function(next) {
         app.fetch({url: self.url, evaluateScripts: true, useCache: useCache}, function(err, buffer) {
@@ -80,12 +80,12 @@ exports.attach = function(options) {
       },
       function(body, rules, next) {
         parser.processHTML(self.url, body, rules, function(items) {
-          callback(null, items);
+          params.items = items;
           next();
         });
       },
     ], function(err) {
-      if (err) callback(err);
+      callback(err, params.items);
     });
   }
 

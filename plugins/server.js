@@ -236,25 +236,14 @@ exports.attach = function (options) {
   /**
    * API: send the whole source code of the channel.
    */
-  server.get("/api/configure/source/:id", app.middleware.restricted, function(req, res) {
-    Channel.findById(req.params.id, function(err, channel) {
-      pagetty.request({url: channel.url}, function(err, response, buffer, body) {
-        res.send(_.escape(body));
-      });
-    });
-  });
-
-  /**
-   * API: send the whole source code of the channel.
-   */
-  server.get("/api/configure/sample/:id/:selector", app.middleware.restricted, function(req, res) {
+  server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
     var $ = require('cheerio');
 
     app.channel.findById(req.params.id, function(err, channel) {
       app.fetch({url: channel.url, evaluateScripts: true, useCache: true}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
-        app.tidy(html, function(formatted) {
-          res.send(_.escape(formatted));
+        app.tidy(html, function(err, formatted) {
+          res.send(_.escape(err ? html : formatted));
         });
       });
     });
@@ -471,7 +460,6 @@ exports.attach = function (options) {
    */
   server.get("/channel/:channel/configure", app.middleware.restricted, function(req, res) {
     var params = {};
-
     async.series([
       // Load channel.
       function(next) {

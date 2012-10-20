@@ -25,29 +25,33 @@ exports.attach = function (options) {
    * Downloads the data from a given URL in real-time.
    */
   this.fetch = function(options, callback) {
-    // When encoding is null the content is returned as a Buffer.
-    var r = request.defaults({timeout: 10000, encoding: null});
-
+    // Retrieve item from cache if available.
     if (options.url == null || !options.url.match(/^(http|https):\/\//)) {
       callback("Invalid URL: " + options.url);
       return;
     }
-
-    // Retrieve item from cache if available.
-
-    if (options.useCache) {
+    else if (options.useCache) {
       app.cache.findOne({url: options.url}, function(err, cache) {
         if (err) {
           callback(err);
-          return;
         }
         else if (cache) {
           callback(null, cache.content);
-          return;
+        }
+        else {
+          app.fetchWithoutCache(options, callback);
         }
       });
     }
+    else {
+      app.fetchWithoutCache(options, callback);
+    }
+  }
 
+  /**
+   * TODO
+   */
+  this.fetchWithoutCache = function(options, callback) {
     async.waterfall([
       // Download content.
       function(next) {
@@ -57,6 +61,9 @@ exports.attach = function (options) {
           });
         }
         else {
+          // When encoding is null the content is returned as a Buffer.
+          var r = request.defaults({timeout: 10000, encoding: null});
+
           r.get(options, function(err, response, buffer) {
             if (err) {
               next(err);
@@ -72,6 +79,7 @@ exports.attach = function (options) {
                 zlib.gunzip(buffer, function(err, uncompressed) {
                   if (err) {
                     callback("Unable to parse gzipped content.");
+                    return;
                   }
                   else {
                     next(null, uncompressed);
@@ -208,7 +216,7 @@ exports.attach = function (options) {
     });
 
     tidy.on('exit', function (code) {
-      callback(buffer);
+      callback(err, buffer);
     });
 
     tidy.stdin.write(html);

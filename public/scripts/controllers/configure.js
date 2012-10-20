@@ -58,7 +58,7 @@ Controller = {
       var rule = $(this).parents(".rule");
       rule.find(".sample").html("<img src=\"/images/loading.gif\" />").show();
 
-      $.ajax("/api/configure/sample/" + channel_id + "/" + encodeURIComponent(rule.find("input.item").val())).done(function(data) {
+      $.ajax("/api/channel/sample/" + channel_id + "/" + encodeURIComponent(rule.find("input.item").val())).done(function(data) {
         rule.find(".sample").html("<pre><code>" + data + "</code></pre>");
         rule.find(".sample pre code").each(function(i, e) {hljs.highlightBlock(e)});
       });

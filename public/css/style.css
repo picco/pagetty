@@ -146,6 +146,7 @@ header .logo {
 .sample pre {
   white-space: pre;
   word-wrap: normal;
+  overflow: auto;
 }
 .sample pre code {
   overflow: auto;

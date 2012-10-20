@@ -91,20 +91,7 @@ namespace :backupdb do
   end
 end
 
-# Push database
-
-namespace :pushdb do
-  task :default do
-    set :user, "pagetty"
-
-    system("rm -fr /tmp/dump");
-    system("mongodump -d pagetty -o /tmp/dump")
-    upload("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
-    run("mongorestore --drop /tmp/dump")
-  end
-end
-
-# Pull database
+# Pull database from production to development
 
 namespace :pulldb do
   task :default do
