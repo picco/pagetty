@@ -11,10 +11,10 @@ set :scm, :git
 set :ssh_options, {:forward_agent => false}
 set :deploy_to, "/srv/pagetty"
 set :deploy_via, :remote_cache
-set :user, "root"
-set :use_sudo, false
+set :user, "pagetty"
+set :use_sudo, true
 
-server "5.9.78.132", :app, {
+server "pagetty.com", :app, {
   :ssh_options => {
     :keys => './config/keys/pagetty_rsa'
   }
@@ -27,41 +27,38 @@ namespace :configure do
     set :user, "root"
     set :default_shell, "bash"
 
-    run("hostname pagetty.com")
-    run("apt-get install -y puppet")
+    sudo "hostname pagetty.com"
+    sudo "apt-get install -y puppet"
 
-    system("tar czf 'puppet.tgz' puppet/")
-    upload("puppet.tgz","/tmp/puppet.tgz",:via => :scp)
-    system("rm puppet.tgz")
-    run("tar xzf /tmp/puppet.tgz -C /tmp")
-    run("rm -rf /etc/puppet")
-    run("mv /tmp/puppet /etc/puppet")
-    run("puppet apply /etc/puppet/manifests/site.pp")
+    system "tar czf 'puppet.tgz' puppet/"
+    upload "puppet.tgz","/tmp/puppet.tgz",:via => :scp
+    system "rm puppet.tgz"
+
+    sudo "tar xzf /tmp/puppet.tgz -C /tmp"
+    sudo "rm -rf /etc/puppet"
+    sudo "mv /tmp/puppet /etc/puppet"
+    sudo "puppet apply /etc/puppet/manifests/site.pp"
   end
 end
 
 # Deply
 
 namespace :deploy do
-  set :user, "root"
-
   task :stop do
-    run "stop pagetty"
-    run "stop pagetty_crawler"
+    sudo "stop pagetty; true"
+    sudo "stop pagetty_crawler; true"
   end
 
   task :start do
-    run "start pagetty"
-    run "start pagetty_crawler"
+    sudo "start pagetty; true"
+    sudo "start pagetty_crawler; true"
   end
 
   task :restart do
-    stop
-    sleep 1
-    start
-    sleep 1
-    run "status pagetty"
-    run "status pagetty_crawler"
+    sudo "stop pagetty; true"
+    sudo "start pagetty; true"
+    sudo "stop pagetty_crawler; true"
+    sudo "start pagetty_crawler; true"
   end
 
   task :npm_install do
@@ -85,9 +82,7 @@ after "deploy:finalize_update", "deploy:npm_install", "deploy:uglify"
 
 namespace :backupdb do
   task :default do
-    set :user, "pagetty"
-
-    run("mongodump -d pagetty -o /var/backups/pagetty/#{release_name}")
+    run "mongodump -d pagetty -o /var/backups/pagetty/#{release_name}"
   end
 end
 
@@ -95,11 +90,9 @@ end
 
 namespace :pulldb do
   task :default do
-    set :user, "pagetty"
-
-    run("rm -fr /tmp/dump");
-    run("mongodump -d pagetty -o /tmp/dump")
-    download("/tmp/dump","/tmp/dump", :via => :scp, :recursive => true)
-    system("mongorestore --drop /tmp/dump")
+    run "rm -fr /tmp/dump";
+    run "mongodump -d pagetty -o /tmp/dump"
+    download "/tmp/dump","/tmp/dump", :via => :scp, :recursive => true
+    system "mongorestore --drop /tmp/dump"
   end
 end

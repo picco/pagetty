@@ -12,7 +12,7 @@ node 'default' {
     ensure => 'installed',
   }
 
-  package { ['g++', 'git-core', 'imagemagick', 'mailutils', 'make', 'mongodb', 'python']:
+  package { ['g++', 'git-core', 'imagemagick', 'mailutils', 'make', 'mongodb', 'python', 'tidy']:
     ensure => 'installed'
   }
 
@@ -38,7 +38,7 @@ node 'default' {
     managehome => true,
     home => '/home/pagetty',
     shell => '/bin/bash',
-    password => '$6$tb36XH9y$vr5Nj74XUEYWn3HFQzmz02Qgc2FBSvJBJc3NgXO/bkYG8BVdMqMNwWI9kKQsWTrRIuSItSJh1O5n0Kseyd8Du0', # SMNIqj39a.d
+    password => '$6$vzi6EVDy$wTr/CU8OQkW0An13CxLFvIlu0QHgOhfc0CeN.uGXL076U1aWyjfUJJZWHypq7SITsLWYXCLDp.Lv6IeTHVdc2/',
   }
 
   ssh_authorized_key { 'pagetty_rsa':
