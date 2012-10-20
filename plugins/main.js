@@ -48,7 +48,7 @@ exports.attach = function (options) {
     }
     else {
       app.fetchWithoutCache(options, function(err, buffer) {
-        if (buffer.toString().length) app.cache.update({url: url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+        if (buffer.toString().length) app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
         callback(err, buffer);
       });
     }
