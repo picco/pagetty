@@ -66,7 +66,7 @@ exports.attach = function(options) {
    */
   channelSchema.methods.fetchItems = function(useCache, callback) {
     var self = this, params = [];
-    
+
     async.waterfall([
       function(next) {
         app.fetch({url: self.url, evaluateScripts: true, useCache: useCache}, function(err, buffer) {

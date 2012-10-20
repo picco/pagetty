@@ -39,12 +39,18 @@ exports.attach = function (options) {
           callback(null, cache.content);
         }
         else {
-          app.fetchWithoutCache(options, callback);
+          app.fetchWithoutCache(options, function(err, buffer) {
+            if (buffer.toString().length) app.cache.update({url: url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+            callback(err, buffer);
+          });
         }
       });
     }
     else {
-      app.fetchWithoutCache(options, callback);
+      app.fetchWithoutCache(options, function(err, buffer) {
+        if (buffer.toString().length) app.cache.update({url: url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+        callback(err, buffer);
+      });
     }
   }
 
@@ -92,18 +98,7 @@ exports.attach = function (options) {
             }
           });
         }
-      },
-      // Update cache.
-      function(buffer, next) {
-        if (buffer.toString().length && options.useCache) {
-          app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
-            next(err, buffer);
-          });
-        }
-        else {
-          next(null, buffer);
-        }
-      },
+      }
     ], function(err, buffer) {
       callback(err, buffer);
     });

@@ -64,7 +64,7 @@ exports.attach = function (options) {
 
         fs.readFile(filename, function (err, existing_file) {
           if (err) {
-            if (1 || err.code == "ENOENT") {
+            if (err.code == "ENOENT") {
               app.channel.findOne({items: {$elemMatch: {id: new mongoose.Types.ObjectId(item_id)}}}, function(err, channel) {
                 if (err) throw err;
 
@@ -82,7 +82,7 @@ exports.attach = function (options) {
                     }
                   }
 
-                  app.fetch({url: url, evaluateScripts: false, useCache: false}, function(err, buffer) {
+                  app.fetchWithoutCache({url: url, evaluateScripts: false}, function(err, buffer) {
                     if (err) {
                       console.log("Original unavailable: " + url + " " + cache_id);
                       res.writeHead(404);
