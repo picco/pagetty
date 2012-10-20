@@ -31,7 +31,10 @@ exports.attach = function (options) {
       return;
     }
     else if (options.useCache) {
-      app.cache.findOne({url: options.url}, function(err, cache) {
+      var now = new Date().getTime();
+      var maxAge = new Date(now - (60 * 60 * 1000)); // 60 minutes.
+
+      app.cache.findOne({url: options.url, created: {$gt: maxAge}}, function(err, cache) {
         if (err) {
           callback(err);
         }
@@ -40,7 +43,8 @@ exports.attach = function (options) {
         }
         else {
           app.fetchWithoutCache(options, function(err, buffer) {
-            if (buffer.toString().length) app.cache.update({url: url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+            if (buffer.toString().length) app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+            console.log('Fetched from cache (cache updated): ' + options.url);
             callback(err, buffer);
           });
         }
@@ -49,6 +53,7 @@ exports.attach = function (options) {
     else {
       app.fetchWithoutCache(options, function(err, buffer) {
         if (buffer.toString().length) app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true});
+        console.log('Fetched from cache (cache updated): ' + options.url);
         callback(err, buffer);
       });
     }
@@ -100,6 +105,7 @@ exports.attach = function (options) {
         }
       }
     ], function(err, buffer) {
+      console.log('Fetched fresh content: ' + options.url);
       callback(err, buffer);
     });
   }
