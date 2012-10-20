@@ -89,6 +89,9 @@ header .logo {
 .btn-a:active {
   border: 1px solid #f1f1f1;
 }
+.center, table .center {
+  text-align: center;
+}
 .form-container-multiple {
   margin: 1em 0;
 }
@@ -160,6 +163,9 @@ header .logo {
   height: 2px;
   background: #00aeef;
   z-index: 3000;
+}
+.vertical-center, table .vertical-center {
+  vertical-align: middle;
 }
 
 /* BOOTSTRAP OVERRIDES -------------------------------------------------------*/
@@ -461,6 +467,21 @@ header .logo {
 }
 .noscript * {
   text-align: center;
+}
+
+/* PAGE: SUBSCRIBE ---------------------------------------------------------- */
+
+.add-site {
+  margin-bottom: 2em;
+}
+.browse-channels .pagination {
+  margin: 12px 0;
+}
+.status-subscribed .btn-channel-subscribe {
+  display: none;
+}
+.status-not-subscribed .btn-channel-unsubscribe {
+  display: none;
 }
 
 /* PAGE: CONFIGURE ---------------------------------------------------------- */

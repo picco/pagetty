@@ -10,6 +10,7 @@ exports.attach = function(options) {
   var channelSchema = mongoose.Schema({
     url: {type: String, index: {unique: true}},
     domain: String,
+    title: String,
     subscriptions: Number,
     items: Array,
     items_added: Date,
@@ -41,7 +42,8 @@ exports.attach = function(options) {
 
     async.waterfall([
       function(next) {
-        self.fetchItems(useCache, function(err, items) {
+        self.fetchItems(useCache, function(err, title, items) {
+          self.title = title;
           next(err, items);
         });
       },
@@ -52,7 +54,7 @@ exports.attach = function(options) {
       },
       function(next) {
         self.save(function(err) {
-          console.log('Updated: ' + self.url + ' items: ' + self.items.length);
+          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + self.items.length);
           next(err);
         })
       }
@@ -79,13 +81,14 @@ exports.attach = function(options) {
         });
       },
       function(body, rules, next) {
-        parser.processHTML(self.url, body, rules, function(items) {
+        parser.processHTML(self.url, body, rules, function(title, items) {
+          params.title = title;
           params.items = items;
           next();
         });
       },
     ], function(err) {
-      callback(err, params.items);
+      callback(err, params.title, params.items);
     });
   }
 
@@ -186,7 +189,7 @@ exports.attach = function(options) {
         });
       },
       function(next) {
-        self.fetchItems(true, function(err, items) {
+        self.fetchItems(true, function(err, title, items) {
           if (err) {
             next(err);
           }

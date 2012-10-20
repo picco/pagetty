@@ -293,7 +293,13 @@ exports.attach = function (options) {
    * Subscribe user to a site.
    */
   server.get("/subscribe", app.middleware.restricted, function(req, res) {
-    res.render("subscribe");
+    app.channel.find({subscriptions: {$gt: 0}}, function(err, channels) {
+      for (var i in channels) {
+        channels[i].status = req.session.user.subscriptions[channels[i]._id] ? 'status-subscribed'  : 'status-not-subscribed';
+      }
+
+      res.render("subscribe", {channels: channels});
+    });
   });
 
   /**
@@ -306,6 +312,20 @@ exports.attach = function (options) {
       }
       else {
         res.json({channel_id: channel._id, item_count: channel.items.length}, 200);
+      }
+    });
+  });
+
+  /**
+   * Subscribe user to a site.
+   */
+  server.post("/subscribe/channel", app.middleware.restricted, function(req, res) {
+    req.session.user.subscribeToChannel(req.body.channel_id, function(err, channel) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else {
+        res.send(200);
       }
     });
   });

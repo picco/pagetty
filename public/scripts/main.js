@@ -1,5 +1,6 @@
 require.config({
   paths: {
+    datatables: "libraries/jquery.datatables.min",
     moment: "libraries/moment.min",
     history: "libraries/jquery.history.min",
     icanhaz: "libraries/icanhaz.min",

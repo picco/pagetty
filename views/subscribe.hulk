@@ -11,16 +11,43 @@
 <div class="page container">
   <div class="row">
     <div class="span16">
-      <div class="messages"></div>
-      <form class="subscribe-form" action="/signup" method="post">
-        <label>Enter URL: *</label>
-        <input class="subscribe-url input-xlarge" type="text" name="url" value="" />
-        <label>Give it a name: *</label>
-        <input class="subscribe-name input-xlarge" type="text" name="name" value="" />
-        <div style="margin-top: .5em">
-          <button class="btn btn-success btn-subscribe" href="#">Subscribe</button>
-        </div>
-      </form>
+      <div class="add-site well">
+        <h2>Subscribe to a site</h2>
+        <div class="messages"></div>
+        <form class="subscribe-form" action="/signup" method="post">
+          <label>Enter URL: *</label>
+          <input class="subscribe-url input-xxlarge" type="text" name="url" value="" />
+          <label>Give it a name: *</label>
+          <input class="subscribe-name input-xxlarge" type="text" name="name" value="" />
+          <div style="margin-top: .5em">
+            <button class="btn btn-success btn-subscribe" href="#">Subscribe</button>
+          </div>
+        </form>
+      </div>
+      <div class="browse-channels">
+        <h2>Find existing channels</h2>
+        <table class="table table-bordered table-striped channels">
+        <thead>
+          <tr>
+            <th>Channel</th>
+            <th>Subscribers</th>
+            <th>Subscribe</th>
+          </tr>
+        </thead>
+        <tbody>
+        {{#channels}}
+          <tr>
+            <td><h3>{{title}}</h3><a href="{{url}}" target="_blank">{{url}}</a></td>
+            <td class="center vertical-center">{{subscriptions}}</td>
+            <td class="center vertical-center channel-{{_id}} {{status}}">
+              <a href="#" class="btn btn-success btn-channel-subscribe" data-channel="{{_id}}"><i class="icon-plus icon-white"></i> Subscribe</a>
+              <a href="#" class="btn btn-danger btn-channel-unsubscribe" data-channel="{{_id}}"><i class="icon-minus icon-white"></i> Unsubscribe</a>
+            </td>
+          </tr>
+        {{/channels}}
+        </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>

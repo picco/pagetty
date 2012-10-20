@@ -89,6 +89,48 @@ exports.attach = function(options) {
   }
 
   /**
+   * Subscribe user to a given channel.
+   */
+  userSchema.methods.subscribeToChannel = function(channel_id, callback) {
+    var self = this;
+    var channel = false;
+
+    async.series([
+      // Load channel.
+      function(next) {
+        app.channel.findById(channel_id, function(err, ch) {
+          channel = ch;
+          next(err);
+        });
+      },
+      // Check that the user is not yet subscribed.
+      function(next) {
+        if (self.subscriptions[channel._id]) {
+          next("You are already subscribed to this site.");
+        }
+        else {
+          next();
+        }
+      },
+      // Add channel to user's subscriptions.
+      function(next) {
+        self.updateSubscription(channel._id, {name: channel.title}, function(err) {
+          err ? next("Could not update user subscription.") : next();
+        });
+      },
+      // Increment channel's subscribers counter.
+      function(next) {
+        channel.updateSubscriberCount(function(err) {
+          err ? next("Could not increment subscribers.") : next();
+        });
+      }
+    ], function(err) {
+      app.notify.onSubscribe(self, channel);
+      callback(err, channel);
+    });
+  }
+
+  /**
    * Update the user's subscription information. Currently only name.
    */
   userSchema.methods.updateSubscription = function(channel_id, data, callback) {
