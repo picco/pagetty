@@ -13,8 +13,9 @@
           <h1 class="heading">Pagetty reader</h1>
           <h2 class="heading">Forget RSS. Discover a totally new kind of news reader.</h2>
           <div class="sign-up">
-            <!--<a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>-->
-            Signup is not available, We will launch a public beta at the end of 2012.
+            <a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>
+            <a class="btn btn-large btn-demo" href="/demo">Live Demo</a>
+            <!--Signup is not available, We will launch a public beta at the end of 2012.-->
           </div>
       </div>
       <div class="span4">
@@ -44,43 +45,41 @@
 </div>
 <div class="frontpage container">
   <div class="row">
-    <div class="span16" style="text-align: center">
+    <div class="span16" style="text-align: center; margin-bottom: 20px;">
       <h1>This is how it works</h1>
       <h2>Instead of using RSS feeds, Pagetty aggregates content directly from the website itself.</h2>
+      <p style="margin-top: -1em; margin-bottom: 2em">We do this using CSS selector based rules engine that supports <strong>any website!</strong></p>
     </div>
   </div>
-  <div class="row" style="margin-bottom: 40px">
-    <div class="span4">
-      <h3>Subscribe to any webpage</h3>
-      <p>You can turn any webpage into a content channel that you can browse and track through our reader.</p>
+  <div class="row" style="text-align: center">
+    <div class="span16">
+      <h1>Why is it better than RSS?</h1>
+      <h2>The reader mirrors the content exactly as it is displayed on the website itself.<br/>You can easily browse through all your favourite websites and see what's trending.</h2>
+      <img src="/images/how.jpg" title="How does it work?" style="margin-bottom: 20px" />
     </div>
-    <div class="span4">
-      <h3>Select content using rules</h3>
-      <p>Select only the content that you need using a wizard or by setting up CSS selector based aggregation rules.</p>
+  </div>
+  <div class="row" style="text-align: center; margin-bottom: 20px">
+    <div class="span8">
+      <h2>You can see the comment count and navigate directly to the comments section.</h2>
     </div>
-    <div class="span4">
-      <h3>Configure only once</h3>
-      <p>The aggregation rules have to be set up only once. Existing rules are shared between all subscribers.</p>
-    </div>
-    <div class="span4">
-      <h3>Read anyhere</h3>
-      <p>Pagetty reader is web based and optimized for mobile use. Use it anywhere with any device!</p>
+    <div class="span8">
+      <h2>You can view the news in the same order as on the site or sort them by time or rating.</h2>
     </div>
   </div>
   <div class="row" style="text-align: center; margin-bottom: 20px">
     <div class="span16">
-      <h1>This is how it looks like</h1>
+      <h1>This is how the reader looks like</h1>
+      <h2>The reader is optimized for mobile use - use it from anywhere with any device!</h2>
       <img src="/images/screen.jpg" title="Pagetty screenshot" />
     </div>
   </div>
-  <!--
   <div class="row" style="text-align: center; margin-bottom: 40px">
     <div class="span16">
       <h1>Try it out, it's totally free!</h1>
       <a class="btn btn-success btn-large btn-sign-up" href="/signup">Sign up now!</a>
+      <div style="margin: 20px 0">Still not sure? - <a href="/demo">try out our live demo!</a></div>
     </div>
   </div>
-  -->
 </div>
 <div style="border-top: 1px solid #ccc">
   <div class="container">

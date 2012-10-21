@@ -497,10 +497,10 @@ define([
     },
     updateTitle: function() {
       if (this.newItemsCount) {
-        $("title").html("(" + this.newItemsCount + ") " + this.activeTitle + " - Pagetty");
+        document.title = "(" + this.newItemsCount + ") " + this.activeTitle + " - Pagetty";
       }
       else {
-        $("title").html(this.activeTitle + " - Pagetty");
+        document.title = this.activeTitle + " - Pagetty";
       }
     },
     loadMore: function(channel_id, variant) {
@@ -566,6 +566,12 @@ define([
     },
     clearMessages: function() {
       $(".messages").html("");
+    },
+    showProgress: function() {
+      $('body').css('opacity', '.4');
+    },
+    hideProgress: function() {
+      $('body').css('opacity', '1');
     }
   }
   return Pagetty;

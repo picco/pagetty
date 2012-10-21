@@ -20,9 +20,35 @@ exports.attach = function (options) {
      */
     restricted: function(req, res, next) {
       if (req.session.user) {
-        next();
+        if (req.session.user.mail == 'demo@pagetty.com') {
+          if (
+            req.route.path == '/api/state' ||
+            req.method == 'GET' && (
+              req.url == '/' ||
+              req.url == '/account' ||
+              req.url == '/subscribe' ||
+              req.route.path == '/api/user' ||
+              req.route.path == '/api/user/channels' ||
+              req.route.path == '/api/channel/updates' ||
+              req.url.match(/\/channel\/.+/)
+            )
+          ) {
+            console.log(req.method + ': ' + req.url);
+            next();
+          }
+          else {
+            console.log('Request to forbidden demo URL [' + req.method + ']: ' + req.url);
+            res.statusCode = 403;
+            res.end("Unavailable in demo mode");
+          }
+        }
+        else {
+          console.log(req.method + ': ' + req.url);
+          next();
+        }
       }
       else {
+        console.log('Request to restricted URL [' + req.method + ']: ' + req.url);
         res.statusCode = 403;
         res.end("Access denied");
       }
@@ -160,7 +186,7 @@ exports.attach = function (options) {
   server.set('views', './views');
   // View cache is enabled by default for production in express, but this messes things up.
   server.set('view cache', false);
-  server.use(express.errorHandler({dumpExceptions: true, showStack: true}));
+  server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   server.use(gzippo.compress());
   server.use(server.router);
 
@@ -194,8 +220,8 @@ exports.attach = function (options) {
    * TODO
    */
   server.get("/", this.renderApp);
-  server.get(/^\/channel\/[^\/]+$/, this.renderApp);
-  server.get(/^\/channel\/[^\/]+\/(time|score)$/, this.renderApp);
+  server.get(/^\/channel\/[^\/]+$/, app.middleware.restricted, this.renderApp);
+  server.get(/^\/channel\/[^\/]+\/(time|score)$/, app.middleware.restricted, this.renderApp);
 
   /**
    * API: return authenticated user information.
@@ -551,7 +577,7 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get("/signuphidden", function(req, res) {
+  server.get("/signup", function(req, res) {
     res.render('signup');
   });
 
@@ -662,6 +688,23 @@ exports.attach = function (options) {
       });
     }
   });
+
+  /**
+   * Initialize demo session.
+   */
+  server.get("/demo", function(req, res) {
+    app.user.findOne({mail: "demo@pagetty.com"}, function(err, user) {
+      if (err) {
+        res.redirect("/");
+      }
+      else {
+        req.session.user = user;
+        app.notify.onSignin(user);
+        res.redirect("/");
+      }
+    });
+  });
+
 }
 
 exports.init = function(done) {

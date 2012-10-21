@@ -109,6 +109,13 @@ header .logo {
 }
 .hero {
   background: #00AEEF;
+  background: -moz-linear-gradient(top, #3dbeed 1%, #00aeef 100%); /* FF3.6+ */
+  background: -webkit-gradient(linear, left top, left bottom, color-stop(1%,#3dbeed), color-stop(100%,#00aeef)); /* Chrome,Safari4+ */
+  background: -webkit-linear-gradient(top, #3dbeed 1%,#00aeef 100%); /* Chrome10+,Safari5.1+ */
+  background: -o-linear-gradient(top, #3dbeed 1%,#00aeef 100%); /* Opera 11.10+ */
+  background: -ms-linear-gradient(top, #3dbeed 1%,#00aeef 100%); /* IE10+ */
+  background: linear-gradient(to bottom, #3dbeed 1%,#00aeef 100%); /* W3C */
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3dbeed', endColorstr='#00aeef',GradientType=0 ); /* IE6-9 */
   padding: 60px 0;
   margin-bottom: 40px;
 }
@@ -412,14 +419,13 @@ header .logo {
 
 /* PAGE: FRONT -------------------------------------------------------------- */
 
-.sign-up {
-  margin-bottom: 30px;
+.btn-demo {
+  color: #666;
+  margin-left: .5em
 }
-.btn-sign-up {
+.btn-sign-up, .btn-demo {
   font-size: 22px;
   font-family: GraublauWeb, Helvetica, Arial;
-}
-.frontpage {
 }
 .frontpage .logos {
   text-align: center;
@@ -649,6 +655,14 @@ input.item {
   .action.open a {
     background: #fafafa !important;
     border-bottom: 1px solid #fafafa;
+  }
+  .frontpage .btn-sign-up {
+    clear: both !important;
+    margin-bottom: 20px;
+  }
+  .frontpage .btn-demo {
+    clear: both !important;
+    margin-bottom: 20px;
   }
   .new-items-count {
     background: #D9EDF7 !important;

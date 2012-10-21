@@ -48,9 +48,9 @@
             <div class="span16">
               <p>
                 Content wizard helps you create content aggregation rules easily without any HTML/CSS knowledge.<br/>
-                We detect possible content items on the website and separates them into segments. You can then add the matching items to the channel with just one click.<br/>
-                Content wizard may not work with some complex sites. In that case you need to edit aggregation rules manually using the Rules interface.<br/><br/>
-                <strong>Tip: </strong>Use the Wizard and the Rules interface together.<br/>First add the content to the channel using the wizard and then fine-tune using the Rules interface if necessary.
+                We detect possible content items on the website and separate them into segments. You can then add the matching items to the channel with just one click.<br/>
+                Content wizard may not work with some complex sites. In that case you need to edit aggregation rules manually using the Rules interface.<br/>
+                <strong>If you add content, an according rule will be created automatically. If you delete content, a matching rule will be deleted as well.</strong><br/><br/>
               </p>
             </div>
             <div class="span8">
@@ -58,7 +58,7 @@
               {{#profile}}
                 {{#segments}}
                   <div class="well">
-                    <p>Rule: {{itemSelector}}<br/>Combined: {{combinedSelector}}<br/>Weight: {{weight}}</p>
+                    <p>Rule: {{itemSelector}}</p>
                     <ul>
                       {{#links}}
                         <li><a href="{{href}}" target="_blank">{{title}}</a></li>
@@ -114,7 +114,7 @@
             {{#rules}}{{>rule}}{{/rules}}
           </div>
           <div class="form-actions">
-            <a class="btn btn-primary btn-save-rules">Save</a>
+            <a class="btn btn-primary btn-save-rules" href="#">Save</a>
             <a class="btn btn-success btn-add-rule">Add rule</a>
           </div>
         </div>

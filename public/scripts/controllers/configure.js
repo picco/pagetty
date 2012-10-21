@@ -51,7 +51,6 @@ Controller = {
 
     $('.btn-remove-rule').live('click', function(e) {
       $(this).parent().parent().remove();
-      return false;
     });
 
     $('.btn-fetch-sample').live("click", function() {

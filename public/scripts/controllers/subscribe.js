@@ -121,7 +121,9 @@ Controller = {
         },
         error: function(xhr, status, error) {
           pagetty.error(xhr.responseText);
-        }
+        },
+        beforeSend: pagetty.showProgress,
+        complete: pagetty.hideProgress
       });
 
     return false;
