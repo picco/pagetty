@@ -38,6 +38,29 @@ define([
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
+      // TimeAgo configuration
+      $.timeago.settings.strings = {
+        prefixAgo: null,
+        prefixFromNow: null,
+        suffixAgo: "ago",
+        suffixFromNow: "from now",
+        seconds: "less than a minute",
+        minute: "a minute",
+        minutes: "%d minutes",
+        hour: "an hour",
+        hours: "%d hours",
+        day: "a day",
+        days: "%d days",
+        month: "a month",
+        months: "%d months",
+        year: "a year",
+        years: "%d years",
+        wordSeparator: " ",
+        numbers: []
+      };
+
+      // Pagetty
+
       for (channel_id in this.subscriptions) {
         this.navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
       }
@@ -48,7 +71,7 @@ define([
       });
 
       for (var i in this.navigation) {
-        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + '</a></li>');
+        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + '<abbr class="pull-right latest-update timeago" title=""></abbr></a></li>');
       }
 
       $(".app .logo, .app .mobile-logo").live("click", function(e) {
@@ -167,6 +190,9 @@ define([
       window.setTimeout(function() {
         $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
       }, 1000);
+
+      // Set channel timeago.
+      this.updateTimeAgo();
 
       // Run the application.
       this.runApp();
@@ -340,6 +366,7 @@ define([
       }
 
       selector = ".channel-" + channel_id + "-" + variant;
+
       cacheKey = channel_id + ":" + variant;
 
       $("#channels .list li.channel-" + channel_id).addClass("loading");
@@ -372,7 +399,7 @@ define([
         }
 
         // Time ago.
-        $(selector + " abbr.timeago").timeago();
+        self.updateTimeAgo();
 
         // Lazy load images.
         self.loadImages($(selector + " .items .show"));
@@ -479,6 +506,22 @@ define([
       this.updates = {};
       this.saveState({channels: this.channels});
       this.hideUpdateNotification();
+      this.updateTimeAgo();
+    },
+    updateTimeAgo: function() {
+
+      for (var i in this.navigation) {
+        var channel_id = this.navigation[i].channel_id;
+        var latest_update = null;
+
+        for (var j in this.channels[channel_id].items) {
+          if (this.channels[channel_id].items[j] > latest_update || latest_update == null) latest_update = this.channels[channel_id].items[j].created;
+        }
+
+        $('#channels li.channel-' + channel_id + " abbr.timeago, .channel-nav li.channel-" + channel_id + " abbr.timeago").attr('title', latest_update ? moment(latest_update).format() : '?');
+      }
+
+      $('abbr.timeago').timeago();
     },
     showUpdateNotification: function() {
       if (this.newItemsCount > 0) {

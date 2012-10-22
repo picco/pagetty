@@ -705,6 +705,47 @@ exports.attach = function (options) {
     });
   });
 
+  /**
+   * Initialize demo session.
+   */
+  server.get("/cache/channel/:channel", function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {
+      if (err) throw err;
+
+      app.cache.findOne({url: channel.url}, function(err, cache) {
+        if (err) throw err;
+
+        if (cache) {
+          res.header("Content-Type", "text/plain");
+          res.end(cache.content.toString());
+        }
+        else {
+          res.send("No cache.");
+        }
+      });
+    });
+  });
+
+  /**
+   * Initialize demo session.
+   */
+  server.get("/fetch/channel/:channel", function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {
+      if (err) throw err;
+
+      app.fetch({url: channel.url, useCache: false, evaluateScripts: true}, function(err, page) {
+        if (err) throw err;
+
+        if (page) {
+          res.header("Content-Type", "text/plain");
+          res.end(page.toString());
+        }
+        else {
+          res.send("Empty content.");
+        }
+      });
+    });
+  });
 }
 
 exports.init = function(done) {

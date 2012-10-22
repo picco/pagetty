@@ -187,6 +187,9 @@ header .logo {
   color: white !important;
   background-color: #00AEEF !important;
 }
+.nav-list > .active > a .latest-update, .nav-list > .active > a:hover .latest-update {
+  color: white !important;
+}
 
 /* BROWSER SPECIFIC --------------------------------------------------------- */
 
@@ -415,6 +418,11 @@ header .logo {
 }
 .channel .item .score:hover {
   background: #dadada;
+}
+.latest-update {
+  font-size: 11px;
+  color: #aaa;
+  border-bottom: none !important;
 }
 
 /* PAGE: FRONT -------------------------------------------------------------- */

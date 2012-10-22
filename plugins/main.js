@@ -78,7 +78,11 @@ exports.attach = function (options) {
       // Download content.
       function(next) {
         if (options.evaluateScripts) {
-          exec('phantomjs --load-images=no ./lib/phantom.js ' + options.url, {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
+          exec('phantomjs --load-images=no --disk-cache=no --ignore-ssl-errors=yes --local-to-remote-url-access=yes ./lib/phantom.js ' + options.url, {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
+            console.log('here');
+            if (stderr) {
+              console.log(stderr);
+            }
             next(error, new Buffer(stdout));
           });
         }
