@@ -518,7 +518,7 @@ define([
           if (this.channels[channel_id].items[j] > latest_update || latest_update == null) latest_update = this.channels[channel_id].items[j].created;
         }
 
-        $('#channels li.channel-' + channel_id + " abbr.timeago, .channel-nav li.channel-" + channel_id + " abbr.timeago").attr('title', latest_update ? moment(latest_update).format() : '?');
+        $('#channels li.channel-' + channel_id + " abbr.timeago, .channel-nav li.channel-" + channel_id + " abbr.timeago").attr('title', latest_update ? moment(latest_update).format() : '?').text('');
       }
 
       $('abbr.timeago').timeago();
