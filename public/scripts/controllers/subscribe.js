@@ -108,7 +108,8 @@ Controller = {
     $('.channels').dataTable({
       "sDom": "<'row'<'span4'<'pull-left'f>><'span12'<'pull-right'p>>><'row'<'span16't>>",
 			"sPaginationType": "bootstrap",
-      "aaSorting": [[1, "desc"], [0, "asc"]]
+      "aaSorting": [[1, "desc"], [0, "asc"]],
+      "iDisplayLength": 20,
 		});
   },
   subscribe: function() {

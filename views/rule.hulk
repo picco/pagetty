@@ -23,17 +23,23 @@
           <input class="target-selector" type="text" name="channel:rule:target:selector" value="{{target.selector}}" />
         </div>
         <div class="form-element">
-          <label>URL attribute *</label>
-          <input class="target-url-attribute input-medium" type="text" name="channel:rule:target:url_attribute" value="{{target.url_attribute}}" />
-        </div>
-        <div class="form-element">
-          <label>Title attribute</label>
-          <input class="target-title-attribute input-medium" type="text" name="channel:rule:target:title_attribute" value="{{target.title_attribute}}" />
+          <label>attribute</label>
+          <input class="target-attribute input-medium" type="text" name="channel:rule:target:attribute" value="{{target.attribute}}" />
         </div>
         <div class="form-description clearfix">
           Target selector: Matches an HTML element (usually &lt;a&gt;) that contains the URL and title of the target article.<br/>
           URL attribute: must contain the URL to the target article (this is usually "href").<br/>
           Tile attribute: must contain the title of the article (this is usually empty - in that case HTML element text value is used).
+        </div>
+      </div>
+      <div class="form-container-multiple clearfix">
+        <div class="form-element">
+          <label>Title selector *</label>
+          <input class="title-selector" type="text" name="channel:rule:title:selector" value="{{title.selector}}" />
+        </div>
+        <div class="form-element">
+          <label>attribute</label>
+          <input class="title-attribute input-medium" type="text" name="channel:rule:title:attribute" value="{{title.attribute}}" />
         </div>
       </div>
       <div class="form-element">

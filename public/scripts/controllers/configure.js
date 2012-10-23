@@ -68,7 +68,8 @@ Controller = {
         channel_id: channel_id,
         rule: {
           item: $(this).data('item-selector'),
-          target: {selector: $(this).data('target-selector'), url_attribute: $(this).data('target-url'), title_attribute: $(this).data('target-title')},
+          target: {selector: $(this).data('target-selector'), attribute: $(this).data('target-attribute')},
+          title: {selector: $(this).data('title-selector'), attribute: $(this).data('title-attribute')},
           image: {selector: $(this).data('image-selector'), attribute: $(this).data('image-attribute')},
           comments: {selector: $(this).data('comments-selector'), attribute: $(this).data('comments-attribute')},
           score: {selector: $(this).data('score-selector'), attribute: $(this).data('score-attribute')},
@@ -131,8 +132,11 @@ Controller = {
         item: $("input.item", rules[i]).val(),
         target: {
           selector: $("input.target-selector", rules[i]).val(),
-          url_attribute: $("input.target-url-attribute", rules[i]).val(),
-          title_attribute: $("input.target-title-attribute", rules[i]).val()
+          attribute: $("input.target-attribute", rules[i]).val(),
+        },
+        title: {
+          selector: $("input.title-selector", rules[i]).val(),
+          attribute: $("input.title-attribute", rules[i]).val(),
         },
         image: {
           selector: $(".image-selector", rules[i]).val(),

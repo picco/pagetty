@@ -22,6 +22,14 @@ exports.attach = function (options) {
   this.use(require('./models/user.js'));
 
   /**
+   * Decodes an URL-encoded string.
+   * Ref: http://stackoverflow.com/questions/4292914/javascript-url-decode-function
+   */
+  this.decodeUrl = function(url) {
+     return decodeURIComponent((url + '').replace(/\+/g, '%20'));
+  }
+
+  /**
    * Downloads the data from a given URL in real-time.
    */
   this.fetch = function(options, callback) {
@@ -78,8 +86,8 @@ exports.attach = function (options) {
       // Download content.
       function(next) {
         if (options.evaluateScripts) {
-          exec('phantomjs --load-images=no --disk-cache=no --ignore-ssl-errors=yes --local-to-remote-url-access=yes ./lib/phantom.js ' + options.url, {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
-            console.log('here');
+          // For PhantomJS requests, URL-s need to be decoded, otherwise the request fails.
+          exec('phantomjs --load-images=no --disk-cache=no --ignore-ssl-errors=yes --local-to-remote-url-access=yes ./lib/phantom.js ' + '"' + app.decodeUrl(options.url) + '"', {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
             if (stderr) {
               console.log(stderr);
             }

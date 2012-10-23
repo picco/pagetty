@@ -7,6 +7,7 @@ exports.attach = function(options) {
     domain: {type: String, index: true},
     item: String,
     target: mongoose.Schema.Types.Mixed,
+    title: mongoose.Schema.Types.Mixed,
     image: mongoose.Schema.Types.Mixed,
     score: mongoose.Schema.Types.Mixed,
     comments: mongoose.Schema.Types.Mixed,

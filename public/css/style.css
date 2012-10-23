@@ -488,6 +488,12 @@ header .logo {
 .add-site {
   margin-bottom: 2em;
 }
+.col-subscription {
+  min-width: 120px;
+}
+.browse-channels {
+  margin-bottom: 2em;
+}
 .browse-channels .pagination {
   margin: 12px 0;
 }

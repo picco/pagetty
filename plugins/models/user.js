@@ -32,7 +32,7 @@ exports.attach = function(options) {
         try {
           check(url, "URL must start with http:// or https://").regex(/^https?:\/\//);
           check(url, "URL is required.").notEmpty();
-          check(url, "URL is not valid.").isUrl();
+          //check(url, "URL is not valid.").isUrl();
           check(name, "Name is required.").notEmpty();
         } catch (e) {
           next(e.message);

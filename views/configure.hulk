@@ -16,7 +16,7 @@
         <div class="messages"></div>
         <div class="form-element">
           <label>Channel URL:</label>
-          <strong>{{channel.url}}</strong>
+          <strong>{{channel.url_short}}</strong>
         </div>
         <div class="form-element">
           <label>Channel name: *</label>
@@ -68,8 +68,9 @@
                       <a class="btn btn-success btn-add-to-channel pull-right" href="#"
                          data-item-selector="{{itemSelector}}"
                          data-target-selector="{{target.selector}}"
-                         data-target-url="{{target.url_attribute}}"
-                         data-target-title="{{target.title_attribute}}"
+                         data-target-attribute="{{target.attribute}}"
+                         data-title-selector="{{title.selector}}"
+                         data-title-attribute="{{title.attribute}}"
                          data-image-selector="{{image.selector}}"
                          data-image-attribute="{{image.attribute}}"
                          data-comments-selector="{{comments.selector}}"

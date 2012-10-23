@@ -321,6 +321,7 @@ exports.attach = function (options) {
   server.get("/subscribe", app.middleware.restricted, function(req, res) {
     app.channel.find({subscriptions: {$gt: 0}}, function(err, channels) {
       for (var i in channels) {
+        channels[i].url_short = channels[i].url.length > 100 ? channels[i].url.substr(0, 100) + '...' : channels[i].url;
         channels[i].status = req.session.user.subscriptions[channels[i]._id] ? 'status-subscribed'  : 'status-not-subscribed';
       }
 
@@ -384,7 +385,7 @@ exports.attach = function (options) {
     for (var i in req.body.rules) {
       validator.check(req.body.rules[i].item, 'Item selector is always required.').notEmpty();
       validator.check(req.body.rules[i].target.selector, 'Target selector is always required.').notEmpty();
-      validator.check(req.body.rules[i].target.url_attribute, 'URL attribute is always required.').notEmpty();
+      validator.check(req.body.rules[i].title.selector, 'Title selector is always required.').notEmpty();
     }
 
     if (validator.hasErrors()) {
@@ -539,6 +540,8 @@ exports.attach = function (options) {
         res.send(500);
       }
       else {
+        params.channel.url_short = params.channel.url.length > 100 ? params.channel.url.substr(0, 100) + '...' : params.channel.url;
+
         res.render("configure", {
           channel: params.channel,
           subscription: req.session.user.subscriptions[params.channel._id],
