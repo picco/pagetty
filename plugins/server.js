@@ -192,7 +192,7 @@ exports.attach = function (options) {
 
   server.dynamicHelpers({
     build: function(req, res) {
-      return process.env.RELEASE_NAME ? hash('adler32', process.env.RELEASE_NAME) : 'dev';
+      return process.env.NODE_ENV == 'production' ? hash('adler32', process.env.RELEASE_NAME) : 'dev';
     },
   });
 

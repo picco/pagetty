@@ -399,6 +399,7 @@ define([
         }
 
         // Time ago.
+        $(selector + ' .items abbr.timeago').timeago();
         self.updateTimeAgo();
 
         // Lazy load images.
@@ -506,22 +507,21 @@ define([
       this.updates = {};
       this.saveState({channels: this.channels});
       this.hideUpdateNotification();
-      this.updateTimeAgo();
     },
     updateTimeAgo: function() {
 
       for (var i in this.navigation) {
         var channel_id = this.navigation[i].channel_id;
+        var selector = '#channels li.channel-' + channel_id + ' abbr.timeago, .channel-nav li.channel-' + channel_id + ' abbr.timeago';
         var latest_update = null;
 
         for (var j in this.channels[channel_id].items) {
           if (this.channels[channel_id].items[j] > latest_update || latest_update == null) latest_update = this.channels[channel_id].items[j].created;
         }
 
-        $('#channels li.channel-' + channel_id + " abbr.timeago, .channel-nav li.channel-" + channel_id + " abbr.timeago").attr('title', latest_update ? moment(latest_update).format() : '?').text('');
+        $(selector).attr('title', latest_update ? moment(latest_update).format() : '?').data('timeago', null).timeago();
       }
 
-      $('abbr.timeago').timeago();
     },
     showUpdateNotification: function() {
       if (this.newItemsCount > 0) {
