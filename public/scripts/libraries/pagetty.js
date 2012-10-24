@@ -18,6 +18,7 @@ define([
     pager: 9,
     updates: {},
     newItemsCount: 0,
+    channelNewItemsCount: {},
 
     init: function(user, channels, appState) {
       var self = this;
@@ -71,7 +72,7 @@ define([
       });
 
       for (var i in this.navigation) {
-        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + '<abbr class="pull-right latest-update timeago" title=""></abbr></a></li>');
+        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
       $(".app .logo, .app .mobile-logo").live("click", function(e) {
@@ -372,6 +373,9 @@ define([
       $("#channels .list li.channel-" + channel_id).addClass("loading");
       $(".runway > .inner > .channel").hide();
 
+      // Refresh the items before displaying anything.
+      if (channel_id != 'all') this.refreshChannel(channel_id);
+
       if (this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
       }
@@ -449,36 +453,34 @@ define([
       $.getJSON("/api/channel/updates", {state: JSON.stringify(this.state)}, function(updates) {
         if (updates.length) {
           for (var i in updates) {
-            self.state[updates[i]._id] = updates[i].items_added;
-            self.updates[updates[i]._id] = updates[i].items;
+            var channel_id = updates[i]._id;
+            var count = 0;
+
+            self.state[channel_id] = updates[i].items_added;
+            self.updates[channel_id] = updates[i].items;
+
+            for (var j in self.updates[channel_id]) {
+              if (self.itemExists(self.updates[channel_id][j], self.channels[channel_id].items)) {
+                self.updates[channel_id][j].isnew = false;
+              }
+              else {
+                self.updates[channel_id][j].isnew = true;
+                count++;
+              }
+            }
+
+            if (count) {
+              $('#channels .channel-' + channel_id + ' .new-count').text(count);
+              //this.newItems = true;
+              //this.newItemsCount = count;
+              //this.showUpdateNotification();
+            }
           }
-          self.processUpdates();
         }
       }).error(function(xhr, status, error) {
         // The session has timed out.
         if (xhr.status == 403) window.location.href = '/';
       });
-    },
-    processUpdates: function() {
-      var count = 0;
-
-      for (var channel_id in this.updates) {
-        for (var i in this.updates[channel_id]) {
-          if (this.itemExists(this.updates[channel_id][i], this.channels[channel_id].items)) {
-            this.updates[channel_id][i].isnew = false;
-          }
-          else {
-            this.updates[channel_id][i].isnew = true;
-            count++;
-          }
-        }
-      }
-
-      if (count) {
-        this.newItems = true;
-        this.newItemsCount = count;
-        this.showUpdateNotification();
-      }
     },
     itemExists: function(item, list) {
       for (var i in list) {
@@ -487,6 +489,18 @@ define([
         }
       }
       return false;
+    },
+    refreshChannel: function(channel_id) {
+      if (this.updates[channel_id]) {
+        this.channels[channel_id].items = this.updates[channel_id];
+        this.saveState({channels: this.channels});
+        this.cache = [];
+        $('#channels .channel-' + channel_id + ' .new-count').text('');
+        //this.newItems = false;
+        //this.newItemsCount = 0;
+        //this.updates[channel_id] = [];
+        //this.hideUpdateNotification(channel_id);
+      }
     },
     refreshChannels: function() {
       for (var channel_id in this.channels) {

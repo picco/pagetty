@@ -187,7 +187,7 @@ header .logo {
   color: white !important;
   background-color: #00AEEF !important;
 }
-.nav-list > .active > a .latest-update, .nav-list > .active > a:hover .latest-update {
+.nav-list > .active > a .new-count, .nav-list > .active > a:hover .new-count {
   color: white !important;
 }
 
@@ -419,7 +419,7 @@ header .logo {
 .channel .item .score:hover {
   background: #dadada;
 }
-.latest-update {
+.new-count {
   font-size: 11px;
   color: #aaa;
   border-bottom: none !important;
@@ -472,7 +472,6 @@ header .logo {
   font-size: 10px;
   padding-left: .5em;
 }
-
 .noscript {
   color: yellow;
   background: red;
