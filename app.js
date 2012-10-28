@@ -3,6 +3,9 @@ var cluster = require('cluster');
 if (cluster.isMaster) {
   console.log('Starting cluster master');
 
+  // Set up ENV for workers.
+  process.env.BUILD = new Date().getTime();
+
   // Fork workers.
   for (var i = 0; i < require('os').cpus().length; i++) {
     cluster.fork();
@@ -10,15 +13,13 @@ if (cluster.isMaster) {
 
   // When a worker dies, launch another one.
   cluster.on('exit', function(worker, code, signal) {
-    var child_env = process.env;
-    child_env.MASTER_PID = process.pid;
-
     console.log('Worker ' + worker.process.pid + ' died, starting another one.');
-    cluster.fork(child_env);
+    cluster.fork();
   });
 }
 else {
   console.log('Starting worker #' + cluster.worker.id);
+  console.dir(process.env);
 
   var broadway = require('broadway');
   var app = new broadway.App();

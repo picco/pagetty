@@ -192,8 +192,7 @@ exports.attach = function (options) {
 
   server.dynamicHelpers({
     build: function(req, res) {
-      console.log('MASTERPID: ' + process.env.MASTER_PID);
-      return hash('adler32', process.env.MASTER_PID);
+      return hash('adler32', process.env.BUILD);
     },
   });
 
