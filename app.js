@@ -11,11 +11,12 @@ if (cluster.isMaster) {
   // When a worker dies, launch another one.
   cluster.on('exit', function(worker, code, signal) {
     console.log('Worker ' + worker.process.pid + ' died, starting another one.');
-    cluster.fork();
+    cluster.fork(process.env);
   });
 }
 else {
   console.log('Starting worker #' + cluster.worker.id);
+  console.dir(process.env);
 
   var broadway = require('broadway');
   var app = new broadway.App();

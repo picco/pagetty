@@ -470,7 +470,7 @@ define([
             }
 
             if (count) {
-              $('#channels .channel-' + channel_id + ' .new-count').text(count);
+              $('#channels .channel-' + channel_id + ' .new-count, .channel-nav .channel-' + channel_id + ' .new-count').text(count);
               //this.newItems = true;
               //this.newItemsCount = count;
               //this.showUpdateNotification();
@@ -495,7 +495,7 @@ define([
         this.channels[channel_id].items = this.updates[channel_id];
         this.saveState({channels: this.channels});
         this.cache = [];
-        $('#channels .channel-' + channel_id + ' .new-count').text('');
+        $('#channels .channel-' + channel_id + ' .new-count, .channel-nav .channel-' + channel_id + ' .new-count').text('');
         //this.newItems = false;
         //this.newItemsCount = 0;
         //this.updates[channel_id] = [];

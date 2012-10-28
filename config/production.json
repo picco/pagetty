@@ -1,6 +1,9 @@
 {
   "server": {
     "domain": "pagetty.com",
-    "env": "PROD"
+    "env": "PROD",
+    "crawler": {
+      "batchSize": 10
+    }
   }
 }

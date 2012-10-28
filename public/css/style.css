@@ -696,7 +696,7 @@ input.item {
   #channels .list > li > a:hover {
     background: none;
   }
-  #ue-feedback-tab {
+  #ueButton {
     display: none;
   }
 }
