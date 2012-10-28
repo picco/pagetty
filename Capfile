@@ -1,7 +1,5 @@
 load 'deploy'
 
-default_environment['NODE_ENV'] = "production"
-default_environment['RELEASE_NAME'] = "#{release_name}"
 #default_run_options[:shell] = '/bin/bash'
 default_run_options[:pty] = true
 
