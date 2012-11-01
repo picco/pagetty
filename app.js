@@ -19,7 +19,6 @@ if (cluster.isMaster) {
 }
 else {
   console.log('Starting worker #' + cluster.worker.id);
-  console.dir(process.env);
 
   var broadway = require('broadway');
   var app = new broadway.App();

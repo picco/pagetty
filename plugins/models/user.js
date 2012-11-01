@@ -165,6 +165,20 @@ exports.attach = function(options) {
         });
       },
       function(next) {
+        app.state.findOne({user: self._id}, function(err, state) {
+          if (err) {
+            next(err);
+          }
+          else if (state) {
+            delete state.data.channels[channel_id];
+            state.markModified('data');
+            state.save(function(err) {
+              next(err);
+            });
+          }
+        });
+      },
+      function(next) {
         delete self.subscriptions[channel_id];
         self.markModified('subscriptions');
         self.save(function(err) {

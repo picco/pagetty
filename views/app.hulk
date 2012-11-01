@@ -15,7 +15,7 @@
             <a href="/subscribe" class="btn btn-small btn-success btn-subscribe"><i class="icon-plus icon-white"></i> Subscribe to a site</a>
           </div>
           <ul class="nav nav-list list">
-            <li class="channel channel-all"><a href="#" data-channel="all">All stories</a></li>
+            <li class="channel channel-all"><a href="#" data-channel="all">All stories <span class="new-count total-new-count pull-right"></span></a></li>
           </ul>
         </div>
       </aside>

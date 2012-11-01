@@ -244,10 +244,7 @@ exports.attach = function (options) {
     req.session.user.subscribedChannels(function(channels) {
       // Convert dates to timestamps as dates cause problems with different platforms.
       for (var i in channels) {
-        for (var j = 0; j < channels[i].items.length; j++) {
-          channels[i].items[j].created = channels[i].items[j].created.getTime();
-        }
-
+        delete channels[i].items;
         channels[i].items_added = channels[i].items_added ? channels[i].items_added.getTime() : null;
         channels[i].items_updated = channels[i].items_updated ? channels[i].items_updated.getTime() : null;
 
@@ -278,10 +275,38 @@ exports.attach = function (options) {
   /**
    * API: Client auto-update call.
    */
-  server.get("/api/channel/updates", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/updates", app.middleware.restricted, function(req, res) {
+    var request_state = JSON.parse(req.param("state"));
+    var response_state = {channels: {}};
+
+    app.state.findOne({user: req.session.user._id}, function(err, current_state) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else if (current_state) {
+        current_state.update(req.session.user, function(updated_state) {
+          for (var channel_id in updated_state.data.channels) {
+            // Return only channels that have been updated.
+            if (updated_state.data.channels[channel_id].items_added > request_state[channel_id]) {
+              response_state.channels[channel_id] = {
+                items: updated_state.data.channels[channel_id].items,
+                items_added: updated_state.data.channels[channel_id].items_added
+              };
+            }
+          }
+          res.json(response_state);
+        });
+      }
+      else {
+        res.send("State missing.", 400);
+      }
+    });
+
+    /*
     req.session.user.getChannelUpdates(JSON.parse(req.param("state")), function(updates) {
       res.json(updates);
     });
+    */
   });
 
   /**
@@ -289,7 +314,44 @@ exports.attach = function (options) {
    */
   server.get("/api/state", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
-      err ? res.send(err, 400) : ((state && state.data) ? res.json(state.data) : res.json({}));
+      if (err) {
+        res.send(err, 400);
+      }
+      else if (state) {
+        state.update(req.session.user, function(prepared_state) {
+          res.json(prepared_state.data);
+        });
+      }
+      else {
+        app.state.generate(req.session.user, function(err, created_state) {
+          err ? res.send(err, 400) : res.json(created_state.data);
+        });
+      }
+    });
+  });
+
+  /**
+   * API: mark an items as read.
+   */
+  server.get("/api/mark/:channel/:item", app.middleware.restricted, function(req, res) {
+    app.state.findOne({user: req.session.user._id}, function(err, state) {
+      if (err) {
+        res.send(400);
+      }
+      else {
+        for (var i in state.data.channels[req.params.channel].items) {
+          if (state.data.channels[req.params.channel].items[i].id == req.params.item) {
+            console.log('Marked');
+            state.data.channels[req.params.channel].items[i].isnew = false;
+            break;
+          }
+        }
+        
+        state.markModified('data');
+        state.save(function(err) {
+          res.send(200);
+        });
+      }
     });
   });
 

@@ -16,54 +16,35 @@ define([
     activeTitle: false,
     activeVariant: false,
     pager: 9,
-    updates: {},
     newItemsCount: 0,
     channelNewItemsCount: {},
 
-    init: function(user, channels, appState) {
+    init: function(user, channels, state) {
       var self = this;
 
+      // User information.
       this.user = user;
-      this.appState = appState;
-      this.subscriptions = user.subscriptions;
-      this.state = {};
+      // Channel information.
+      this.channels = channels;
+      // State information (news items).
+      this.state = state;
+      // Prepared navigation data.
       this.navigation = [];
-
-      this.channels = this.prepareChannels(this.subscriptions, channels, this.appState.channels);
-      this.saveState({channels: this.channels});
-      this.updateChannels();
+      // New item counts per channel.
+      this.counts = {};
 
       // Initialize theme.
-
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
-      // TimeAgo configuration
-      $.timeago.settings.strings = {
-        prefixAgo: null,
-        prefixFromNow: null,
-        suffixAgo: "ago",
-        suffixFromNow: "from now",
-        seconds: "less than a minute",
-        minute: "a minute",
-        minutes: "%d minutes",
-        hour: "an hour",
-        hours: "%d hours",
-        day: "a day",
-        days: "%d days",
-        month: "a month",
-        months: "%d months",
-        year: "a year",
-        years: "%d years",
-        wordSeparator: " ",
-        numbers: []
-      };
+      // Init counts
+      this.updateAllCounts();
 
       // Pagetty
 
-      for (channel_id in this.subscriptions) {
-        this.navigation.push({channel_id: channel_id, name: this.subscriptions[channel_id].name});
+      for (channel_id in this.user.subscriptions) {
+        this.navigation.push({channel_id: channel_id, name: this.user.subscriptions[channel_id].name});
       }
 
       this.navigation.sort(function(a, b) {
@@ -85,8 +66,15 @@ define([
 
       $(".nav-list .channel a").live("click", function(e) {
         e.preventDefault();
+
         var channel = $(this).data("channel"), variant = $(this).data("variant");
-        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+
+        if (self.activeChannel == channel) {
+          self.showChannel(channel, variant);
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        }
       });
 
       $(".channel a.variant").live("click", function() {
@@ -116,21 +104,6 @@ define([
           success: function() {window.location = '/'},
           error: function() {alert('Could not unsubscribe.');},
         });
-        return false;
-      });
-
-      $(".new-stories, .refresh").live("click", function(e) {
-        var stateData = History.getState().data;
-
-        e.preventDefault();
-        self.refreshChannels();
-
-        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
-          self.showChannel("all", "time");
-        }
-        else {
-          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
-        }
         return false;
       });
 
@@ -173,13 +146,8 @@ define([
 
       });
 
-      // Lazy load additional stories when the page is scrolled near to the bottom.
-
-      $(window).scroll(function() {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
-          self.loadMore(self.activeChannel, self.activeVariant);
-        }
-      });
+      // Update channel counts.
+      this.updateAllCounts();
 
       // Auto-update channels.
 
@@ -191,9 +159,6 @@ define([
       window.setTimeout(function() {
         $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
       }, 1000);
-
-      // Set channel timeago.
-      this.updateTimeAgo();
 
       // Run the application.
       this.runApp();
@@ -226,75 +191,13 @@ define([
       $(".app-loading").hide();
       $(".app .container").show();
     },
-    prepareChannels: function(subscriptions, channels, storedChannels) {
-      var prepared = {};
-
-      for (var channel_id in subscriptions) {
-        var items = [];
-
-        if (storedChannels && storedChannels[channel_id] && storedChannels[channel_id].items) {
-          for (var i in channels[channel_id].items) {
-            for (var j in storedChannels[channel_id].items) {
-              // Process all the items that are present in stored state and update them.
-              if (channels[channel_id].items[i].id == storedChannels[channel_id].items[j].id) {
-                // The the new item as the base.
-                var item = _.clone(channels[channel_id].items[i]);
-                // We need to keep the isnew status.
-                item.isnew = storedChannels[channel_id].items[j].isnew || false;
-                // Push to the items array.
-                items.push(item);
-                // Correct match is found, break the loop.
-                break;
-              }
-            }
-          }
-          prepared[channel_id] = _.clone(storedChannels[channel_id]);
-          prepared[channel_id].items = items;
-        }
-        else {
-          // There's no existing state, just use all the fresh items.
-          prepared[channel_id] = _.clone(channels[channel_id]);
-
-          // And mark them as new.
-          for (var i in prepared[channel_id].items) {
-            prepared[channel_id].items[i].isnew = true;
-          }
-        }
-
-        if (window.location.href.match(/autoUpdate/)) {
-          var temp = _.clone(prepared[channel_id].items);
-          prepared[channel_id].items = channels[channel_id].items;
-
-          // Add all new items with a new state as well.
-          for (var i in prepared[channel_id].items) {
-            prepared[channel_id].items[i].isnew = true;
-
-            for (var j in temp) {
-              if (prepared[channel_id].items[i].id == temp[j].id) {
-                prepared[channel_id].items[i].isnew = temp[j].isnew;
-                break;
-              }
-            }
-          }
-
-          // Items_added gets updated to the current state as well.
-          this.state[channel_id] = _.clone(channels[channel_id].items_added);
-        }
-        else {
-          // Save the state of channels (items_added will remain the same until manually updated).
-          this.state[channel_id] = _.clone(prepared[channel_id].items_added);
-        }
-      }
-
-      return prepared;
-    },
     aggregateAllItems: function() {
       var items = [];
 
-      for (i in this.channels) {
-        for (j in this.channels[i].items) {
-          var item = _.clone(this.channels[i].items[j]);
-          item.channel = {id: this.channels[i]._id, name: this.subscriptions[i].name, url: this.channels[i].url};
+      for (i in this.state.channels) {
+        for (j in this.state.channels[i].items) {
+          var item = _.clone(this.state.channels[i].items[j]);
+          item.channel = {id: this.channels[i]._id, name: this.user.subscriptions[i].name, url: this.channels[i].url};
           items.push(item);
         }
       }
@@ -320,7 +223,19 @@ define([
         });
       }
       else {
-        return items;
+        var items_new = [];
+        var items_old = [];
+
+        for (var i in items) {
+          if (items[i].isnew) {
+            items_new.push(items[i]);
+          }
+          else {
+            items_old.push(items[i]);
+          }
+        }
+
+        return items_new.concat(items_old);
       }
     },
     renderItems: function(items) {
@@ -345,6 +260,29 @@ define([
 
       return html;
     },
+    mark: function(self, channel, item) {
+      for (var i in self.state.channels[channel].items) {
+        if (self.state.channels[channel].items[i].id == item) {
+          $('.channel-' + self.activeChannel + '-' + self.activeVariant + ' .item-' + item).addClass('read');
+          $.get('/api/mark/' + channel + '/' + item);
+          self.state.channels[channel].items[i].isnew = false;
+          self.updateChannelCounts(channel);
+          break;
+        }
+      }
+    },
+    markVisibleItems: function() {
+      var self = this;
+      var selector = ".channel-" + self.activeChannel + "-" + self.activeVariant + ' .item.show.new:not(.read)';
+
+      $(selector).each(function(index, item) {
+        var bottom_position = $(item).position().top + $(item).height() - $(window).scrollTop();
+
+        if (bottom_position != 0 && bottom_position <= $(window).height()) {
+          self.mark(self, $(item).data('channel'), $(item).data('item'));
+        }
+      });
+    },
     formatScore: function(nStr) {
       nStr += '';
       x = nStr.split('.');
@@ -356,8 +294,32 @@ define([
       }
       return x1 + x2;
     },
+    updateAllCounts: function() {
+      for (channel_id in this.user.subscriptions) {
+        this.updateChannelCounts(channel_id);
+      }
+    },
+    updateChannelCounts: function(channel_id) {
+      var new_count = 0;
+      var total_new_count = 0;
+
+      for (var i in this.state.channels[channel_id].items) {
+        if (this.state.channels[channel_id].items[i].isnew) new_count++;
+      }
+
+      this.counts[channel_id] = new_count;
+
+      $('.channel-' + channel_id + ' .new-count').text(this.counts[channel_id] ? this.counts[channel_id] : '');
+
+      for (var i in this.counts) {
+        total_new_count += this.counts[i];
+      }
+
+      $('.total-new-count').text(total_new_count ? total_new_count : '');
+    },
     showChannel: function(channel_id, variant) {
       var self = this;
+      var items = [];
       var html = "";
       var cacheKey = "";
       var selector = "";
@@ -366,45 +328,50 @@ define([
         variant = channel_id == "all" ? "time" : "original";
       }
 
-      selector = ".channel-" + channel_id + "-" + variant;
+      self.activeChannel = channel_id;
+      self.activeVariant = variant;
+      self.activeTitle = this.activeChannel == "all" ? "All stories" : this.user.subscriptions[channel_id].name;
 
+      selector = ".channel-" + channel_id + "-" + variant;
       cacheKey = channel_id + ":" + variant;
 
       $("#channels .list li.channel-" + channel_id).addClass("loading");
       $(".runway > .inner > .channel").hide();
 
-      // Refresh the items before displaying anything.
-      if (channel_id != 'all') this.refreshChannel(channel_id);
-
-      if (this.cache[cacheKey] && $(selector).length) {
+      if (0 && this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
       }
       else {
         $(selector).remove();
 
         if (channel_id == "all") {
-          var all_items = self.aggregateAllItems();
-          html = self.renderItems(self.sortItems(all_items, variant));
+          items = self.aggregateAllItems();
+          html = self.renderItems(self.sortItems(items, variant));
         }
         else {
-          if (!_.isUndefined(self.channels[channel_id]) && $.isArray(self.channels[channel_id].items) && self.channels[channel_id].items.length) {
-            for (i in self.channels[channel_id].items) {
-              self.channels[channel_id].items[i].channel = {id: self.channels[channel_id]._id, name: self.subscriptions[channel_id].name, url: self.channels[channel_id].url};
+          if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
+            items = _.clone(self.state.channels[channel_id].items);
+
+            for (i in items) {
+              items[i].channel = {id: channel_id, name: self.user.subscriptions[channel_id].name, url: self.channels[channel_id].url};
             }
-            html = self.renderItems(self.sortItems(self.channels[channel_id].items, variant));
+
+            html = self.renderItems(self.sortItems(items, variant));
           }
         }
 
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: all_items.length, user: self.user}));
+          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: items.length, user: self.user}));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.subscriptions[channel_id], items: html, nav: self.navigation, count: self.channels[channel_id].items.length, user: self.user}));
+          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.user.subscriptions[channel_id], items: html, nav: self.navigation, count: items.length, user: self.user}));
         }
 
         // Time ago.
         $(selector + ' .items abbr.timeago').timeago();
-        self.updateTimeAgo();
+
+        // Scroll events.
+        self.bindScrollEvents();
 
         // Lazy load images.
         self.loadImages($(selector + " .items .show"));
@@ -420,20 +387,30 @@ define([
       $('.channel .items').removeClass('hide');
 
       this.cache[cacheKey] = true;
-      self.activeChannel = channel_id;
-      self.activeVariant = variant;
-      self.activeTitle = this.activeChannel == "all" ? "All stories" : this.subscriptions[channel_id].name;
-
-      if (self.newItems) {
-        self.showUpdateNotification();
-      }
-      else {
-        self.updateTitle();
-      }
-
+      self.updateTitle();
       window.scrollTo(0, 0);
 
+      // Mark visible items as read.
+      //self.markVisibleItems.apply(self);
+
       return false;
+    },
+    bindScrollEvents: function() {
+      var self = this;
+
+      $(window).unbind('scroll');
+
+      // Mark items as read if scrolled past.
+
+      $(window).scroll(function(e) {self.markVisibleItems.apply(self)});
+
+      // Lazy load additional stories when the page is scrolled near to the bottom.
+
+      $(window).scroll(function() {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+          self.loadMore(self.activeChannel, self.activeVariant);
+        }
+      });
     },
     loadImages: function(items) {
       $(items).find(".image").each(function() {
@@ -444,113 +421,23 @@ define([
         };
       });
     },
-    saveState: function(stateInfo) {
-      $.post("/api/state", {data: JSON.stringify(stateInfo)});
-    },
     updateChannels: function() {
       var self = this;
+      var state = {}
 
-      $.getJSON("/api/channel/updates", {state: JSON.stringify(this.state)}, function(updates) {
-        if (updates.length) {
-          for (var i in updates) {
-            var channel_id = updates[i]._id;
-            var count = 0;
+      for (var channel_id in this.state.channels) {
+        state[channel_id] = this.state.channels[channel_id].items_added;
+      }
 
-            self.state[channel_id] = updates[i].items_added;
-            self.updates[channel_id] = updates[i].items;
-
-            for (var j in self.updates[channel_id]) {
-              if (self.itemExists(self.updates[channel_id][j], self.channels[channel_id].items)) {
-                self.updates[channel_id][j].isnew = false;
-              }
-              else {
-                self.updates[channel_id][j].isnew = true;
-                count++;
-              }
-            }
-
-            if (count) {
-              $('#channels .channel-' + channel_id + ' .new-count, .channel-nav .channel-' + channel_id + ' .new-count').text(count);
-              //this.newItems = true;
-              //this.newItemsCount = count;
-              //this.showUpdateNotification();
-            }
-          }
+      $.getJSON("/api/state/updates", {state: JSON.stringify(state)}, function(new_state) {
+        for (var channel_id in new_state.channels) {
+          self.state.channels[channel_id] = new_state.channels[channel_id];
         }
+        self.updateAllCounts();
       }).error(function(xhr, status, error) {
         // The session has timed out.
         if (xhr.status == 403) window.location.href = '/';
       });
-    },
-    itemExists: function(item, list) {
-      for (var i in list) {
-        if (list[i].id == item.id) {
-          return true;
-        }
-      }
-      return false;
-    },
-    refreshChannel: function(channel_id) {
-      if (this.updates[channel_id]) {
-        this.channels[channel_id].items = this.updates[channel_id];
-        this.saveState({channels: this.channels});
-        this.cache = [];
-        $('#channels .channel-' + channel_id + ' .new-count, .channel-nav .channel-' + channel_id + ' .new-count').text('');
-        //this.newItems = false;
-        //this.newItemsCount = 0;
-        //this.updates[channel_id] = [];
-        //this.hideUpdateNotification(channel_id);
-      }
-    },
-    refreshChannels: function() {
-      for (var channel_id in this.channels) {
-        for (var i in this.channels[channel_id].items) {
-          // Clear the isnew status from all existing items,
-          // updates below will overwrite this with last items marked as new.
-          this.channels[channel_id].items[i].isnew = false;
-        }
-      }
-
-      for (var channel_id in this.updates) {
-        this.channels[channel_id].items = this.updates[channel_id];
-      }
-
-      this.cache = [];
-      this.newItems = false;
-      this.newItemsCount = 0;
-      this.updates = {};
-      this.saveState({channels: this.channels});
-      this.hideUpdateNotification();
-    },
-    updateTimeAgo: function() {
-
-      for (var i in this.navigation) {
-        var channel_id = this.navigation[i].channel_id;
-        var selector = '#channels li.channel-' + channel_id + ' abbr.timeago, .channel-nav li.channel-' + channel_id + ' abbr.timeago';
-        var latest_update = null;
-
-        for (var j in this.channels[channel_id].items) {
-          if (this.channels[channel_id].items[j] > latest_update || latest_update == null) latest_update = this.channels[channel_id].items[j].created;
-        }
-
-        $(selector).attr('title', latest_update ? moment(latest_update).format() : '?').data('timeago', null).timeago();
-      }
-
-    },
-    showUpdateNotification: function() {
-      if (this.newItemsCount > 0) {
-        $(".app .runway").addClass("with-messages");
-        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.newItemsCount + ' </span>' + (this.newItemsCount == 1 ? 'new story' : 'new stories') + '. Click here to update.</a>');
-        $('.new-items-count').html(this.newItemsCount);
-        $('.refresh').show();
-        this.updateTitle();
-      }
-    },
-    hideUpdateNotification: function() {
-      $(".app .runway").removeClass("with-messages");
-      $(".channel .messages").html("");
-      $('.refresh').hide();
-      this.updateTitle();
     },
     updateTitle: function() {
       if (this.newItemsCount) {
@@ -571,15 +458,6 @@ define([
           $(this).removeClass("hide").addClass("show");
         });
       }
-    },
-    channelList: function() {
-      var list = {all: "All stories"};
-
-      for (var i in this.channels) {
-        list[this.channels[i]._id] = this.subscriptions[i].name;
-      }
-
-      return list;
     },
     channelUrl: function(channelId, variant) {
       if (channelId == "all") {
