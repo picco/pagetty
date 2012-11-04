@@ -23,15 +23,15 @@ exports.attach = function (options) {
         if (req.session.user.mail == 'demo@pagetty.com') {
           if (
             req.route.path == '/api/state' ||
-            req.method == 'GET' && (
-              req.url == '/' ||
-              req.url == '/account' ||
-              req.url == '/subscribe' ||
-              req.route.path == '/api/user' ||
-              req.route.path == '/api/user/channels' ||
-              req.route.path == '/api/channel/updates' ||
-              req.url.match(/\/channel\/.+/)
-            )
+            req.route.path == '/api/state/new' ||
+            req.route.path == '/api/state/refresh' ||
+            req.route.path == '/' ||
+            req.route.path == '/account' ||
+            req.route.path == '/subscribe' ||
+            req.route.path == '/api/user' ||
+            req.route.path == '/api/user/channels' ||
+            req.route.path == '/api/channel/updates' ||
+            req.url.match(/\/channel\/.+/)
           ) {
             console.log(req.method + ': ' + req.url);
             next();
