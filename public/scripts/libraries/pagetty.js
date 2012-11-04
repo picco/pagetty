@@ -207,6 +207,8 @@ define([
     renderItems: function(items) {
       var html = "", item = {}, j = 0;
 
+      items = items.splice(0, 100);
+
       for (var i in items) {
         item = _.clone(items[i]);
         item.stamp = moment(item.created).format();
