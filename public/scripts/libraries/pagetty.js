@@ -262,7 +262,7 @@ define([
       var new_count = 0;
       var total_new_count = 0;
 
-      if (this.state.channels[channel_id].items) {
+      if (this.state.channels[channel_id] && this.state.channels[channel_id].items) {
         for (var i in this.state.channels[channel_id].items) {
           if (this.state.channels[channel_id].items[i].isnew) new_count++;
         }
