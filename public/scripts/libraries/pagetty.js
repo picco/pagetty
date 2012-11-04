@@ -55,15 +55,14 @@ define([
         $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
-      $(".app .logo, .app .mobile-logo").live("click", function(e) {
-        if (self.activeChannel != 'all') {
-          var channel = 'all', variant = 'time';
-          History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-          e.preventDefault();
-        }
-      });
+      $(".btn-subscribe-submit").bind("click", self.subscribe);
+      $(".subscribe-url, .subscribe-name").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
 
-      $(".nav-list .channel a").live("click", function(e) {
+      $('#subscribeModal').on('shown', function () {
+        $('.subscribe-url').focus()
+      })
+
+      $("#channels .nav-list .channel a").bind("click", function(e) {
         e.preventDefault();
 
         var channel = $(this).data("channel"), variant = $(this).data("variant");
@@ -74,69 +73,6 @@ define([
         else {
           History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         }
-      });
-
-      $(".channel a.variant").live("click", function() {
-        var channel = $(this).data("channel"), variant = $(this).data("variant");
-        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        return false;
-      });
-
-      $(".channel .item .site a").live("click", function(e) {
-        var channel = $(this).data("channel");
-
-        if (self.activeChannel == channel) {
-          return true;
-        }
-        else {
-          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
-          return false;
-        }
-      });
-
-      $('.unsubscribe').live("click", function() {
-        var self = this;
-
-        $.ajax("/unsubscribe", {
-          type: "POST",
-          data: {channel_id: $(self).data('channel')},
-          success: function() {window.location = '/'},
-          error: function() {alert('Could not unsubscribe.');},
-        });
-        return false;
-      });
-
-      $(".new-stories, .refresh").live("click", function(e) {
-        e.preventDefault();
-        self.refreshChannels();
-      });
-
-      $(".btn-subscribe-submit").bind("click", self.subscribe);
-      $(".subscribe-url, .subscribe-name").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
-
-      $('#subscribeModal').on('shown', function () {
-        $('.subscribe-url').focus()
-      })
-
-      // Mobile
-
-      $('.toggle-channel-nav').live('click', function(e) {
-        e.preventDefault();
-
-        $('.channel-nav').addClass('hide');
-
-        if ($(this).hasClass('open')) {
-          $(this).removeClass('open');
-          $('.channel .items').removeClass('hide');
-        }
-        else {
-          $(this).addClass('open');
-          $('.channel .items').addClass('hide');
-          $('.channel-' + self.activeChannel + '-' + self.activeVariant + ' .channel-nav').removeClass('hide');
-        }
-
-        window.scrollTo(0, 0);
-
       });
 
       // Act on statechange.
@@ -298,9 +234,7 @@ define([
     updateChannelCounts: function(channel_id) {
       var new_count = 0;
       var total_new_count = 0;
-console.dir(this.state);
-console.dir(this.channels);
-console.log(channel_id);
+
       if (this.state.channels[channel_id].items) {
         for (var i in this.state.channels[channel_id].items) {
           if (this.state.channels[channel_id].items[i].isnew) new_count++;
@@ -382,6 +316,72 @@ console.log(channel_id);
       $('.toggle-channel-nav').removeClass('open');
       $('.channel-nav').addClass('hide');
       $('.channel .items').removeClass('hide');
+
+      // Bindings
+
+      $(selector + " a.variant").bind("click", function() {
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        return false;
+      });
+
+      $(selector + " .item .site a").bind("click", function(e) {
+        var channel = $(this).data("channel");
+
+        if (self.activeChannel == channel) {
+          return true;
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
+          return false;
+        }
+      });
+
+      $(selector + " .new-stories").bind("click", function(e) {
+        self.refreshChannels();
+        e.preventDefault();
+      });
+
+      $(selector + ' .toggle-channel-nav').bind('click', function(e) {
+        var selector = '.channel-' + self.activeChannel + '-' + self.activeVariant;
+
+        $(selector + ' .channel-nav').addClass('hide');
+
+        if ($(this).hasClass('open')) {
+          $(this).removeClass('open');
+          $(selector + ' .items').removeClass('hide');
+        }
+        else {
+          $(this).addClass('open');
+          $(selector + ' .items').addClass('hide');
+          $(selector + ' .channel-nav').removeClass('hide');
+        }
+
+        e.preventDefault();
+        window.scrollTo(0, 0);
+
+      });
+
+      $(selector + ".app .logo, " + selector + " .app .mobile-logo").bind("click", function(e) {
+        if (self.activeChannel != 'all') {
+          var channel = 'all', variant = 'time';
+          History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+          e.preventDefault();
+        }
+      });
+
+      $(selector + " .nav-list .channel a").bind("click", function(e) {
+        e.preventDefault();
+
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+
+        if (self.activeChannel == channel) {
+          self.showChannel(channel, variant);
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        }
+      });
 
       this.cache[cacheKey] = true;
       self.updateTitle();
