@@ -16,7 +16,6 @@ define([
     activeTitle: false,
     activeVariant: false,
     pager: 9,
-    newItemsCount: 0,
     channelNewItemsCount: {},
 
     init: function(user, channels, state) {
@@ -107,6 +106,11 @@ define([
         return false;
       });
 
+      $(".new-stories, .refresh").live("click", function(e) {
+        e.preventDefault();
+        self.refreshChannels();
+      });
+
       $(".btn-subscribe-submit").bind("click", self.subscribe);
       $(".subscribe-url, .subscribe-name").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
 
@@ -150,18 +154,31 @@ define([
       this.updateAllCounts();
 
       // Auto-update channels.
+      self.updateChannels();
 
       window.setInterval(function() {
         self.updateChannels();
-      }, 60000);
+      }, 10000);
 
       // Sidebar scroll
+
       window.setTimeout(function() {
         $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
       }, 1000);
 
+      // Load more on scroll.
+
+      $(window).scroll(function() {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+          self.loadMore(self.activeChannel, self.activeVariant);
+        }
+      });
+
       // Run the application.
       this.runApp();
+
+      // ...
+      this.showUpdateNotification();
     },
     runApp: function() {
       var self = this;
@@ -223,23 +240,11 @@ define([
         });
       }
       else {
-        var items_new = [];
-        var items_old = [];
-
-        for (var i in items) {
-          if (items[i].isnew) {
-            items_new.push(items[i]);
-          }
-          else {
-            items_old.push(items[i]);
-          }
-        }
-
-        return items_new.concat(items_old);
+        return items;
       }
     },
     renderItems: function(items) {
-      var html = "", item = {};
+      var html = "", item = {}, j = 0;
 
       for (var i in items) {
         item = _.clone(items[i]);
@@ -247,8 +252,22 @@ define([
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
         item.visible = (i <= this.pager) ? true : false;
         item.className = item.visible ? "show" : "hide";
+
+        if (j++) {
+          item.className += ' item-short';
+        }
+        else {
+          item.className += ' item-full';
+        }
+
         if (item.isnew) item.className += " new";
-        if (item.id && item.image) item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
+        if (item.id && item.image) {
+          item.className += ' item-with-image';
+          item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
+        }
+        else {
+          item.className += 'item-without-image';
+        }
 
         // Reduce long channel names
         if (item.channel.name.length > 30) {
@@ -259,29 +278,6 @@ define([
       }
 
       return html;
-    },
-    mark: function(self, channel, item) {
-      for (var i in self.state.channels[channel].items) {
-        if (self.state.channels[channel].items[i].id == item) {
-          $('.channel-' + self.activeChannel + '-' + self.activeVariant + ' .item-' + item).addClass('read');
-          $.get('/api/mark/' + channel + '/' + item);
-          self.state.channels[channel].items[i].isnew = false;
-          self.updateChannelCounts(channel);
-          break;
-        }
-      }
-    },
-    markVisibleItems: function() {
-      var self = this;
-      var selector = ".channel-" + self.activeChannel + "-" + self.activeVariant + ' .item.show.new:not(.read)';
-
-      $(selector).each(function(index, item) {
-        var bottom_position = $(item).position().top + $(item).height() - $(window).scrollTop();
-
-        if (bottom_position != 0 && bottom_position <= $(window).height()) {
-          self.mark(self, $(item).data('channel'), $(item).data('item'));
-        }
-      });
     },
     formatScore: function(nStr) {
       nStr += '';
@@ -302,9 +298,13 @@ define([
     updateChannelCounts: function(channel_id) {
       var new_count = 0;
       var total_new_count = 0;
-
-      for (var i in this.state.channels[channel_id].items) {
-        if (this.state.channels[channel_id].items[i].isnew) new_count++;
+console.dir(this.state);
+console.dir(this.channels);
+console.log(channel_id);
+      if (this.state.channels[channel_id].items) {
+        for (var i in this.state.channels[channel_id].items) {
+          if (this.state.channels[channel_id].items[i].isnew) new_count++;
+        }
       }
 
       this.counts[channel_id] = new_count;
@@ -338,7 +338,7 @@ define([
       $("#channels .list li.channel-" + channel_id).addClass("loading");
       $(".runway > .inner > .channel").hide();
 
-      if (0 && this.cache[cacheKey] && $(selector).length) {
+      if (this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
       }
       else {
@@ -370,9 +370,6 @@ define([
         // Time ago.
         $(selector + ' .items abbr.timeago').timeago();
 
-        // Scroll events.
-        self.bindScrollEvents();
-
         // Lazy load images.
         self.loadImages($(selector + " .items .show"));
       }
@@ -390,27 +387,7 @@ define([
       self.updateTitle();
       window.scrollTo(0, 0);
 
-      // Mark visible items as read.
-      //self.markVisibleItems.apply(self);
-
       return false;
-    },
-    bindScrollEvents: function() {
-      var self = this;
-
-      $(window).unbind('scroll');
-
-      // Mark items as read if scrolled past.
-
-      $(window).scroll(function(e) {self.markVisibleItems.apply(self)});
-
-      // Lazy load additional stories when the page is scrolled near to the bottom.
-
-      $(window).scroll(function() {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
-          self.loadMore(self.activeChannel, self.activeVariant);
-        }
-      });
     },
     loadImages: function(items) {
       $(items).find(".image").each(function() {
@@ -423,25 +400,56 @@ define([
     },
     updateChannels: function() {
       var self = this;
-      var state = {}
 
-      for (var channel_id in this.state.channels) {
-        state[channel_id] = this.state.channels[channel_id].items_added;
-      }
-
-      $.getJSON("/api/state/updates", {state: JSON.stringify(state)}, function(new_state) {
-        for (var channel_id in new_state.channels) {
-          self.state.channels[channel_id] = new_state.channels[channel_id];
-        }
-        self.updateAllCounts();
+      $.getJSON("/api/state/new", function(state) {
+        console.dir(state);
+        self.state.new_items = state.new_items;
+        self.showUpdateNotification();
       }).error(function(xhr, status, error) {
         // The session has timed out.
         if (xhr.status == 403) window.location.href = '/';
       });
     },
+    refreshChannels: function() {
+      var self = this;
+      var stateData = History.getState().data;
+
+      $.getJSON("/api/state/refresh", function(new_state) {
+        self.state = new_state;
+        self.cache = [];
+        self.hideUpdateNotification();
+        self.updateAllCounts();
+
+        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
+          self.showChannel("all", "time");
+        }
+        else {
+          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
+        }
+
+      }).error(function(xhr, status, error) {
+        // The session has timed out.
+        if (xhr.status == 403) window.location.href = '/';
+      });
+    },
+    showUpdateNotification: function() {
+      if (this.state.new_items > 0) {
+        $(".app .runway").addClass("with-messages");
+        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.state.new_items + ' </span>' + (this.state.new_items == 1 ? 'new story' : 'new stories') + '. Click here to update.</a>');
+        $('.new-items-count').html(this.state.new_items);
+        $('.refresh').show();
+        this.updateTitle();
+      }
+    },
+    hideUpdateNotification: function() {
+      $(".app .runway").removeClass("with-messages");
+      $(".channel .messages").html("");
+      $('.refresh').hide();
+      this.updateTitle();
+    },
     updateTitle: function() {
-      if (this.newItemsCount) {
-        document.title = "(" + this.newItemsCount + ") " + this.activeTitle + " - Pagetty";
+      if (this.state.new_items) {
+        document.title = "(" + this.state.new_items + ") " + this.activeTitle + " - Pagetty";
       }
       else {
         document.title = this.activeTitle + " - Pagetty";

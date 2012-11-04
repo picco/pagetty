@@ -273,43 +273,6 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Client auto-update call.
-   */
-  server.get("/api/state/updates", app.middleware.restricted, function(req, res) {
-    var request_state = JSON.parse(req.param("state"));
-    var response_state = {channels: {}};
-
-    app.state.findOne({user: req.session.user._id}, function(err, current_state) {
-      if (err) {
-        res.send(err, 400);
-      }
-      else if (current_state) {
-        current_state.update(req.session.user, function(updated_state) {
-          for (var channel_id in updated_state.data.channels) {
-            // Return only channels that have been updated.
-            if (updated_state.data.channels[channel_id].items_added > request_state[channel_id]) {
-              response_state.channels[channel_id] = {
-                items: updated_state.data.channels[channel_id].items,
-                items_added: updated_state.data.channels[channel_id].items_added
-              };
-            }
-          }
-          res.json(response_state);
-        });
-      }
-      else {
-        res.send("State missing.", 400);
-      }
-    });
-
-    /*
-    req.session.user.getChannelUpdates(JSON.parse(req.param("state")), function(updates) {
-      res.json(updates);
-    });
-    */
-  });
-
-  /**
    * API: Get app state.
    */
   server.get("/api/state", app.middleware.restricted, function(req, res) {
@@ -318,8 +281,8 @@ exports.attach = function (options) {
         res.send(err, 400);
       }
       else if (state) {
-        state.update(req.session.user, function(prepared_state) {
-          res.json(prepared_state.data);
+        state.updateNewItemsCount(req.session.user, function(updated_state) {
+          res.json(updated_state.data);
         });
       }
       else {
@@ -331,48 +294,36 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: mark an items as read.
+   * API: Get app state.
    */
-  server.get("/api/mark/:channel/:item", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/new", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
-      if (err) {
-        res.send(400);
+      if (err || !state) {
+        res.send(err, 400);
       }
       else {
-        for (var i in state.data.channels[req.params.channel].items) {
-          if (state.data.channels[req.params.channel].items[i].id == req.params.item) {
-            console.log('Marked');
-            state.data.channels[req.params.channel].items[i].isnew = false;
-            break;
-          }
-        }
-        
-        state.markModified('data');
-        state.save(function(err) {
-          res.send(200);
+        state.updateNewItemsCount(req.session.user, function(updated_state) {
+          res.json({new_items: updated_state.data.new_items});
         });
       }
     });
   });
 
   /**
-   * API: Get app state.
+   * API: Client auto-update call.
    */
-  server.post("/api/state", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/refresh", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
       if (err) {
         res.send(err, 400);
       }
       else if (state) {
-        state.data = JSON.parse(req.body.data);
-        state.save(function(err) {
-          err ? res.send(err, 400) : res.send(200);
+        state.refresh(req.session.user, function(refreshed_state) {
+          res.json(refreshed_state.data);
         });
       }
       else {
-        app.state.create({user: req.session.user._id, data: JSON.parse(req.body.data)}, function(err) {
-          err ? res.send(err, 400) : res.send(200);
-        });
+        res.send("State missing.", 400);
       }
     });
   });

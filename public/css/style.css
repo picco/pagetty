@@ -378,7 +378,7 @@ header .logo {
 .channel .item .title a  {
   display: block;
   color: #333;
-  line-height: 28px;
+  line-height: 27px;
   text-rendering: auto !important;
 }
 .channel .item .title a:hover {
@@ -404,7 +404,7 @@ header .logo {
 .channel .item .meta abbr {
   border-bottom: none;
 }
-.channel .item .image img {
+.channel .item .image-full img {
   margin-top: 10px;
 }
 .channel .item .score {
@@ -418,6 +418,27 @@ header .logo {
 }
 .channel .item .score:hover {
   background: #dadada;
+}
+.channel .item-full .image-short {
+  display: none;
+}
+.channel .item-short h2 a {
+  font-size: 21px;
+}
+.channel .item-short .image-short {
+  float: left;
+  max-width: 140px;
+  margin-right: 20px;
+}
+.channel .item-short .image-full {
+  display: none;
+}
+.channel .item-short.item-with-image .title,
+.channel .item-short.item-with-image .meta {
+  margin-left: 160px;
+}
+.channel .item-short.item-with-image .title .new {
+  left: -180px;
 }
 .new-count {
   font-size: 11px;
