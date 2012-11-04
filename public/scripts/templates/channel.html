@@ -9,7 +9,7 @@
         <a class="btn-a variant {{channel._id}}-score" data-channel="{{channel._id}}" data-variant="score" href="#"><i class="icon-fire"></i> Highest score</a>
         <a class="btn-a configure" href="/channel/{{channel._id}}/configure"><i class="icon-cog"></i> Configure</a>
       </div>
-      <div class="messages"></div>
+      <div class="messages" {{{messages.new_show}}}><a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">{{messages.new_count}}</span> <span class="lbl">{{messages.new_label}}</span>. Click here to update.</a></div>
     </div>
   </div>
   <div class="title-mobile">

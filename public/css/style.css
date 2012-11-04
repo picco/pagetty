@@ -344,6 +344,9 @@ header .logo {
 .channel .no-items {
   margin: 0 20px 20px 20px;
 }
+.channel .messages {
+  display: none;
+}
 .channel .new-stories {
   display: block;
   background: #D9EDF7;

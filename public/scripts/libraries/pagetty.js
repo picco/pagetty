@@ -17,6 +17,7 @@ define([
     activeVariant: false,
     pager: 9,
     channelNewItemsCount: {},
+    updateNotificationActive: false,
 
     init: function(user, channels, state) {
       var self = this;
@@ -90,11 +91,10 @@ define([
       this.updateAllCounts();
 
       // Auto-update channels.
-      self.updateChannels();
 
       window.setInterval(function() {
         self.updateChannels();
-      }, 10000);
+      }, 20000);
 
       // Sidebar scroll
 
@@ -110,11 +110,11 @@ define([
         }
       });
 
+      // ...
+      if (this.state.new_items) this.updateNotificationActive = true;
+
       // Run the application.
       this.runApp();
-
-      // ...
-      this.showUpdateNotification();
     },
     runApp: function() {
       var self = this;
@@ -257,6 +257,7 @@ define([
       var html = "";
       var cacheKey = "";
       var selector = "";
+      var messages = {};
 
       if (!variant) {
         variant = channel_id == "all" ? "time" : "original";
@@ -294,11 +295,32 @@ define([
           }
         }
 
+        messages.new_show = this.updateNotificationActive ? 'style="display: block"' : '';
+        messages.new_count = this.state.new_items;
+        messages.new_label = this.state.new_items == 1 ? 'new story' : 'new stories';
+
         if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({variant: variant, subscription: {name: "All stories"}, items: html, nav: self.navigation, count: items.length, user: self.user}));
+          $(".runway .inner").append(ich.channelAll({
+            variant: variant,
+            subscription: {name: "All stories"},
+            items: html,
+            messages: messages,
+            nav: self.navigation,
+            count: items.length,
+            user: self.user
+          }));
         }
         else {
-          $(".runway .inner").append(ich.channel({channel: self.channels[channel_id], variant: variant, subscription: self.user.subscriptions[channel_id], items: html, nav: self.navigation, count: items.length, user: self.user}));
+          $(".runway .inner").append(ich.channel({
+            channel: self.channels[channel_id],
+            variant: variant,
+            subscription: self.user.subscriptions[channel_id],
+            items: html,
+            messages: messages,
+            nav: self.navigation,
+            count: items.length,
+            user: self.use
+          }));
         }
 
         // Time ago.
@@ -306,6 +328,10 @@ define([
 
         // Lazy load images.
         self.loadImages($(selector + " .items .show"));
+      }
+
+      if (this.updateNotificationActive) {
+        $(".app .runway").addClass("with-messages");
       }
 
       $('li.channel, a.variant').removeClass('active');
@@ -337,7 +363,7 @@ define([
         }
       });
 
-      $(selector + " .new-stories").bind("click", function(e) {
+      $(selector + " .new-stories, " + selector + " .refresh").bind("click", function(e) {
         self.refreshChannels();
         e.preventDefault();
       });
@@ -402,8 +428,8 @@ define([
       var self = this;
 
       $.getJSON("/api/state/new", function(state) {
-        console.dir(state);
         self.state.new_items = state.new_items;
+        if (self.state.new_items) self.updateNotificationActive = true;
         self.showUpdateNotification();
       }).error(function(xhr, status, error) {
         // The session has timed out.
@@ -433,17 +459,21 @@ define([
       });
     },
     showUpdateNotification: function() {
-      if (this.state.new_items > 0) {
+      if (this.updateNotificationActive == true && this.state.new_items > 0) {
         $(".app .runway").addClass("with-messages");
-        $(".channel .messages").html('<a class="new-stories" href="#"><i class="icon-refresh"></i> <span class="count">' + this.state.new_items + ' </span>' + (this.state.new_items == 1 ? 'new story' : 'new stories') + '. Click here to update.</a>');
+        $('.channel .massages .count').text(this.state.new_items);
+        $('.channel .massages .lbl').text(this.state.new_items == 1 ? 'new story' : 'new stories');
+        $(".channel .messages").show();
+        // Mobile.
         $('.new-items-count').html(this.state.new_items);
         $('.refresh').show();
         this.updateTitle();
       }
     },
     hideUpdateNotification: function() {
+      this.updateNotificationActive = false;
       $(".app .runway").removeClass("with-messages");
-      $(".channel .messages").html("");
+      $(".channel .messages").hide();
       $('.refresh').hide();
       this.updateTitle();
     },
