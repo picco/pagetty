@@ -113,6 +113,19 @@ define([
       // ...
       if (this.state.new_items) this.updateNotificationActive = true;
 
+      $(document).keydown(function(e) {
+        if (e.ctrlKey == false && e.altKey == false && e.shiftKey == false) {
+          if (e.keyCode == 37) {
+            self.openPrevChannel();
+            return false;
+          }
+          else if (e.keyCode == 39) {
+            self.openNextChannel();
+            return false;
+          }
+        }
+      });
+
       // Run the application.
       this.runApp();
     },
@@ -507,6 +520,48 @@ define([
         slice.each(function(index, element) {
           $(this).removeClass("hide").addClass("show");
         });
+      }
+    },
+    openPrevChannel: function() {
+      var prevId = false;
+
+      if (this.activeChannel == this.navigation[0].channel_id) {
+        History.pushState({page: "channel", channel: "all", variant: "time"}, null, this.channelUrl("all", "time"));
+        return;
+      }
+
+      for (var i in this.navigation) {
+        var id = this.navigation[i].channel_id;
+
+        if (id == this.activeChannel) {
+          if (prevId) {
+            History.pushState({page: "channel", channel: prevId, variant: this.activeVariant}, null, this.channelUrl(prevId, this.activeVariant));
+            return;
+          }
+        }
+        else {
+          prevId = id;
+        }
+      }
+    },
+    openNextChannel: function() {
+      var found = false;
+
+      if (this.activeChannel == 'all') {
+        History.pushState({page: "channel", channel: this.navigation[0].channel_id, variant: 'original'}, null, this.channelUrl(this.navigation[0].channel_id, 'original'));
+        return;
+      }
+
+      for (var i in this.navigation) {
+        var id = this.navigation[i].channel_id;
+
+        if (id == this.activeChannel) {
+          found = true;
+        }
+        else if (found) {
+          History.pushState({page: "channel", channel: id, variant: this.activeVariant}, null, this.channelUrl(id, this.activeVariant));
+          return;
+        }
       }
     },
     channelUrl: function(channelId, variant) {
