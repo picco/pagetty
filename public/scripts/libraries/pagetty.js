@@ -176,7 +176,19 @@ define([
         });
       }
       else {
-        return items;
+        var items_new = [];
+        var items_old = [];
+
+        for (var i in items) {
+          if (items[i].isnew) {
+            items_new.push(items[i]);
+          }
+          else {
+            items_old.push(items[i]);
+          }
+        }
+
+        return items_new.concat(items_old);
       }
     },
     renderItems: function(items) {
@@ -295,7 +307,7 @@ define([
           }
         }
 
-        messages.new_show = this.updateNotificationActive ? 'style="display: block"' : '';
+        messages.new_show = this.updateNotificationActive && this.state.new_items ? 'style="display: block"' : '';
         messages.new_count = this.state.new_items;
         messages.new_label = this.state.new_items == 1 ? 'new story' : 'new stories';
 
