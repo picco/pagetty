@@ -56,14 +56,14 @@ define([
         $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
-      $(".btn-subscribe-submit").bind("click", self.subscribe);
-      $(".subscribe-url, .subscribe-name").bind("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
+      $(".btn-subscribe-submit").on("click", self.subscribe);
+      $(".subscribe-url, .subscribe-name").on("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
 
       $('#subscribeModal').on('shown', function () {
         $('.subscribe-url').focus()
       })
 
-      $("#channels .nav-list .channel a").bind("click", function(e) {
+      $("#channels .nav-list .channel a").on("click", function(e) {
         e.preventDefault();
 
         var channel = $(this).data("channel"), variant = $(this).data("variant");
@@ -300,11 +300,14 @@ define([
       $("#channels .list li.channel-" + channel_id).addClass("loading");
       $(".runway > .inner > .channel").hide();
 
-      if (this.cache[cacheKey] && $(selector).length) {
+      // When cache is busted, remove the items from the DOM as well.
+      // if (this.cache === []) $('.runway .channel').remove();
+
+      if (0 && this.cache[cacheKey] && $(selector).length) {
         $(selector).show();
       }
       else {
-        $(selector).remove();
+        $('.runway .channel').remove();
 
         if (channel_id == "all") {
           items = self.aggregateAllItems();
@@ -372,13 +375,13 @@ define([
 
       // Bindings
 
-      $(selector + " a.variant").bind("click", function() {
+      $(selector + " a.variant").on("click", function() {
         var channel = $(this).data("channel"), variant = $(this).data("variant");
         History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         return false;
       });
 
-      $(selector + " .item .site a").bind("click", function(e) {
+      $(selector + " .item .site a").on("click", function(e) {
         var channel = $(this).data("channel");
 
         if (self.activeChannel == channel) {
@@ -390,12 +393,12 @@ define([
         }
       });
 
-      $(selector + " .new-stories, " + selector + " .refresh").bind("click", function(e) {
+      $(selector + " .new-stories, " + selector + " .refresh").on("click", function(e) {
         self.refreshChannels();
         e.preventDefault();
       });
 
-      $(selector + ' .toggle-channel-nav').bind('click', function(e) {
+      $(selector + ' .toggle-channel-nav').on('click', function(e) {
         var selector = '.channel-' + self.activeChannel + '-' + self.activeVariant;
 
         $(selector + ' .channel-nav').addClass('hide');
@@ -415,7 +418,7 @@ define([
 
       });
 
-      $(selector + ".app .logo, " + selector + " .app .mobile-logo").bind("click", function(e) {
+      $(selector + ".app .logo, " + selector + " .app .mobile-logo").on("click", function(e) {
         if (self.activeChannel != 'all') {
           var channel = 'all', variant = 'time';
           History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
@@ -423,7 +426,7 @@ define([
         }
       });
 
-      $(selector + " .nav-list .channel a").bind("click", function(e) {
+      $(selector + " .nav-list .channel a").on("click", function(e) {
         e.preventDefault();
 
         var channel = $(this).data("channel"), variant = $(this).data("variant");
