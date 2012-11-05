@@ -11,13 +11,11 @@ define([
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
 
   var Pagetty = {
-    cache: [],
     activeChannel: false,
     activeTitle: false,
     activeVariant: false,
     pager: 9,
     channelNewItemsCount: {},
-    updateNotificationActive: false,
 
     init: function(user, channels, state) {
       var self = this;
@@ -30,16 +28,11 @@ define([
       this.state = state;
       // Prepared navigation data.
       this.navigation = [];
-      // New item counts per channel.
-      this.counts = {};
 
       // Initialize theme.
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
-
-      // Init counts
-      this.updateAllCounts();
 
       // Pagetty
 
@@ -88,7 +81,7 @@ define([
       });
 
       // Update channel counts.
-      this.updateAllCounts();
+      this.updateCounts();
 
       // Auto-update channels.
 
@@ -109,9 +102,6 @@ define([
           self.loadMore(self.activeChannel, self.activeVariant);
         }
       });
-
-      // ...
-      if (this.state.new_items) this.updateNotificationActive = true;
 
       $(document).keydown(function(e) {
         if (e.ctrlKey == false && e.altKey == false && e.shiftKey == false) {
@@ -156,6 +146,155 @@ define([
       // Reveal the UI when everything is loaded.
       $(".app-loading").hide();
       $(".app .container").show();
+    },
+    showChannel: function(channel_id, variant) {
+      var self = this;
+      var items = [];
+      var html = "";
+      var selector = "";
+      var messages = {};
+
+      if (!variant) {
+        variant = channel_id == "all" ? "time" : "original";
+      }
+
+      this.activeChannel = channel_id;
+      this.activeVariant = variant;
+      this.activeTitle = this.activeChannel == "all" ? "All stories" : this.user.subscriptions[channel_id].name;
+
+      // Reusable selector for this channel: .channel-id-variant
+      selector = ".channel-" + channel_id + "-" + variant;
+
+      $('.runway .channel').remove();
+
+      if (channel_id == "all") {
+        items = self.aggregateAllItems();
+        html = self.renderItems(self.sortItems(items, variant));
+      }
+      else {
+        if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
+          items = _.clone(self.state.channels[channel_id].items);
+
+          for (i in items) {
+            items[i].channel = {id: channel_id, name: self.user.subscriptions[channel_id].name, url: self.channels[channel_id].url};
+          }
+
+          html = self.renderItems(self.sortItems(items, variant));
+        }
+      }
+
+      if (channel_id == "all") {
+        $(".runway .inner").html(ich.channelAll({
+          items: html,
+          variant: variant,
+          subscription: {name: "All stories"},
+          nav: self.navigation,
+          count: items.length,
+          user: self.user
+        }));
+      }
+      else {
+        $(".runway .inner").html(ich.channel({
+          channel: self.channels[channel_id],
+          items: html,
+          variant: variant,
+          subscription: self.user.subscriptions[channel_id],
+          nav: self.navigation,
+          count: items.length,
+          user: self.use
+        }));
+      }
+
+      // Time ago.
+      $(selector + ' .items abbr.timeago').timeago();
+
+      // Lazy load images.
+      self.loadImages($(selector + " .items .show"));
+
+      if (this.state.new_items) {
+        $(".app .runway").addClass("with-messages");
+      }
+
+      // Add active classes to channel navigation links.
+
+      $('li.channel-' + channel_id).addClass('active');
+      $('li.channel, a.variant').removeClass('active');
+      $('li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
+
+      $('.toggle-channel-nav').removeClass('open');
+      $('.channel-nav').addClass('hide');
+      $('.channel .items').removeClass('hide');
+
+      // Bindings
+
+      $(selector + " a.variant").on("click", function() {
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        return false;
+      });
+
+      $(selector + " .item .site a").on("click", function(e) {
+        var channel = $(this).data("channel");
+
+        if (self.activeChannel == channel) {
+          return true;
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
+          return false;
+        }
+      });
+
+      $(selector + " .new-stories, " + selector + " .refresh").on("click", function(e) {
+        self.refreshChannels();
+        e.preventDefault();
+      });
+
+      $(selector + ' .toggle-channel-nav').on('click', function(e) {
+        var selector = '.channel-' + self.activeChannel + '-' + self.activeVariant;
+
+        $(selector + ' .channel-nav').addClass('hide');
+
+        if ($(this).hasClass('open')) {
+          $(this).removeClass('open');
+          $(selector + ' .items').removeClass('hide');
+        }
+        else {
+          $(this).addClass('open');
+          $(selector + ' .items').addClass('hide');
+          $(selector + ' .channel-nav').removeClass('hide');
+        }
+
+        e.preventDefault();
+        window.scrollTo(0, 0);
+
+      });
+
+      $(selector + ".app .logo, " + selector + " .app .mobile-logo").on("click", function(e) {
+        if (self.activeChannel != 'all') {
+          var channel = 'all', variant = 'time';
+          History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+          e.preventDefault();
+        }
+      });
+
+      $(selector + " .nav-list .channel a").on("click", function(e) {
+        e.preventDefault();
+
+        var channel = $(this).data("channel"), variant = $(this).data("variant");
+
+        if (self.activeChannel == channel) {
+          self.showChannel(channel, variant);
+        }
+        else {
+          History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+        }
+      });
+
+      self.showUpdateNotification();
+      window.scrollTo(0, 0);
+
+      return false;
     },
     aggregateAllItems: function() {
       var items = [];
@@ -229,7 +368,7 @@ define([
           item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
         }
         else {
-          item.className += 'item-without-image';
+          item.className += ' item-without-image';
         }
 
         // Reduce long channel names
@@ -253,247 +392,13 @@ define([
       }
       return x1 + x2;
     },
-    updateAllCounts: function() {
-      for (channel_id in this.user.subscriptions) {
-        this.updateChannelCounts(channel_id);
-      }
-    },
-    updateChannelCounts: function(channel_id) {
-      var new_count = 0;
-      var total_new_count = 0;
-
-      if (this.state.channels[channel_id] && this.state.channels[channel_id].items) {
-        for (var i in this.state.channels[channel_id].items) {
-          if (this.state.channels[channel_id].items[i].isnew) new_count++;
-        }
-      }
-
-      this.counts[channel_id] = new_count;
-
-      $('.channel-' + channel_id + ' .new-count').text(this.counts[channel_id] ? this.counts[channel_id] : '');
-
-      for (var i in this.counts) {
-        total_new_count += this.counts[i];
-      }
-
-      $('.total-new-count').text(total_new_count ? total_new_count : '');
-    },
-    showChannel: function(channel_id, variant) {
-      var self = this;
-      var items = [];
-      var html = "";
-      var cacheKey = "";
-      var selector = "";
-      var messages = {};
-
-      if (!variant) {
-        variant = channel_id == "all" ? "time" : "original";
-      }
-
-      self.activeChannel = channel_id;
-      self.activeVariant = variant;
-      self.activeTitle = this.activeChannel == "all" ? "All stories" : this.user.subscriptions[channel_id].name;
-
-      selector = ".channel-" + channel_id + "-" + variant;
-      cacheKey = channel_id + ":" + variant;
-
-      $("#channels .list li.channel-" + channel_id).addClass("loading");
-      $(".runway > .inner > .channel").hide();
-
-      // When cache is busted, remove the items from the DOM as well.
-      // if (this.cache === []) $('.runway .channel').remove();
-
-      if (0 && this.cache[cacheKey] && $(selector).length) {
-        $(selector).show();
-      }
-      else {
-        $('.runway .channel').remove();
-
-        if (channel_id == "all") {
-          items = self.aggregateAllItems();
-          html = self.renderItems(self.sortItems(items, variant));
-        }
-        else {
-          if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
-            items = _.clone(self.state.channels[channel_id].items);
-
-            for (i in items) {
-              items[i].channel = {id: channel_id, name: self.user.subscriptions[channel_id].name, url: self.channels[channel_id].url};
-            }
-
-            html = self.renderItems(self.sortItems(items, variant));
-          }
-        }
-
-        messages.new_show = this.updateNotificationActive && this.state.new_items ? 'style="display: block"' : '';
-        messages.new_count = this.state.new_items;
-        messages.new_label = this.state.new_items == 1 ? 'new story' : 'new stories';
-
-        if (channel_id == "all") {
-          $(".runway .inner").append(ich.channelAll({
-            variant: variant,
-            subscription: {name: "All stories"},
-            items: html,
-            messages: messages,
-            nav: self.navigation,
-            count: items.length,
-            user: self.user
-          }));
-        }
-        else {
-          $(".runway .inner").append(ich.channel({
-            channel: self.channels[channel_id],
-            variant: variant,
-            subscription: self.user.subscriptions[channel_id],
-            items: html,
-            messages: messages,
-            nav: self.navigation,
-            count: items.length,
-            user: self.use
-          }));
-        }
-
-        // Time ago.
-        $(selector + ' .items abbr.timeago').timeago();
-
-        // Lazy load images.
-        self.loadImages($(selector + " .items .show"));
-      }
-
-      if (this.updateNotificationActive) {
-        $(".app .runway").addClass("with-messages");
-      }
-
-      $('li.channel, a.variant').removeClass('active');
-      $('li.channel-' + channel_id + ", a.variant." + channel_id + "-" + variant).addClass('active');
-      $('li.channel-' + channel_id).addClass('active');
-      $("#channels .list li.channel-" + channel_id).removeClass("loading");
-
-      $('.toggle-channel-nav').removeClass('open');
-      $('.channel-nav').addClass('hide');
-      $('.channel .items').removeClass('hide');
-
-      // Bindings
-
-      $(selector + " a.variant").on("click", function() {
-        var channel = $(this).data("channel"), variant = $(this).data("variant");
-        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        return false;
-      });
-
-      $(selector + " .item .site a").on("click", function(e) {
-        var channel = $(this).data("channel");
-
-        if (self.activeChannel == channel) {
-          return true;
-        }
-        else {
-          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
-          return false;
-        }
-      });
-
-      $(selector + " .new-stories, " + selector + " .refresh").on("click", function(e) {
-        self.refreshChannels();
-        e.preventDefault();
-      });
-
-      $(selector + ' .toggle-channel-nav').on('click', function(e) {
-        var selector = '.channel-' + self.activeChannel + '-' + self.activeVariant;
-
-        $(selector + ' .channel-nav').addClass('hide');
-
-        if ($(this).hasClass('open')) {
-          $(this).removeClass('open');
-          $(selector + ' .items').removeClass('hide');
-        }
-        else {
-          $(this).addClass('open');
-          $(selector + ' .items').addClass('hide');
-          $(selector + ' .channel-nav').removeClass('hide');
-        }
-
-        e.preventDefault();
-        window.scrollTo(0, 0);
-
-      });
-
-      $(selector + ".app .logo, " + selector + " .app .mobile-logo").on("click", function(e) {
-        if (self.activeChannel != 'all') {
-          var channel = 'all', variant = 'time';
-          History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-          e.preventDefault();
-        }
-      });
-
-      $(selector + " .nav-list .channel a").on("click", function(e) {
-        e.preventDefault();
-
-        var channel = $(this).data("channel"), variant = $(this).data("variant");
-
-        if (self.activeChannel == channel) {
-          self.showChannel(channel, variant);
-        }
-        else {
-          History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        }
-      });
-
-      this.cache[cacheKey] = true;
-      self.updateTitle();
-      window.scrollTo(0, 0);
-
-      return false;
-    },
-    loadImages: function(items) {
-      $(items).find(".image").each(function() {
-        var item = this, image = new Image();
-        image.src = $(this).data("image");
-        image.onload = function() {
-          $(item).append(image);
-        };
-      });
-    },
-    updateChannels: function() {
-      var self = this;
-
-      $.getJSON("/api/state/new", function(state) {
-        self.state.new_items = state.new_items;
-        if (self.state.new_items) self.updateNotificationActive = true;
-        self.showUpdateNotification();
-      }).error(function(xhr, status, error) {
-        // The session has timed out.
-        if (xhr.status == 403) window.location.href = '/';
-      });
-    },
-    refreshChannels: function() {
-      var self = this;
-      var stateData = History.getState().data;
-
-      $.getJSON("/api/state/refresh", function(new_state) {
-        self.state = new_state;
-        self.cache = [];
-        self.hideUpdateNotification();
-        self.updateAllCounts();
-
-        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
-          self.showChannel("all", "time");
-        }
-        else {
-          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
-        }
-
-      }).error(function(xhr, status, error) {
-        // The session has timed out.
-        if (xhr.status == 403) window.location.href = '/';
-      });
-    },
     showUpdateNotification: function() {
-      if (this.updateNotificationActive == true && this.state.new_items > 0) {
-        $(".app .runway").addClass("with-messages");
-        $('.channel .massages .count').text(this.state.new_items);
-        $('.channel .massages .lbl').text(this.state.new_items == 1 ? 'new story' : 'new stories');
-        $(".channel .messages").show();
+      if (this.state.new_items > 0) {
+        $('.app .runway').addClass("with-messages");
+        $('.channel .messages .count').text(this.state.new_items);
+        $('.channel .messages .lbl').text(this.state.new_items == 1 ? 'new story' : 'new stories');
+        $('.channel .messages').show();
+
         // Mobile.
         $('.new-items-count').html(this.state.new_items);
         $('.refresh').show();
@@ -514,6 +419,67 @@ define([
       else {
         document.title = this.activeTitle + " - Pagetty";
       }
+    },
+    updateChannels: function() {
+      var self = this;
+
+      $.getJSON("/api/state/new", function(state) {
+        self.state.new_items = state.new_items;
+        self.showUpdateNotification();
+      }).error(function(xhr, status, error) {
+        // The session has timed out.
+        if (xhr.status == 403) window.location.href = '/';
+      });
+    },
+    refreshChannels: function() {
+      var self = this;
+      var stateData = History.getState().data;
+
+      $.getJSON("/api/state/refresh", function(new_state) {
+        self.state = new_state;
+        self.hideUpdateNotification();
+        self.updateCounts();
+
+        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
+          self.showChannel("all", "time");
+        }
+        else {
+          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
+        }
+
+      }).error(function(xhr, status, error) {
+        // The session has timed out.
+        if (xhr.status == 403) window.location.href = '/';
+      });
+    },
+    updateCounts: function() {
+      var total_new_count = 0;
+
+      for (channel_id in this.user.subscriptions) {
+        var new_count = 0;
+
+        if (this.state.channels[channel_id] && this.state.channels[channel_id].items) {
+          for (var i in this.state.channels[channel_id].items) {
+            if (this.state.channels[channel_id].items[i].isnew) {
+              new_count++;
+              total_new_count++;
+            }
+          }
+        }
+
+        $('.channel-' + channel_id + ' .new-count').text(new_count ? new_count : '');
+      }
+
+      $('.total-new-count').text(total_new_count ? total_new_count : '');
+    },
+    loadImages: function(items) {
+      $(items).find(".image").each(function() {
+        var item = this, image = new Image();
+        image.src = $(this).data("image");
+        image.onload = function() {
+          $(item).append(image);
+        };
+      });
     },
     loadMore: function(channel_id, variant) {
       var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
