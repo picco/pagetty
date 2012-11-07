@@ -344,23 +344,29 @@ define([
       }
     },
     renderItems: function(items) {
-      var html = "", item = {}, j = 0;
+      var html = "", item = {}, j = 0, max_score = 0, max_fb_likes = 0;
 
       items = items.splice(0, 100);
 
       for (var i in items) {
+        if (parseInt(items[i].score) > max_score) max_score = parseInt(items[i].score);
+        if (parseInt(items[i].fb_likes) > max_fb_likes) max_fb_likes = parseInt(items[i].fb_likes);
+      }
+
+      for (var i in items) {
         item = _.clone(items[i]);
+
+        if (!j++ || (max_score > 0 && item.score == max_score) || (max_fb_likes > 0 && item.fb_likes == max_fb_likes)) {
+          item.className = 'item-full item-with-head';
+        }
+        else {
+          item.className = 'item-short';
+        }
+
         item.stamp = moment(item.created).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
         item.visible = (i <= this.pager) ? true : false;
-        item.className = item.visible ? "show" : "hide";
-
-        if (j++) {
-          item.className += ' item-short';
-        }
-        else {
-          item.className += ' item-full';
-        }
+        item.className += item.visible ? " show" : " hide";
 
         if (item.isnew) item.className += " new";
         if (item.id && item.image) {

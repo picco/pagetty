@@ -49,94 +49,51 @@ exports.attach = function(options) {
     }
   }
 
-  stateSchema.methods.refresh = function(user, callback) {
+  stateSchema.methods.refresh = function(user, channel_id, callback) {
     var self = this;
+    var channels = {};
     var count = 0;
-    var stamp = self.data.stamp || 0;
     var new_stamp = 0;
 
-    if (_.size(user.subscriptions)) {
-      for (var channel_id in user.subscriptions) {
-        app.channel.findById(channel_id, function(err, channel) {
+    function complete() {
+      // Do not reset if refreshing a single channel.
+      if (!channel_id) {
+        self.data.stamp = new_stamp;
+        self.data.new_items = 0;
+      }
+      self.markModified('data');
+      self.save(function(err) {
+        callback(self);
+      });
+    }
+
+    if (channel_id) {
+      channels[channel_id] =  true;
+    }
+    else {
+      channels = user.subscriptions || {};
+    }
+
+    if (_.size(channels)) {
+      for (var cid in channels) {
+        app.channel.findById(cid, function(err, channel) {
+          console.dir(channel);
+          console.dir(err);
           if (err) {
             next(err)
           }
           else {
-            if (self.data.channels[channel._id] && _.size(self.data.channels[channel._id].items)) {
-              var items = [];
-
-              for (var i in _.keys(channel.items)) {
-                // channel.items is not a simple data object.
-                if (_.has(channel.items, i)) {
-                  var item_found = false;
-
-                  for (var j in self.data.channels[channel._id].items) {
-                    // fails without toString().
-                    if (channel.items[i].id.toString() == self.data.channels[channel._id].items[j].id.toString()) {
-                      var item_found = true;
-
-                      // The the new item as the base.
-                      var item = _.clone(channel.items[i]);
-                      // Convert to timestamp
-                      item.created = item.created.getTime();
-                      // Calculate the isnew status.
-                      item.isnew = item.created > stamp;
-                      // Push to the items array.
-                      items.push(item);
-                      // Correct match is found, break the loop.
-                      break;
-                    }
-                  }
-
-                  if (!item_found) {
-                    var item = channel.items[i];
-
-                    if (item.created) {
-                      // Convert to timestamp
-                      item.created = item.created.getTime();
-                      // This is a new item.
-                      item.isnew = item.created > stamp;
-                      // Push to items array.
-                      items.push(item);
-                    }
-                  }
-                }
-              }
-
-              self.data.channels[channel._id].items = items;
-            }
-            else {
-              // Create channel object if not present (happens after subscribing).
-              if (!self.data.channels[channel._id]) self.data.channels[channel._id] = {};
-
-              // There's no existing state, just use all the fresh items.
-              self.data.channels[channel._id].items = _.clone(channel.items);
-
-              // And mark them as new.
-              for (var i in self.data.channels[channel._id].items) {
-                self.data.channels[channel._id].items[i].created = self.data.channels[channel._id].items[i].created.getTime();
-                self.data.channels[channel._id].items[i].isnew = self.data.channels[channel._id].items[i].created > stamp;
-              }
-            }
+            var items_added = self.refreshChannelItems(channel);
 
             // Always update the items_added timestamp.
-            if (channel.items_added) {
-              var items_added = channel.items_added.getTime();
+            if (items_added) {
+              items_added = channel.items_added.getTime();
               self.data.channels[channel._id].items_added = items_added;
-
               // Calculate the new state stamp which equals to the maximum items_added value in the latest refresh.
               if (items_added > new_stamp) new_stamp = items_added;
             }
 
-            // Fire callback when finished.
-            if (++count >= _.size(user.subscriptions)) {
-              self.data.stamp = new_stamp;
-              self.data.new_items = 0;
-              self.markModified('data');
-              self.save(function(err) {
-                callback(self);
-              });
-            }
+            if (++count >= _.size(channels)) complete();
           }
         });
       }
@@ -146,92 +103,61 @@ exports.attach = function(options) {
     }
   };
 
-  stateSchema.methods.update_old = function(user, callback) {
+  /**
+   * Refreshes the state of single channel.
+   */
+  stateSchema.methods.refreshChannelItems = function(channel) {
     var self = this;
-    var count = 0;
+    var items = [];
+    var stamp = self.data.stamp || 0;
 
-    if (_.size(user.subscriptions)) {
-      for (var channel_id in user.subscriptions) {
-        app.channel.findById(channel_id, function(err, channel) {
-          if (err) {
-            next(err)
+    // Check that all subscribed channels are present and add if necessary.
+
+    if (!this.data.channels[channel._id] || !this.data.channels[channel._id].items) {
+      this.data.channels[channel._id] = {items: _.clone(channel.items) || []};
+    }
+
+    for (var i in _.keys(channel.items)) {
+      // channel.items is not a simple data object.
+      if (_.has(channel.items, i)) {
+        var item_found = false;
+
+        for (var j in self.data.channels[channel._id].items) {
+          // fails without toString().
+          if (channel.items[i].id.toString() == self.data.channels[channel._id].items[j].id.toString()) {
+            var item_found = true;
+
+            // The the new item as the base.
+            var item = _.clone(channel.items[i]);
+            // Convert to timestamp
+            item.created = item.created.getTime();
+            // Calculate the isnew status.
+            item.isnew = item.created > stamp;
+            // Push to the items array.
+            items.push(item);
+            // Correct match is found, break the loop.
+            break;
           }
-          else {
-            if (self.data.channels[channel._id] && _.size(self.data.channels[channel._id].items)) {
-              var items = [];
+        }
 
-              for (var i in _.keys(channel.items)) {
-                // channel.items is not a simple data object.
-                if (_.has(channel.items, i)) {
-                  var item_found = false;
+        if (!item_found) {
+          var item = channel.items[i];
 
-                  for (var j in self.data.channels[channel._id].items) {
-                    // fails without toString().
-                    if (channel.items[i].id.toString() == self.data.channels[channel._id].items[j].id.toString()) {
-                      var item_found = true;
-
-                      // The the new item as the base.
-                      var item = _.clone(channel.items[i]);
-                      // We need to keep the isnew status.
-                      item.isnew = self.data.channels[channel._id].items[j].isnew;
-                      // Push to the items array.
-                      // Convert to timestamp
-                      item.created = item.created.getTime();
-                      items.push(item);
-                      // Correct match is found, break the loop.
-                      break;
-                    }
-                  }
-
-                  if (!item_found) {
-                    var item = channel.items[i];
-
-                    if (item.created) {
-                      // This is a new item.
-                      item.isnew = true;
-                      // Convert to timestamp
-                      item.created = item.created.getTime();
-                      // Push to items array.
-                      items.push(item);
-                    }
-                  }
-                }
-              }
-
-              self.data.channels[channel._id].items = items;
-            }
-            else {
-              // Create channel object if not present (happens after subscribing).
-              if (!self.data.channels[channel._id]) self.data.channels[channel._id] = {};
-
-              // There's no existing state, just use all the fresh items.
-              self.data.channels[channel._id].items = _.clone(channel.items);
-
-              // And mark them as new.
-              for (var i in self.data.channels[channel._id].items) {
-                self.data.channels[channel._id].items[i].isnew = true;
-                self.data.channels[channel._id].items[i].created = self.data.channels[channel._id].items[i].created.getTime();
-              }
-            }
-
-            // Always update the items_added timestamp.
-            if (channel.items_added) self.data.channels[channel._id].items_added = channel.items_added.getTime();
-
-            // Fire callback when finished.
-            if (++count >= _.size(user.subscriptions)) {
-              self.markModified('data');
-              self.save(function(err) {
-                callback(self);
-              });
-            }
+          if (item.created) {
+            // Convert to timestamp
+            item.created = item.created.getTime();
+            // This is a new item.
+            item.isnew = item.created > stamp;
+            // Push to items array.
+            items.push(item);
           }
-        });
+        }
       }
     }
-    else {
-      callback(self);
-    }
-  };
+
+    self.data.channels[channel._id].items = items;
+    return channel.items_added;
+  }
 
   /**
    * TODO

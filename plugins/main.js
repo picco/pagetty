@@ -14,6 +14,7 @@ exports.attach = function (options) {
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
   this.use(require('./notify.js'));
+  this.use(require('./facebook.js'));
   this.use(require('./models/state.js'));
   this.use(require('./models/channel.js'));
   this.use(require('./models/cache.js'));
@@ -244,5 +245,12 @@ exports.attach = function (options) {
 
     tidy.stdin.write(html);
     tidy.stdin.end();
+  }
+
+  /**
+   * A more convenient forEach implementation.
+   */
+  this.forEach = function(collection, iterator, callback) {
+    async.forEach(collection, iterator, callback);
   }
 }

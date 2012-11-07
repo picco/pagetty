@@ -25,6 +25,7 @@ exports.attach = function(options) {
     var self = this;
     var channel = false;
     var urlComponents = uri.parse(url);
+    var type = null;
 
     async.series([
       // Check that the URL is valid.
@@ -40,6 +41,23 @@ exports.attach = function(options) {
         }
         next();
       },
+      // Check that the channel actually returns some data and detect if HTML or RSS feed.
+      function(next) {
+        app.fetch({url: url, evaluateScripts: false, useCache: true}, function(err, buffer) {
+          var content = buffer.toString();
+
+          if (err) {
+            next(err);
+          }
+          else if (!content.length) {
+            next('Could not fetch content.');
+          }
+          else {
+            type = content.indexOf('<?xml') < 10 ? 'rss' : 'html';
+            next();
+          }
+        });
+      },
       // Check that the channel exists and create it if necessary.
       function(next) {
         app.channel.findOne({url: url}, function(err, doc) {
@@ -48,7 +66,7 @@ exports.attach = function(options) {
             next();
           }
           else {
-            channel = new app.channel({url: url, domain: urlComponents.hostname});
+            channel = new app.channel({type: type, url: url, domain: urlComponents.hostname});
             channel.save(function(err) {
               next(err);
             });
@@ -80,6 +98,19 @@ exports.attach = function(options) {
       function(next) {
         channel.updateSubscriberCount(function(err) {
           err ? next("Could not increment subscribers.") : next();
+        });
+      },
+      // Rerfresh the user's state so that the new channel would be added.
+      function(next) {
+        app.state.findOne({user: self._id}, function(err, state) {
+          if (err || !state) {
+            next('State cannot be found.')
+          }
+          else {
+            state.refresh(self, channel._id, function(updated_state) {
+              next();
+            });
+          }
         });
       }
     ], function(err) {

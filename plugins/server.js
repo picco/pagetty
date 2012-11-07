@@ -318,7 +318,7 @@ exports.attach = function (options) {
         res.send(err, 400);
       }
       else if (state) {
-        state.refresh(req.session.user, function(refreshed_state) {
+        state.refresh(req.session.user, false, function(refreshed_state) {
           res.json(refreshed_state.data);
         });
       }

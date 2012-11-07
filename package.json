@@ -10,6 +10,7 @@
     "config": "*",
     "connect-mongo": "*",
     "express": "2.x.x",
+    "feedparser": "*",
     "forever": "0.9",
     "gzippo": "*",
     "hogan.js": "*",

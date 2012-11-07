@@ -3,11 +3,13 @@ exports.attach = function(options) {
   var _ = require('underscore');
   var $ = require('cheerio');
   var async = require('async');
+  var feedparser = require('feedparser');
   var mongoose = require('mongoose');
   var parser = require('../../lib/parser.js');
   var profiler = require('../../lib/profiler.js');
 
   var channelSchema = mongoose.Schema({
+    type: String,
     url: {type: String, index: {unique: true}},
     domain: String,
     title: String,
@@ -48,6 +50,11 @@ exports.attach = function(options) {
         });
       },
       function(items, next) {
+        self.fetchSocialData(items, function(items) {
+          next(null, items);
+        });
+      },
+      function(items, next) {
         self.syncItems(items, function(err) {
           next(err);
         });
@@ -67,6 +74,18 @@ exports.attach = function(options) {
    * Fetch fresh items for the given channel.
    */
   channelSchema.methods.fetchItems = function(useCache, callback) {
+    if (this.type == 'rss') {
+      this.fetchRssItems(callback)
+    }
+    else {
+      this.fetchHtmlItems(useCache, callback)
+    }
+  }
+
+  /**
+   * Fetch fresh items for the given channel.
+   */
+  channelSchema.methods.fetchHtmlItems = function(useCache, callback) {
     var self = this, params = [];
 
     async.waterfall([
@@ -89,6 +108,37 @@ exports.attach = function(options) {
       },
     ], function(err) {
       callback(err, params.title, params.items);
+    });
+  }
+
+  /**
+   * Fetch fresh items for the given channel.
+   */
+  channelSchema.methods.fetchRssItems = function(callback) {
+    var self = this;
+
+    feedparser.parseUrl(this.url, function(err, meta, articles) {
+      if (err) {
+        callback(err);
+      } else {
+        parser.processRSS(self.url, articles, function(items) {
+          callback(null, meta.title, items);
+        });
+      }
+    });
+  }
+
+  /**
+   * Gather social media data for given items.
+   */
+  channelSchema.methods.fetchSocialData = function(items, callback) {
+    app.forEach(items, function(item, next) {
+      app.facebook.likes(item.target, function(count) {
+        item.fb_likes = count;
+        next();
+      });
+    }, function() {
+      callback(items);
     });
   }
 
@@ -119,8 +169,12 @@ exports.attach = function(options) {
         if (!exists) {
           tmp_item = new_items[i];
           tmp_item.id = app.createObjectID();
-          tmp_item.created = null;
+          // RSS items have created created value, HTML items don't.
+          tmp_item.created = tmp_item.created || null;
           synced_items.push(tmp_item);
+
+          // Client side update's don't know how to update themselves otherwise.
+          self.items_added = now;
         }
       }
     }
@@ -137,7 +191,6 @@ exports.attach = function(options) {
             if (doc == null) {
               // The item is not found in history, treat as new.
               item.created = now;
-              self.items_added = now;
               var historyRecord = new app.history({channel: self._id, item: item});
               historyRecord.save(function(err) {
                 if (err) console.log("History write failed: " + err);
@@ -146,8 +199,6 @@ exports.attach = function(options) {
             else {
               // The item is present in the history, use the old "created" date.
               item.created = doc.item.created;
-              // Client side update's don't know how to update themselves otherwise.
-              self.items_added = now;
             }
 
             if (++counter == synced_items.length) {
