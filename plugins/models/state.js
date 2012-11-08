@@ -47,6 +47,9 @@ exports.attach = function(options) {
         });
       }
     }
+    else {
+      callback(self);
+    }
   }
 
   stateSchema.methods.refresh = function(user, channel_id, callback) {
