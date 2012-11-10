@@ -4,6 +4,10 @@
     "env": "PROD",
     "crawler": {
       "batchSize": 10
+    },
+    "google": {
+      "clientId": "1042288061895.apps.googleusercontent.com",
+      "clientSecret": "HXLgAqhqHxUQ_dn0R3ucb7F3"
     }
   }
 }

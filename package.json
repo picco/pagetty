@@ -9,6 +9,7 @@
     "cheerio": "*",
     "config": "*",
     "connect-mongo": "*",
+    "everyauth": "*",
     "express": "2.x.x",
     "feedparser": "*",
     "forever": "0.9",

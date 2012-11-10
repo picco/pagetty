@@ -9,18 +9,17 @@
 <div class="hero">
   <div class="frontpage container">
     <div class="row">
-      <div class="span12">
+      <div class="span11">
           <h1 class="heading">Pagetty reader</h1>
           <h2 class="heading">Forget RSS. Discover a totally new kind of news reader.</h2>
           <div class="sign-up">
             <a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>
             <a class="btn btn-large btn-demo" href="/demo">Live Demo</a>
-            <!--Signup is not available, We will launch a public beta at the end of 2012.-->
           </div>
       </div>
-      <div class="span4">
-        <div class="sign-in" style="background: #fff; padding: 20px; border-radius: 5px">
-          <h2>Sign in</h2>
+      <div class="span5">
+        <div class="sign-in" style="background: #fff; padding: 20px 20px 0 20px; border-radius: 5px">
+          <h2 style="margin-bottom: .5em">Sign in</h2>
           <form action="/signin" method="post">
             <label class="ie9">E-mail:</label>
             <input class="mail input-medium" type="email" name="mail" placeholder="E-mail" />
@@ -31,6 +30,10 @@
               <a class="forgot" href="/password">Forgot password?</a>
             </div>
           </form>
+          <h3>Connect with</h3>
+          <a class='zocial facebook' href="/auth/facebook">Facebook</a>
+          <a class='zocial google' href="/auth/google">Google</a>
+          <br/><br/>
         </div>
       </div>
     </div>

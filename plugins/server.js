@@ -5,6 +5,7 @@ exports.attach = function (options) {
   var _ = require('underscore');
   var $ = require('cheerio');
   var async = require('async');
+  var everyauth = require('everyauth');
   var express = require('express');
   var fs = require('fs');
   var gzippo = require('gzippo');
@@ -174,6 +175,43 @@ exports.attach = function (options) {
     cert: fs.readFileSync('./ssl/' + app.conf.domain + '/server.crt')
   });
 
+  everyauth.google
+    .appId(app.conf.google.clientId)
+    .appSecret(app.conf.google.clientSecret)
+    .scope(['https://www.googleapis.com/auth/userinfo.email http://www.google.com/reader/api'])
+    .handleAuthCallbackError(function(req, res) {
+      res.redirect('/');
+    })
+    .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
+      var promise = this.Promise();
+
+      app.user.findOrCreate(userMetadata.email, function (user) {
+        session.user = user;
+        promise.fulfill(user);
+      });
+
+      return promise;
+    })
+    .redirectPath('/');
+
+  everyauth.facebook
+    .appId(app.conf.facebook.clientId)
+    .appSecret(app.conf.facebook.clientSecret)
+    .scope('email')
+    .handleAuthCallbackError(function(req, res) {
+      res.redirect('/');
+    })
+    .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
+      var promise = this.Promise();
+      app.user.findOrCreate(userMetadata.email, function (user) {
+        session.user = user;
+        promise.fulfill(user);
+      });
+
+      return promise;
+    })
+    .redirectPath('/');
+
   // Set up server middleware and configuration.
   server.register('.hulk', hulk);
   server.use(app.middleware.imagecache);
@@ -189,11 +227,17 @@ exports.attach = function (options) {
   server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   server.use(gzippo.compress());
   server.use(server.router);
+  server.use(everyauth.middleware());
 
   server.dynamicHelpers({
     build: function(req, res) {
       return hash('adler32', process.env.BUILD);
     },
+  });
+
+  everyauth.everymodule.userPkey('_id');
+  everyauth.everymodule.findUserById(function (user_id, callback) {
+    app.user.findById(user_id, callback);
   });
 
   /**
@@ -636,10 +680,30 @@ exports.attach = function (options) {
    * Display sign-up form.
    */
   server.get("/account", app.middleware.restricted, function(req, res) {
-    var user = _.clone(req.session.user);
+    res.render('account', {user:  _.clone(req.session.user)});
+  });
 
-    //user.created = user.created.toString('MMMM');
-    res.render('account', {user: user});
+  /**
+   * Update account settings.
+   */
+  server.post("/account", app.middleware.restricted, function(req, res) {
+    var validator = app.getValidator();
+
+    if (req.session.user.pass !== null) validator.check(app.user.hashPassword(req.session.user._id, req.body.existing_pass), 'Existing password is not correct.').equals(req.session.user.pass);
+    validator.check(req.body.pass, 'Password must contain at least 6 characters.').len(6);
+    validator.check(req.body.pass, 'Passwords do not match.').equals(req.body.pass2);
+
+    if (validator.hasErrors()) {
+      res.send(validator.getErrors()[0], 400);
+    }
+    else {
+      req.session.user.pass = app.user.hashPassword(req.session.user._id, req.body.pass);
+      req.session.user.save(function(err) {
+        if (err) throw err;
+        app.notify.onAccountChange(req.session.user);
+        res.send(200);
+      });
+    }
   });
 
   /**
@@ -660,7 +724,7 @@ exports.attach = function (options) {
   });
 
   /**
-   * Display sign-up form.
+   * Handle password reminder form submission.
    */
   server.post('/password', function(req, res) {
     app.user.findOne({mail: req.body.mail}, function(err, user) {
@@ -680,29 +744,6 @@ exports.attach = function (options) {
         res.send(200);
       }
     });
-  });
-
-  /**
-   * Update account settings.
-   */
-  server.post("/account", app.middleware.restricted, function(req, res) {
-    var validator = app.getValidator();
-
-    validator.check(app.user.hashPassword(req.session.user._id, req.body.existing_pass), 'Existing password is not correct.').equals(req.session.user.pass);
-    validator.check(req.body.pass, 'Password must contain at least 6 characters.').len(6);
-    validator.check(req.body.pass, 'Passwords do not match.').equals(req.body.pass2);
-
-    if (validator.hasErrors()) {
-      res.send(validator.getErrors()[0], 400);
-    }
-    else {
-      req.session.user.pass = app.user.hashPassword(req.session.user._id, req.body.pass);
-      req.session.user.save(function(err) {
-        if (err) throw err;
-        app.notify.onAccountChange(req.session.user);
-        res.send(200);
-      });
-    }
   });
 
   /**

@@ -11,6 +11,12 @@
 <div class="page container">
   <div class="row">
     <div class="span10">
+      <h2>Connect with your existing account</h2>
+      <div style="margin-bottom: 2em">
+        <a class='zocial facebook' href="/auth/facebook">Facebook</a>
+        <a class='zocial google' href="/auth/google">Google</a>
+      </div>
+      <h2>Create a new account</h2>
       <div class="messages"></div>
       <form class="signup-form" action="/signup" method="post">
         <label>E-mail: *</label>

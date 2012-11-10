@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap/css/bootstrap.min.css?b={{build}}">
   <link rel="stylesheet" type="text/css" href="/css/style.css?b={{build}}">
+  <link rel="stylesheet" type="text/css" href="/zocial/css/zocial.css?b={{build}}">
   <meta name="description" content="Pagetty is a unique news reader that can follow any webpage. No RSS required." />
   <script type="text/javascript">
     var build = '{{build}}';

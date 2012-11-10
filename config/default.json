@@ -10,6 +10,10 @@
       "domain": "pagetty.com",
       "from": "ivo@pagetty.com",
       "logs": "logs@pagetty.com"
+    },
+    "facebook": {
+      "clientId": "441989802494598",
+      "clientSecret": "6e239f366205b1f622efe10a5f4640b0"
     }
   }
 }
