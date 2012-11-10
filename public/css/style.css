@@ -298,7 +298,7 @@ header .logo {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   box-shadow: 0 0 10px #eee;
-  padding: 120px 0 1px 0;
+  padding: 120px 0 20px 0;
   min-height: 100%;
 }
 .app .runway.with-messages {
@@ -363,9 +363,8 @@ header .logo {
   margin: 0 0 15px 100px;
 }
 .channel .item {
-  border-bottom: 1px solid #eee;
   margin-bottom: 20px;
-  padding: 0 20px 20px 20px;
+  padding: 0 20px;
 }
 .channel .item:last-child {
   border-bottom: none;
@@ -614,6 +613,15 @@ input.item {
   }
   .channel .items {
     padding-top: 15px;
+  }
+  .channel .item {
+    margin-bottom: 10px;
+    padding: 0 10px;
+  }
+  .channel .item-short .title,
+  .channel .item-short .meta{
+    position: relative;
+    left: -10px;
   }
   .channel .item .title .new {
     left: -20px;

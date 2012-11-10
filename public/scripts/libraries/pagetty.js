@@ -342,19 +342,14 @@ define([
       }
     },
     renderItems: function(items) {
-      var html = "", item = {}, j = 0, max_score = 0, max_fb_likes = 0;
+      var html = "", item = {}, j = 0;
 
       items = items.splice(0, 100);
 
       for (var i in items) {
-        if (parseInt(items[i].score) > max_score) max_score = parseInt(items[i].score);
-        if (parseInt(items[i].fb_likes) > max_fb_likes) max_fb_likes = parseInt(items[i].fb_likes);
-      }
-
-      for (var i in items) {
         item = _.clone(items[i]);
 
-        if (!j++ || (max_score > 0 && item.score == max_score) || (max_fb_likes > 0 && item.fb_likes == max_fb_likes)) {
+        if (!j++) {
           item.className = 'item-full item-with-head';
         }
         else {
@@ -477,11 +472,21 @@ define([
     },
     loadImages: function(items) {
       $(items).find(".image").each(function() {
-        var item = this, image = new Image();
+        var container = this, image = new Image(), item = $(container).parent();
+
         image.src = $(this).data("image");
+
         image.onload = function() {
-          $(item).append(image);
+          if (this.width < 140 && $(item).hasClass('item-short')) {
+            $(item).find('.title, .meta').css('margin-left', image.width + 20 + 'px');
+          }
+
+          $(container).append(image);
         };
+
+        image.onerror = function() {
+          $(item).removeClass('item-with-image').addClass('item-without-image');
+        }
       });
     },
     loadMore: function(channel_id, variant) {
