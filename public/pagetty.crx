@@ -1,0 +1,19 @@
+{
+  "name": "Pagetty Reader",
+  "description": "Forget RSS. Discover a totally new kind of news reader.",
+  "version": "1",
+  "app": {
+    "urls": [
+      "https://pagetty.com/"
+    ],
+    "launch": {
+      "web_url": "https://pagetty.com/"
+    }
+  },
+  "icons": {
+    "128": "icon_128.png"
+  },
+  "permissions": [
+    "notifications"
+  ]
+}
