@@ -614,15 +614,6 @@ input.item {
   .channel .items {
     padding-top: 15px;
   }
-  .channel .item {
-    margin-bottom: 10px;
-    padding: 0 10px;
-  }
-  .channel .item-short .title,
-  .channel .item-short .meta{
-    position: relative;
-    left: -10px;
-  }
   .channel .item .title .new {
     left: -20px;
   }
