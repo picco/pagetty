@@ -349,16 +349,10 @@ define([
       for (var i in items) {
         item = _.clone(items[i]);
 
-        if (!j++) {
-          item.className = 'item-full item-with-head';
-        }
-        else {
-          item.className = 'item-short';
-        }
-
         item.stamp = moment(item.created).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
         item.visible = (i <= this.pager) ? true : false;
+        item.className = 'item-short';
         item.className += item.visible ? " show" : " hide";
 
         if (item.isnew) item.className += " new";
@@ -479,6 +473,9 @@ define([
         image.onload = function() {
           if (this.width < 140 && $(item).hasClass('item-short')) {
             $(item).find('.title, .meta').css('margin-left', image.width + 20 + 'px');
+          }
+          else if (this.width >= 538) {
+            $(item).removeClass('item-short').addClass('item-full');
           }
 
           $(container).append(image);
