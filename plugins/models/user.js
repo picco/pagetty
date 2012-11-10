@@ -300,12 +300,12 @@ exports.attach = function(options) {
   userSchema.statics.findOrCreate = function(mail, callback) {
     app.user.findOne({mail: mail}, function(err, user) {
       if (user) {
-        callback(user);
+        callback(null, user);
       }
       else {
         app.user.create({mail: mail, pass: null, subscriptions: {}, created: new Date(), verification: null, verified: true}, function(err, user) {
           app.mail({to: user.mail, subject: 'Welcome to pagetty.com'}, 'signup_auto', {user: user});
-          callback(user);
+          callback(err, user);
         });
       }
     });

@@ -185,9 +185,14 @@ exports.attach = function (options) {
     .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
       var promise = this.Promise();
 
-      app.user.findOrCreate(userMetadata.email, function (user) {
-        session.user = user;
-        promise.fulfill(user);
+      app.user.findOrCreate(userMetadata.email, function (err, user) {
+        if (err) {
+          promise.fail(err);
+        }
+        else {
+          session.user = user;
+          promise.fulfill(user);
+        }
       });
 
       return promise;
@@ -203,9 +208,14 @@ exports.attach = function (options) {
     })
     .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
       var promise = this.Promise();
-      app.user.findOrCreate(userMetadata.email, function (user) {
-        session.user = user;
-        promise.fulfill(user);
+      app.user.findOrCreate(userMetadata.email, function (err, user) {
+        if (err) {
+          promise.fail(err);
+        }
+        else {
+          session.user = user;
+          promise.fulfill(user);
+        }
       });
 
       return promise;
