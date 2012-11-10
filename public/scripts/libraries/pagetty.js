@@ -80,9 +80,6 @@ define([
 
       });
 
-      // Update channel counts.
-      this.updateCounts();
-
       // Auto-update channels.
 
       window.setInterval(function() {
@@ -291,6 +288,7 @@ define([
         }
       });
 
+      self.updateCounts();
       self.showUpdateNotification();
       window.scrollTo(0, 0);
 
@@ -444,7 +442,6 @@ define([
       $.getJSON("/api/state/refresh", function(new_state) {
         self.state = new_state;
         self.hideUpdateNotification();
-        self.updateCounts();
 
         if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
           self.showChannel("all", "time");
