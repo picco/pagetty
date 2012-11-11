@@ -362,8 +362,8 @@ define([
         }
 
         // Reduce long channel names
-        if (item.channel.name.length > 30) {
-          item.channel.name = item.channel.name.substr(0, 30) + "...";
+        if (item.channel.name.length > 20) {
+          item.channel.name = item.channel.name.substr(0, 20) + "...";
         }
 
         html += ich.channelItem(item, true);
