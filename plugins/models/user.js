@@ -27,6 +27,12 @@ exports.attach = function(options) {
     var urlComponents = uri.parse(url);
     var type = null;
 
+    // Add http:// to the URL automatically if missing.
+    if (url.indexOf('http') !== 0) url = 'http://' + url;
+
+    // Always add slash to the end of the address if no query string present.
+    if (url.indexOf('?') == false && url.charAt(url.length - 1) != '/') url += '/';
+
     async.series([
       // Check that the URL is valid.
       function(next) {
