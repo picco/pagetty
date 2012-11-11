@@ -603,19 +603,13 @@ exports.attach = function (options) {
       },
     // Send response.
     ], function(err) {
-      if (err) {
-        res.send(500);
-      }
-      else {
-        params.channel.url_short = params.channel.url.length > 100 ? params.channel.url.substr(0, 100) + '...' : params.channel.url;
-
-        res.render("configure", {
-          channel: params.channel,
-          subscription: req.session.user.subscriptions[params.channel._id],
-          profile: params.profile,
-          rules: params.rules,
-        });
-      }
+      params.channel.url_short = params.channel.url.length > 100 ? params.channel.url.substr(0, 100) + '...' : params.channel.url;
+      res.render("configure", {
+        channel: params.channel,
+        subscription: req.session.user.subscriptions[params.channel._id],
+        profile: params.profile,
+        rules: params.rules,
+      });
     });
 
   });

@@ -59,7 +59,8 @@ exports.attach = function(options) {
             next('Could not fetch content.');
           }
           else {
-            type = content.indexOf('<?xml') < 10 ? 'rss' : 'html';
+            var xml_tag_pos = content.indexOf('<?xml');
+            type = (xml_tag_pos >= 0 && xml_tag_pos < 10) ? 'rss' : 'html';
             next();
           }
         });
