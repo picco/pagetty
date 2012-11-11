@@ -452,6 +452,29 @@ header .logo {
   color: #aaa;
   border-bottom: none !important;
 }
+.channel-side {
+  position: absolute;
+  display: block;
+  top: 89px;
+  left: 568px;
+  border-right: 1px solid #EEE;
+  background: white;
+  padding-right: 3px;
+  z-index: 1;
+}
+.channel-side a {
+  display: block;
+  width: 20px;
+  height: 40px;
+  line-height: 40px;
+  background: #eee;
+  margin: 3px 0;
+  text-align: center;
+}
+.channel-side a:hover {
+  background: #5BB75B;
+  color: white !important;
+}
 
 /* PAGE: FRONT -------------------------------------------------------------- */
 

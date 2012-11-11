@@ -288,6 +288,21 @@ define([
         }
       });
 
+      $(selector + ' .next-channel').on("click", function() {
+        self.openNextChannel.call(self);
+        return false;
+      });
+
+      $(selector + ' .prev-channel').on("click", function() {
+        self.openPrevChannel.call(self);
+        return false;
+      });
+
+      $(selector + ' .up').on("click", function() {
+        window.scrollTo(0, 0);
+        return false;
+      });
+
       self.updateCounts();
       self.showUpdateNotification();
       window.scrollTo(0, 0);
