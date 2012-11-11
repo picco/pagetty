@@ -471,14 +471,18 @@ define([
         image.src = $(this).data("image");
 
         image.onload = function() {
-          if (this.width < 140 && $(item).hasClass('item-short')) {
-            $(item).find('.title, .meta').css('margin-left', image.width + 20 + 'px');
+          if (this.width < 33) {
+            // Do not render small images.
+            $(item).removeClass('item-with-image').addClass('item-without-image');
+            delete image;
           }
           else if (this.width >= 538) {
             $(item).removeClass('item-short').addClass('item-full');
+            $(container).append(image);
           }
-
-          $(container).append(image);
+          else {
+            $(container).append(image);
+          }
         };
 
         image.onerror = function() {

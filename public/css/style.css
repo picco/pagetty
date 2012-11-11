@@ -330,6 +330,9 @@ header .logo {
 .channel div.title a {
   color: #333;
 }
+.channel h2 a {
+  font-size: 21px;
+}
 .channel h1 a:active,
 .channel h2 a:active {
   color: #333 !important;
@@ -429,8 +432,10 @@ header .logo {
 }
 .channel .item-short .image-short {
   float: left;
-  max-width: 140px;
   margin-right: 20px;
+}
+.channel .item-short .image-short img {
+  width: 140px;
 }
 .channel .item-short .image-full {
   display: none;
