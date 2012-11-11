@@ -435,14 +435,14 @@ header .logo {
   margin-right: 20px;
 }
 .channel .item-short .image-short img {
-  width: 140px;
+  width: 180px;
 }
 .channel .item-short .image-full {
   display: none;
 }
 .channel .item-short.item-with-image .title,
 .channel .item-short.item-with-image .meta {
-  margin-left: 160px;
+  margin-left: 200px;
 }
 .channel .item-short.item-with-image .title .new {
   left: -180px;

@@ -471,7 +471,7 @@ define([
         image.src = $(this).data("image");
 
         image.onload = function() {
-          if (this.width < 33) {
+          if (this.width < 120) {
             // Do not render small images.
             $(item).removeClass('item-with-image').addClass('item-without-image');
             delete image;
