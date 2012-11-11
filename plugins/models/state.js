@@ -80,8 +80,6 @@ exports.attach = function(options) {
     if (_.size(channels)) {
       for (var cid in channels) {
         app.channel.findById(cid, function(err, channel) {
-          console.dir(channel);
-          console.dir(err);
           if (err) {
             next(err)
           }

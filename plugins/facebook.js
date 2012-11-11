@@ -12,8 +12,6 @@ exports.attach = function (options) {
     var query_url = 'https://api.facebook.com/method/fql.query?query=select%20%20like_count%20from%20link_stat%20where%20url=%22' + url + '%22&format=json';
 
     request.get({url: query_url, json: true}, function(err, response, body) {
-      console.dir(url);
-      console.dir(body);
       callback((body[0] && body[0].like_count) ? body[0].like_count : null);
     });
   }

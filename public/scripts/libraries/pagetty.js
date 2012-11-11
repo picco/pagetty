@@ -425,6 +425,8 @@ define([
       var self = this;
       var stateData = History.getState().data;
 
+      self.showProgress();
+
       $.getJSON("/api/state/refresh", function(new_state) {
         self.state = new_state;
         self.hideUpdateNotification();
@@ -435,6 +437,8 @@ define([
         else {
           History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
         }
+
+        self.hideProgress();
 
       }).error(function(xhr, status, error) {
         // The session has timed out.

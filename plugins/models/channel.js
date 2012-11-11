@@ -49,11 +49,13 @@ exports.attach = function(options) {
           next(err, items);
         });
       },
+      /*
       function(items, next) {
         self.fetchSocialData(items, function(items) {
           next(null, items);
         });
       },
+      */
       function(items, next) {
         self.syncItems(items, function(err) {
           next(err);
