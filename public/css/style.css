@@ -740,4 +740,7 @@ input.item {
   .channel .item-short.item-with-image .meta {
     margin-left: 0;
   }
+  .channel .item-short.item-with-image .title .new {
+    left: -20px;
+  }
 }
