@@ -1,6 +1,6 @@
-<div class="item item-{{id}} {{className}} clearfix" data-channel="{{channel.id}}" data-item="{{id}}">
+<div class="item item-{{id}} {{className}} clearfix" data-channel="{{channel.id}}" data-item="{{id}}" data-image="{{image_url}}">
   {{#image_url}}
-    <a class="image image-short" target="_blank" href="{{target}}" data-image="{{image_url}}"></a>
+    <a class="image image-short" target="_blank" href="{{target}}"></a>
   {{/image_url}}
   <h2 class="title"><div class="new"></div><a target="_blank" href="{{target}}">{{title}}</a></h2>
   <div class="meta">
@@ -9,6 +9,6 @@
     <abbr class="timeago" title="{{stamp}}"></abbr>
   </div>
   {{#image_url}}
-    <a class="image image-full" target="_blank" href="{{target}}" data-image="{{image_url}}"></a>
+    <a class="image image-full" target="_blank" href="{{target}}"></a>
   {{/image_url}}
 </div>

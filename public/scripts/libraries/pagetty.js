@@ -352,16 +352,13 @@ define([
         item.stamp = moment(item.created).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
         item.visible = (i <= this.pager) ? true : false;
-        item.className = 'item-short';
+        item.className = 'item-short item-without-image';
         item.className += item.visible ? " show" : " hide";
 
         if (item.isnew) item.className += " new";
+
         if (item.id && item.image) {
-          item.className += ' item-with-image';
           item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
-        }
-        else {
-          item.className += ' item-without-image';
         }
 
         // Reduce long channel names
@@ -468,26 +465,22 @@ define([
       $(items).find(".image").each(function() {
         var container = this, image = new Image(), item = $(container).parent();
 
-        image.src = $(this).data("image");
+        image.src = $(item).data("image");
 
         image.onload = function() {
           if (this.width < 120) {
-            // Do not render small images.
-            $(item).removeClass('item-with-image').addClass('item-without-image');
-            delete image;
+            // Leave unrendered.
           }
           else if (this.width >= 538) {
+            $(item).removeClass('item-with-image').addClass('item-without-image');
             $(item).removeClass('item-short').addClass('item-full');
             $(container).append(image);
           }
           else {
+            $(item).removeClass('item-without-image').addClass('item-with-image');
             $(container).append(image);
           }
         };
-
-        image.onerror = function() {
-          $(item).removeClass('item-with-image').addClass('item-without-image');
-        }
       });
     },
     loadMore: function(channel_id, variant) {
