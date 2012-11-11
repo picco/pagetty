@@ -728,3 +728,16 @@ input.item {
     display: none;
   }
 }
+
+@media (max-width: 540px) {
+  .channel .item-short .image-short {
+    display: none;
+  }
+  .channel .item-short .image-full {
+    display: block;
+  }
+  .channel .item-short.item-with-image .title,
+  .channel .item-short.item-with-image .meta {
+    margin-left: 0;
+  }
+}
