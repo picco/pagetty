@@ -5,7 +5,7 @@
   <h2 class="title"><div class="new"></div><a target="_blank" href="{{target}}">{{title}}</a></h2>
   <div class="meta">
     {{#score}}<a class="score" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/score}}
-    <span class="site"><a href="{{channel.url}}" target="_blank" data-channel="{{channel.id}}"><strong>{{channel.name}}</strong></a></span> -
+    {{#channel}}<span class="site"><a href="{{channel.url}}" target="_blank" data-channel="{{channel.id}}"><strong>{{channel.name}}</strong></a></span> - {{/channel}}
     <abbr class="timeago" title="{{stamp}}"></abbr>
   </div>
   {{#image_url}}

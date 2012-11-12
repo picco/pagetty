@@ -165,8 +165,67 @@ define([
       $('.runway .channel').remove();
 
       if (channel_id == "all") {
-        items = self.aggregateAllItems();
-        html = self.renderItems(self.sortItems(items, variant));
+        var html = '';
+        var categories = [];
+
+        for (i in this.state.channels) {
+          var top_items = [];
+          var extra_items = [];
+          var new_count = 0;
+          var new_stamp = 0;
+          var existing_stamp = 0;
+
+          for (j in this.state.channels[i].items) {
+            var item = _.clone(this.state.channels[i].items[j]);
+
+            if (item.isnew) {
+              new_count++;
+
+              if (item.created > new_stamp) {
+                new_stamp = item.created;
+              }
+
+              if (top_items.length < 3) {
+                top_items.push(item);
+              }
+              else {
+                extra_items.push(item);
+              }
+            }
+            else {
+              if (item.created > existing_stamp) {
+                existing_stamp = item.created;
+              }
+
+              extra_items.push(item);
+            }
+          }
+
+          if (top_items.length < 3) {
+            top_items = top_items.concat(extra_items.splice(0, 3 - top_items.length));
+          }
+
+          if (top_items.length) {
+            categories.push({
+              channel_id: this.channels[i]._id,
+              top_items: top_items,
+              extra_items: extra_items,
+              new_count: new_count,
+              new_stamp: new_stamp,
+              existing_stamp: existing_stamp,
+            });
+
+            categories = categories.sort(function(a, b) {
+              return b.new_stamp - a.new_stamp;
+            });
+          }
+        }
+
+        for (i in categories) {
+          html += '<div class="category"><span>' + _.escape(this.user.subscriptions[categories[i].channel_id].name) + '</span></div>';
+          html += self.renderItems(categories[i].top_items);
+          html += '<div class="expand"><a href="#"><i class="icon-download"></i> 3 more new stories</a> <a href="#"><i class="icon-eye-open"></i> Browse channel</a></div>';
+        }
       }
       else {
         if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
@@ -359,8 +418,6 @@ define([
     renderItems: function(items) {
       var html = "", item = {}, j = 0;
 
-      items = items.splice(0, 100);
-
       for (var i in items) {
         item = _.clone(items[i]);
 
@@ -377,7 +434,7 @@ define([
         }
 
         // Reduce long channel names
-        if (item.channel.name.length > 20) {
+        if (item.channel && item.channel.name.length > 20) {
           item.channel.name = item.channel.name.substr(0, 20) + "...";
         }
 
@@ -480,6 +537,18 @@ define([
 
       $('.total-new-count').text(total_new_count ? total_new_count : '');
     },
+    loadMore: function(channel_id, variant) {
+      var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
+
+      if (selection.length) {
+        var slice = selection.slice(0, this.pager + 1);
+
+        self.loadImages(slice);
+        slice.each(function(index, element) {
+          $(this).removeClass("hide").addClass("show");
+        });
+      }
+    },
     loadImages: function(items) {
       $(items).find(".image").each(function() {
         var container = this, image = new Image(), item = $(container).parent();
@@ -502,18 +571,7 @@ define([
         };
       });
     },
-    loadMore: function(channel_id, variant) {
-      var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
 
-      if (selection.length) {
-        var slice = selection.slice(0, this.pager + 1);
-
-        self.loadImages(slice);
-        slice.each(function(index, element) {
-          $(this).removeClass("hide").addClass("show");
-        });
-      }
-    },
     openPrevChannel: function() {
       var prevId = false;
 

@@ -767,3 +767,35 @@ input.item {
     left: -20px;
   }
 }
+
+/* TESTING */
+
+.channel .category {
+  position: relative;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 30px;
+  text-align: left;
+}
+.channel .category span {
+  position: relative;
+  top: 8px;
+  left: 20px;
+  background: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  color: #08c;
+  border-radius: 3px;
+  padding: 5px 10px;
+  text-transform: uppercase;
+}
+.channel .category:first-child {
+  margin-top: -10px;
+}
+.channel .expand {
+  margin: 0 20px 20px 20px;
+}
+.channel .expand a {
+  font-size: 11px;
+  color: #333;
+  margin-right: 1em;
+}
