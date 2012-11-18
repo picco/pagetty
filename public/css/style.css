@@ -376,9 +376,12 @@ header .logo {
 .channel .item.new .new {
   display: block !important;
 }
+.channel .item .image img {
+  margin-top: 10px;
+}
 .channel .item .title {
   position: relative;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .channel .item .title a  {
   display: block;
@@ -403,14 +406,11 @@ header .logo {
 }
 .channel .item .meta {
   color: #999;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
 }
 .channel .item .meta abbr {
   border-bottom: none;
-}
-.channel .item .image-full img {
-  margin-top: 10px;
 }
 .channel .item .score {
   color: #000;
@@ -423,29 +423,6 @@ header .logo {
 }
 .channel .item .score:hover {
   background: #dadada;
-}
-.channel .item-full .image-short {
-  display: none;
-}
-.channel .item-short h2 a {
-  font-size: 21px;
-}
-.channel .item-short .image-short {
-  float: left;
-  margin-right: 20px;
-}
-.channel .item-short .image-short img {
-  width: 180px;
-}
-.channel .item-short .image-full {
-  display: none;
-}
-.channel .item-short.item-with-image .title,
-.channel .item-short.item-with-image .meta {
-  margin-left: 200px;
-}
-.channel .item-short.item-with-image .title .new {
-  left: -220px;
 }
 .new-count {
   font-size: 11px;
@@ -752,18 +729,3 @@ input.item {
   }
 }
 
-@media (max-width: 540px) {
-  .channel .item-short .image-short {
-    display: none;
-  }
-  .channel .item-short .image-full {
-    display: block;
-  }
-  .channel .item-short.item-with-image .title,
-  .channel .item-short.item-with-image .meta {
-    margin-left: 0;
-  }
-  .channel .item-short.item-with-image .title .new {
-    left: -20px;
-  }
-}

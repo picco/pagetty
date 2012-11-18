@@ -1,7 +1,4 @@
 <div class="item item-{{id}} {{className}} clearfix" data-channel="{{channel.id}}" data-item="{{id}}" data-image="{{image_url}}">
-  {{#image_url}}
-    <a class="image image-short" target="_blank" href="{{target}}"></a>
-  {{/image_url}}
   <h2 class="title"><div class="new"></div><a target="_blank" href="{{target}}">{{title}}</a></h2>
   <div class="meta">
     {{#score}}<a class="score" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/score}}
@@ -9,6 +6,6 @@
     <abbr class="timeago" title="{{stamp}}"></abbr>
   </div>
   {{#image_url}}
-    <a class="image image-full" target="_blank" href="{{target}}"></a>
+    <a class="image" target="_blank" href="{{target}}"></a>
   {{/image_url}}
 </div>
