@@ -359,8 +359,6 @@ define([
     renderItems: function(items) {
       var html = "", item = {}, j = 0;
 
-      items = items.splice(0, 100);
-
       for (var i in items) {
         item = _.clone(items[i]);
 
@@ -377,8 +375,8 @@ define([
         }
 
         // Reduce long channel names
-        if (item.channel.name.length > 20) {
-          item.channel.name = item.channel.name.substr(0, 20) + "...";
+        if (item.channel.name.length > 40) {
+          item.channel.name = item.channel.name.substr(0, 40) + "...";
         }
 
         html += ich.channelItem(item, true);
@@ -487,18 +485,8 @@ define([
         image.src = $(item).data("image");
 
         image.onload = function() {
-          if (this.width < 120) {
-            // Leave unrendered.
-          }
-          else if (this.width >= 538) {
-            $(item).removeClass('item-with-image').addClass('item-without-image');
-            $(item).removeClass('item-short').addClass('item-full');
-            $(container).append(image);
-          }
-          else {
-            $(item).removeClass('item-without-image').addClass('item-with-image');
-            $(container).append(image);
-          }
+          $(item).removeClass('item-without-image').addClass('item-with-image');
+          $(container).append(image);
         };
       });
     },
