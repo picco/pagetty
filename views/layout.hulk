@@ -13,6 +13,7 @@
   </script>
   <script src="/scripts/libraries/modernizr.js?b={{build}}"></script>
   <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js?b={{build}}"></script>
+  <script data-main="/scripts/main" src="/jquery-ui/js/jquery-ui.min.js?b={{build}}"></script>
 </head>
 <body class="{{{bodyClass}}}">
   <div class="stripe"></div>

@@ -4,6 +4,8 @@ require.config({
     moment: "libraries/moment.min",
     history: "libraries/jquery.history.min",
     icanhaz: "libraries/icanhaz.min",
+    lazyload: "libraries/jquery.lazyload.min",
+    mobile: "libraries/jquery.mobile.min",
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
     timeago: "libraries/jquery.timeago.min",

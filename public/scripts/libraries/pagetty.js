@@ -3,6 +3,7 @@ define([
   "text!templates/channel.html",
   "text!templates/channel_all.html",
   "underscore",
+  "lazyload",
   "nicescroll",
   "icanhaz",
   "timeago",
@@ -94,12 +95,6 @@ define([
 
       // Load more on scroll.
 
-      $(window).scroll(function() {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
-          self.loadMore(self.activeChannel, self.activeVariant);
-        }
-      });
-
       $(document).keydown(function(e) {
         if (e.ctrlKey == false && e.altKey == false && e.shiftKey == false) {
           if (e.keyCode == 37) {
@@ -113,11 +108,7 @@ define([
         }
       });
 
-      // Run the application.
-      this.runApp();
-    },
-    runApp: function() {
-      var self = this;
+      $(".sortable").sortable();
 
       // Open a requested channel.
 
@@ -205,9 +196,6 @@ define([
       // Time ago.
       $(selector + ' .items abbr.timeago').timeago();
 
-      // Lazy load images.
-      self.loadImages($(selector + " .items .show"));
-
       if (this.state.new_items) {
         $(".app .runway").addClass("with-messages");
       }
@@ -276,16 +264,20 @@ define([
       });
 
       $(selector + " .nav-list .channel a").on("click", function(e) {
+        var cur = this;
+
         e.preventDefault();
 
-        var channel = $(this).data("channel"), variant = $(this).data("variant");
+        self.showProgress(function() {
+          var channel = $(cur).data("channel"), variant = $(cur).data("variant");
 
-        if (self.activeChannel == channel) {
-          self.showChannel(channel, variant);
-        }
-        else {
-          History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        }
+          if (self.activeChannel == channel) {
+            self.showChannel(channel, variant);
+          }
+          else {
+            History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
+          }
+        });
       });
 
       $(selector + ' .next-channel').on("click", function() {
@@ -303,9 +295,13 @@ define([
         return false;
       });
 
+      $(selector + ' .image img').lazyload({threshold : 800});
+
       self.updateCounts();
       self.showUpdateNotification();
       window.scrollTo(0, 0);
+
+      this.hideProgress();
 
       return false;
     },
@@ -364,11 +360,8 @@ define([
 
         item.stamp = moment(item.created).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
-        item.visible = (i <= this.pager) ? true : false;
-        item.className = 'item-short item-without-image';
-        item.className += item.visible ? " show" : " hide";
 
-        if (item.isnew) item.className += " new";
+        if (item.isnew) item.className = "new";
 
         if (item.id && item.image) {
           item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
@@ -438,24 +431,22 @@ define([
       var self = this;
       var stateData = History.getState().data;
 
-      self.showProgress();
+      this.showProgress(function() {
+        $.getJSON("/api/state/refresh", function(new_state) {
+          self.state = new_state;
+          self.hideUpdateNotification();
 
-      $.getJSON("/api/state/refresh", function(new_state) {
-        self.state = new_state;
-        self.hideUpdateNotification();
+          if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
+            self.showChannel("all", "time");
+          }
+          else {
+            History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
+          }
 
-        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
-          self.showChannel("all", "time");
-        }
-        else {
-          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
-        }
-
-        self.hideProgress();
-
-      }).error(function(xhr, status, error) {
-        // The session has timed out.
-        if (xhr.status == 403) window.location.href = '/';
+        }).error(function(xhr, status, error) {
+          // The session has timed out.
+          if (xhr.status == 403) window.location.href = '/';
+        });
       });
     },
     updateCounts: function() {
@@ -477,30 +468,6 @@ define([
       }
 
       $('.total-new-count').text(total_new_count ? total_new_count : '');
-    },
-    loadImages: function(items) {
-      $(items).find(".image").each(function() {
-        var container = this, image = new Image(), item = $(container).parent();
-
-        image.src = $(item).data("image");
-
-        image.onload = function() {
-          $(item).removeClass('item-without-image').addClass('item-with-image');
-          $(container).append(image);
-        };
-      });
-    },
-    loadMore: function(channel_id, variant) {
-      var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
-
-      if (selection.length) {
-        var slice = selection.slice(0, this.pager + 1);
-
-        self.loadImages(slice);
-        slice.each(function(index, element) {
-          $(this).removeClass("hide").addClass("show");
-        });
-      }
     },
     openPrevChannel: function() {
       var prevId = false;
@@ -587,8 +554,9 @@ define([
     clearMessages: function() {
       $(".messages").html("");
     },
-    showProgress: function() {
+    showProgress: function(callback) {
       $('body').css('opacity', '.4');
+      if (callback) window.setTimeout(callback, 50);
     },
     hideProgress: function() {
       $('body').css('opacity', '1');
