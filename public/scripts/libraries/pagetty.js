@@ -295,7 +295,7 @@ define([
         return false;
       });
 
-      $(selector + ' .image img').lazyload({threshold : 800});
+      //$(selector + ' .image img').lazyload({threshold : 800});
 
       self.updateCounts();
       self.showUpdateNotification();
