@@ -14,7 +14,7 @@ define([
     activeChannel: false,
     activeTitle: false,
     activeVariant: false,
-    pager: 9,
+    pager: 19,
     channelNewItemsCount: {},
 
     init: function(user, channels, state) {
@@ -84,7 +84,7 @@ define([
 
       window.setInterval(function() {
         self.updateChannels();
-      }, 20000);
+      }, 60000);
 
       // Sidebar scroll
 
@@ -95,7 +95,8 @@ define([
       // Load more on scroll.
 
       $(window).scroll(function() {
-        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 100) {
+        if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
+          console.dir('Loadmoore');
           self.loadMore(self.activeChannel, self.activeVariant);
         }
       });
