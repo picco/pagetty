@@ -4,6 +4,9 @@ exports.attach = function(options) {
   var $ = require('cheerio');
   var async = require('async');
   var feedparser = require('feedparser');
+  var fs = require('fs');
+  var hash = require('mhash').hash;
+  var im = require('imagemagick');
   var mongoose = require('mongoose');
   var parser = require('../../lib/parser.js');
   var profiler = require('../../lib/profiler.js');
@@ -66,6 +69,11 @@ exports.attach = function(options) {
           console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + self.items.length);
           next(err);
         })
+      },
+      function(next) {
+        self.fetchImages(function() {
+          next();
+        });
       }
     ], function(err) {
       callback(err);
@@ -162,7 +170,9 @@ exports.attach = function(options) {
           if (this.items[j].target == new_items[i].target) {
             exists = true;
             tmp_item = new_items[i];
+            // Preserve id and image_hash values.
             tmp_item.id = this.items[j].id;
+            tmp_item.image_hash = this.items[j].image_hash;
             synced_items.push(tmp_item);
             break;
           }
@@ -216,6 +226,78 @@ exports.attach = function(options) {
           }
         }
       });
+    }
+    else {
+      callback();
+    }
+  }
+
+  /**
+   * TODO
+   */
+  channelSchema.methods.fetchImages = function(callback) {
+    var self = this;
+
+    async.forEach(this.items, function(item, cb) {
+      self.fetchImage(item, function(err) {
+        cb();
+      });
+    }, function(err) {
+      self.markModified('items');
+      self.save(function(err) {
+        callback();
+      });
+    });
+  }
+
+  /**
+   * TODO
+   */
+  channelSchema.methods.fetchImage = function(item, callback) {
+    if (item.image) {
+      if (item.image_hash == hash('adler32', item.image)) {
+        // An up-to-date thumbnail already exists, no need to recreate.
+        callback();
+        return;
+      }
+      else {
+        item.image_hash = hash('adler32', item.image);
+
+        var cache_id = item.id + '-' + item.image_hash;
+        var filename = "./imagecache/" + cache_id + ".jpg";
+
+        app.fetchWithoutCache({url: item.image, evaluateScripts: false}, function(err, buffer) {
+          if (err) {
+            console.log("Error: Original unavailable: " + item.image + " " + item.id);
+            callback("Original unavailable.");
+            return;
+          }
+
+          fs.writeFile(filename, buffer, function (err) {
+            if (err) {
+              console.log("Error: Thumbail write failed: " + filename);
+              callback("Thumbail write failed.");
+              return;
+            }
+
+            var convertStart = new Date().getTime();
+
+            im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata) {
+              if (err) {
+                fs.unlink(filename);
+                console.log("Error: Thumbnail generation failed: " + cache_id + " from: " + url);
+                callback("Error generating thumbnail.");
+                return;
+              }
+              else {
+                console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
+                callback(null);
+                return;
+              }
+            });
+          });
+        });
+      }
     }
     else {
       callback();
