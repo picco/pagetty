@@ -348,14 +348,19 @@ exports.attach = function (options) {
   /**
    * API: Client auto-update call.
    */
-  server.get("/api/state/new", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/new/:stamp", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
       if (err) {
         res.send(err, 400);
       }
       else if (state) {
         state.update(req.session.user, false, function(updated_state) {
-          res.json(updated_state.data);
+          if (updated_state.new_data.stamp == req.params.stamp) {
+            res.send(200);
+          }
+          else {
+            res.json(updated_state.new_data);
+          }
         });
       }
       else {
@@ -367,15 +372,13 @@ exports.attach = function (options) {
   /**
    * API: Get app state.
    */
-  server.post("/api/state/save", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/refresh", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
       if (err || !state) {
         res.send(err, 400);
       }
       else {
-        state.data = req.body.data;
-        state.markModified('data');
-        state.save(function(err) {
+        state.refresh(function() {
           res.send(200);
         });
       }

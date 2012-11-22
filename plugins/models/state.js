@@ -7,7 +7,23 @@ exports.attach = function(options) {
   var stateSchema = mongoose.Schema({
     user: {type: mongoose.Schema.Types.ObjectId, index: {unique: true}},
     data: mongoose.Schema.Types.Mixed,
+    new_data: mongoose.Schema.Types.Mixed,
   });
+
+  /**
+   * Replace the current state with new state.
+   */
+  stateSchema.methods.refresh = function(callback) {
+    this.data = this.new_data;
+    this.new_data = {};
+
+    this.markModified('data');
+    this.markModified('new_data');
+
+    this.save(function(err) {
+      callback();
+    });
+  }
 
   /**
    * TODO
@@ -22,11 +38,18 @@ exports.attach = function(options) {
       // Do not reset if refreshing a single channel.
       if (!channel_id) {
         self.data.stamp = new_stamp;
-        //self.data.new_items = 0;
       }
 
-      callback(self);
+      self.new_data = self.data;
+      self.data = self.current_data;
+      self.markModified('new_data');
+      self.save(function(err) {
+        callback(self);
+      });
     }
+
+    // Save the current state, so it can be restored before save.
+    self.current_data = self.data;
 
     // Reset the new_items counter.
     self.data.new_items = 0;

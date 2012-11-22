@@ -435,10 +435,12 @@ define([
     updateChannels: function() {
       var self = this;
 
-      $.getJSON("/api/state/new", function(state) {
-        self.new_state = state;
-        self.new_all_items = self.aggregateAllItems(self.new_state);
-        self.showUpdateNotification();
+      $.getJSON("/api/state/new/" + (self.new_state ? self.new_state.stamp : 0), function(state) {
+        if (state) {
+          self.new_state = state;
+          self.new_all_items = self.aggregateAllItems(self.new_state);
+          self.showUpdateNotification();
+        }
       }).error(function(xhr, status, error) {
         // The session has timed out.
         if (xhr.status == 403) window.location.href = '/';
@@ -450,7 +452,7 @@ define([
 
       self.showProgress();
 
-      $.ajax("/api/state/save", {type: "POST", data: JSON.stringify({data: self.new_state}), dataType: "json", contentType: "application/json", processData: false});
+      $.get("/api/state/refresh");
 
       self.state = self.new_state;
       self.new_state = null;
