@@ -506,6 +506,7 @@ define([
 
       if (this.activeChannel == this.navigation[0].channel_id) {
         History.pushState({page: "channel", channel: "all", variant: "time"}, null, this.channelUrl("all", "time"));
+        this.adjustChannelNavPos(true);
         return;
       }
 
@@ -515,6 +516,7 @@ define([
         if (id == this.activeChannel) {
           if (prevId) {
             History.pushState({page: "channel", channel: prevId, variant: this.activeVariant}, null, this.channelUrl(prevId, this.activeVariant));
+            this.adjustChannelNavPos(true);
             return;
           }
         }
@@ -523,11 +525,18 @@ define([
         }
       }
     },
+    adjustChannelNavPos: function(back) {
+      var st = $("#channels .list").scrollTop();
+      var inc = $("#channels .list li").first().outerHeight(true) - 1;
+
+      $("#channels .list").scrollTop(back ? st - inc : st + inc);
+    },
     openNextChannel: function() {
       var found = false;
 
       if (this.activeChannel == 'all') {
         History.pushState({page: "channel", channel: this.navigation[0].channel_id, variant: 'original'}, null, this.channelUrl(this.navigation[0].channel_id, 'original'));
+        this.adjustChannelNavPos();
         return;
       }
 
@@ -539,6 +548,7 @@ define([
         }
         else if (found) {
           History.pushState({page: "channel", channel: id, variant: this.activeVariant}, null, this.channelUrl(id, this.activeVariant));
+          this.adjustChannelNavPos();
           return;
         }
       }
