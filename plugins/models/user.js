@@ -31,7 +31,8 @@ exports.attach = function(options) {
     if (url.indexOf('http') !== 0) url = 'http://' + url;
 
     // Always add slash to the end of the address if no query string present.
-    if (url.indexOf('?') == -1 && url.charAt(url.length - 1) != '/') url += '/';
+    // PROBLEM: http://dribbble.com/shots/popular.rss/
+    //if (url.indexOf('?') == -1 && url.charAt(url.length - 1) != '/') url += '/';
 
     async.series([
       // Check that the URL is valid.
@@ -50,18 +51,17 @@ exports.attach = function(options) {
       // Check that the channel actually returns some data and detect if HTML or RSS feed.
       function(next) {
         app.fetch({url: url, evaluateScripts: false, useCache: true}, function(err, buffer) {
-          var content = buffer.toString();
-
           if (err) {
             next(err);
           }
-          else if (!content.length) {
-            next('Could not fetch content.');
-          }
-          else {
+          else if (buffer && buffer.toString().length) {
+            var content = buffer.toString();
             var xml_tag_pos = content.indexOf('<?xml');
             type = (xml_tag_pos >= 0 && xml_tag_pos < 10) ? 'rss' : 'html';
             next();
+          }
+          else {
+            next('Could not fetch content.');
           }
         });
       },

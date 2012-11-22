@@ -10,49 +10,9 @@ exports.attach = function(options) {
   });
 
   /**
-   * Updates the new items count of the user's state.
+   * TODO
    */
-  stateSchema.methods.updateNewItemsCount = function(user, callback) {
-    var self = this;
-    var count = 0;
-    var new_items = 0;
-    var stamp = self.data.stamp || 0;
-
-    if (_.size(user.subscriptions)) {
-      for (var channel_id in user.subscriptions) {
-        app.channel.findById(channel_id, function(err, channel) {
-          if (err) {
-            callback(err);
-            return;
-          }
-          else {
-            if (_.size(channel.items)) {
-              for (var i in _.keys(channel.items)) {
-                if (_.has(channel.items, i)) {
-                  if (channel.items[i].created.getTime() > stamp) new_items++;
-                }
-              }
-            }
-          }
-
-          // Fire callback when finished.
-
-          if (++count >= _.size(user.subscriptions)) {
-            self.data.new_items = new_items;
-            self.markModified('data');
-            self.save(function(err) {
-              callback(self);
-            });
-          }
-        });
-      }
-    }
-    else {
-      callback(self);
-    }
-  }
-
-  stateSchema.methods.refresh = function(user, channel_id, callback) {
+  stateSchema.methods.update = function(user, channel_id, callback) {
     var self = this;
     var channels = {};
     var count = 0;
@@ -62,13 +22,14 @@ exports.attach = function(options) {
       // Do not reset if refreshing a single channel.
       if (!channel_id) {
         self.data.stamp = new_stamp;
-        self.data.new_items = 0;
+        //self.data.new_items = 0;
       }
-      self.markModified('data');
-      self.save(function(err) {
-        callback(self);
-      });
+
+      callback(self);
     }
+
+    // Reset the new_items counter.
+    self.data.new_items = 0;
 
     if (channel_id) {
       channels[channel_id] =  true;
@@ -115,7 +76,7 @@ exports.attach = function(options) {
     // Check that all subscribed channels are present and add if necessary.
 
     if (!this.data.channels[channel._id] || !this.data.channels[channel._id].items) {
-      this.data.channels[channel._id] = {items: _.clone(channel.items) || []};
+      this.data.channels[channel._id] = {items: []};
     }
 
     for (var i in _.keys(channel.items)) {
@@ -151,6 +112,9 @@ exports.attach = function(options) {
             item.isnew = item.created > stamp;
             // Push to items array.
             items.push(item);
+
+            // Increment new items count.
+            self.data.new_items++;
           }
         }
       }
@@ -166,7 +130,7 @@ exports.attach = function(options) {
   stateSchema.statics.generate = function(user, callback) {
     var self = this;
     var count = 0;
-    var state = {user: user._id, data: {channels: {}}};
+    var state = {user: user._id, data: {channels: {}, new_items: 0}};
 
     if (_.size(user.subscriptions)) {
       for (var channel_id in user.subscriptions) {

@@ -49,7 +49,11 @@ exports.attach = function (options) {
         }
         else {
           app.fetchWithoutCache(options, function(err, buffer) {
-            if (buffer.toString().length) {
+            if (err) {
+              console.log('Error: ' + err);
+              callback(err);
+            }
+            else if (buffer.toString().length) {
               app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
                 console.log('Fetched content [cache miss] (cache updated): ' + options.url);
                 if (err) console.log(err);

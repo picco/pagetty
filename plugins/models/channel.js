@@ -285,7 +285,7 @@ exports.attach = function(options) {
             im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata) {
               if (err) {
                 fs.unlink(filename);
-                console.log("Error: Thumbnail generation failed: " + cache_id + " from: " + url);
+                console.log("Error: Thumbnail generation failed: " + cache_id + " from: " + item.image);
                 callback("Error generating thumbnail.");
                 return;
               }

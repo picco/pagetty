@@ -335,9 +335,7 @@ exports.attach = function (options) {
         res.send(err, 400);
       }
       else if (state) {
-        state.updateNewItemsCount(req.session.user, function(updated_state) {
-          res.json(updated_state.data);
-        });
+        res.json(state.data);
       }
       else {
         app.state.generate(req.session.user, function(err, created_state) {
@@ -348,9 +346,46 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Get app state.
+   * API: Client auto-update call.
    */
   server.get("/api/state/new", app.middleware.restricted, function(req, res) {
+    app.state.findOne({user: req.session.user._id}, function(err, state) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else if (state) {
+        state.update(req.session.user, false, function(updated_state) {
+          res.json(updated_state.data);
+        });
+      }
+      else {
+        res.send("State missing.", 400);
+      }
+    });
+  });
+
+  /**
+   * API: Get app state.
+   */
+  server.post("/api/state/save", app.middleware.restricted, function(req, res) {
+    app.state.findOne({user: req.session.user._id}, function(err, state) {
+      if (err || !state) {
+        res.send(err, 400);
+      }
+      else {
+        state.data = req.body.data;
+        state.markModified('data');
+        state.save(function(err) {
+          res.send(200);
+        });
+      }
+    });
+  });
+
+  /**
+   * API: Get app state.
+   */
+  server.get("xxxxxx/api/state/refresh", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
       if (err || !state) {
         res.send(err, 400);
@@ -359,25 +394,6 @@ exports.attach = function (options) {
         state.updateNewItemsCount(req.session.user, function(updated_state) {
           res.json({new_items: updated_state.data.new_items});
         });
-      }
-    });
-  });
-
-  /**
-   * API: Client auto-update call.
-   */
-  server.get("/api/state/refresh", app.middleware.restricted, function(req, res) {
-    app.state.findOne({user: req.session.user._id}, function(err, state) {
-      if (err) {
-        res.send(err, 400);
-      }
-      else if (state) {
-        state.refresh(req.session.user, false, function(refreshed_state) {
-          res.json(refreshed_state.data);
-        });
-      }
-      else {
-        res.send("State missing.", 400);
       }
     });
   });

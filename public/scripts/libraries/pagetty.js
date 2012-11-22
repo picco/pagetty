@@ -26,6 +26,8 @@ define([
       this.channels = channels;
       // State information (news items).
       this.state = state;
+      // New state information.
+      this.new_state = null;
       // Prepared navigation data.
       this.navigation = [];
 
@@ -81,6 +83,8 @@ define([
       });
 
       // Auto-update channels.
+
+      self.updateChannels();
 
       window.setInterval(function() {
         self.updateChannels();
@@ -209,7 +213,7 @@ define([
       // Lazy load images.
       self.loadImages($(selector + " .items .show"));
 
-      if (this.state.new_items) {
+      if (this.new_state && this.new_state.new_items) {
         $(".app .runway").addClass("with-messages");
       }
 
@@ -397,14 +401,14 @@ define([
       return x1 + x2;
     },
     showUpdateNotification: function() {
-      if (this.state.new_items > 0) {
+      if (this.new_state && this.new_state.new_items > 0) {
         $('.app .runway').addClass("with-messages");
-        $('.channel .messages .count').text(this.state.new_items);
-        $('.channel .messages .lbl').text(this.state.new_items == 1 ? 'new story' : 'new stories');
+        $('.channel .messages .count').text(this.new_state.new_items);
+        $('.channel .messages .lbl').text(this.new_state.new_items == 1 ? 'new story' : 'new stories');
         $('.channel .messages').show();
 
         // Mobile.
-        $('.new-items-count').html(this.state.new_items);
+        $('.new-items-count').html(this.new_state.new_items);
         $('.refresh').show();
         this.updateTitle();
       }
@@ -417,8 +421,8 @@ define([
       this.updateTitle();
     },
     updateTitle: function() {
-      if (this.state.new_items) {
-        document.title = "(" + this.state.new_items + ") " + this.activeTitle + " - Pagetty";
+      if (this.new_items && this.new_state.new_items) {
+        document.title = "(" + this.new_state.new_items + ") " + this.activeTitle + " - Pagetty";
       }
       else {
         document.title = this.activeTitle + " - Pagetty";
@@ -428,7 +432,7 @@ define([
       var self = this;
 
       $.getJSON("/api/state/new", function(state) {
-        self.state.new_items = state.new_items;
+        self.new_state = state;
         self.showUpdateNotification();
       }).error(function(xhr, status, error) {
         // The session has timed out.
@@ -441,23 +445,20 @@ define([
 
       self.showProgress();
 
-      $.getJSON("/api/state/refresh", function(new_state) {
-        self.state = new_state;
-        self.hideUpdateNotification();
+      $.ajax("/api/state/save", {type: "POST", data: {data: self.new_state}, dataType: "json"});
 
-        if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
-          self.showChannel("all", "time");
-        }
-        else {
-          History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
-        }
+      self.state = self.new_state;
+      self.new_state = null;
+      self.hideUpdateNotification();
 
-        self.hideProgress();
+      if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
+        self.showChannel("all", "time");
+      }
+      else {
+        History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
+      }
 
-      }).error(function(xhr, status, error) {
-        // The session has timed out.
-        if (xhr.status == 403) window.location.href = '/';
-      });
+      self.hideProgress();
     },
     updateCounts: function() {
       var total_new_count = 0;
