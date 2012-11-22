@@ -30,6 +30,10 @@ define([
       this.new_state = null;
       // Prepared navigation data.
       this.navigation = [];
+      // All items aggregated from current state.
+      this.all_items = [];
+      // All items aggregated from new state.
+      this.new_all_items = [];
 
       // Initialize theme.
       ich.addTemplate("channelItem", channelItemTemplate);
@@ -100,7 +104,6 @@ define([
 
       $(window).scroll(function() {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
-          console.dir('Loadmoore');
           self.loadMore(self.activeChannel, self.activeVariant);
         }
       });
@@ -138,6 +141,8 @@ define([
         }
       }
 
+      this.all_items = self.aggregateAllItems(this.state);
+
       if (channel == "all" || self.channels[channel]) {
         this.showChannel(channel, variant);
       }
@@ -170,8 +175,7 @@ define([
       $('.runway .channel').remove();
 
       if (channel_id == "all") {
-        items = self.aggregateAllItems();
-        html = self.renderItems(self.sortItems(items, variant));
+        html = self.renderItems(self.sortItems(this.all_items, variant));
       }
       else {
         if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
@@ -314,12 +318,12 @@ define([
 
       return false;
     },
-    aggregateAllItems: function() {
+    aggregateAllItems: function(source) {
       var items = [];
 
-      for (i in this.state.channels) {
-        for (j in this.state.channels[i].items) {
-          var item = _.clone(this.state.channels[i].items[j]);
+      for (i in source.channels) {
+        for (j in source.channels[i].items) {
+          var item = _.clone(source.channels[i].items[j]);
           item.channel = {id: this.channels[i]._id, name: this.user.subscriptions[i].name, url: this.channels[i].url};
           items.push(item);
         }
@@ -433,6 +437,7 @@ define([
 
       $.getJSON("/api/state/new", function(state) {
         self.new_state = state;
+        self.new_all_items = self.aggregateAllItems(self.new_state);
         self.showUpdateNotification();
       }).error(function(xhr, status, error) {
         // The session has timed out.
@@ -445,10 +450,13 @@ define([
 
       self.showProgress();
 
-      $.ajax("/api/state/save", {type: "POST", data: {data: self.new_state}, dataType: "json"});
+      $.ajax("/api/state/save", {type: "POST", data: JSON.stringify({data: self.new_state}), dataType: "json", contentType: "application/json", processData: false});
 
       self.state = self.new_state;
       self.new_state = null;
+      self.all_items = self.new_all_items;
+      self.new_all_items = [];
+
       self.hideUpdateNotification();
 
       if (stateData.page == "channel" && stateData.channel == "all" && stateData.variant == "time") {
