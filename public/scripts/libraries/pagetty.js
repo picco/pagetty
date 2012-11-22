@@ -110,8 +110,8 @@ define([
       this.runApp();
 
       // Auto-update channels every minute.
-      window.setTimeout(function() { this.updateChannels(); }, 1000)
-      window.setInterval(function() { this.updateChannels(); }, 60000);
+      window.setTimeout(function() { self.updateChannels(); }, 1000)
+      window.setInterval(function() { self.updateChannels(); }, 60000);
     },
     runApp: function() {
       var self = this;
