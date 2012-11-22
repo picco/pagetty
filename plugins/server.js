@@ -25,7 +25,7 @@ exports.attach = function (options) {
           if (
             req.route.path == '/api/state' ||
             req.route.path == '/api/state/new' ||
-            req.route.path == '/api/state/refresh' ||
+            req.route.path == '/api/state/save' ||
             req.route.path == '/' ||
             req.route.path == '/account' ||
             req.route.path == '/subscribe' ||
