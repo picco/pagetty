@@ -12,7 +12,7 @@ a {
 a:hover {
   text-decoration: none;
 }
-a:focus {
+*:focus {
   outline: none;
 }
 h1 {
@@ -242,6 +242,8 @@ header .logo {
 }
 #channels .list {
   margin-bottom: 10px;
+  max-height: 500px;
+  overflow: hidden;
 }
 #channels .list li.channel-all a {
   border-bottom: 1px solid #eee;
@@ -275,10 +277,6 @@ header .logo {
   top: 0;
   width: 340px;
   height: 100%;
-  padding-right: 6px;
-}
-.app aside:focus {
-  outline: none;
 }
 .app .container {
   display: none;

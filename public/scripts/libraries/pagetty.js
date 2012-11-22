@@ -55,6 +55,14 @@ define([
         $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
+      // Calculate nav height;
+
+      $('#channels .list').css('max-height', ($(window).height() - 140) + 'px');
+
+      $(window).resize(function() {
+        $('#channels .list').css('max-height', ($(window).height() - 140) + 'px');
+      });
+
       $("#channels .nav-list .channel a").on("click", function(e) {
         e.preventDefault();
 
@@ -82,7 +90,7 @@ define([
       // Sidebar scroll
 
       window.setTimeout(function() {
-        $("aside").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
+        $("#channels .list").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fafafa", cursorborder: "none", zindex: 1});
       }, 1000);
 
       // Load more on scroll.
@@ -110,7 +118,7 @@ define([
       this.runApp();
 
       // Auto-update channels every minute.
-      window.setTimeout(function() { self.updateChannels(); }, 1000)
+      window.setTimeout(function() { self.updateChannels(); }, 500)
       window.setInterval(function() { self.updateChannels(); }, 60000);
     },
     runApp: function() {
