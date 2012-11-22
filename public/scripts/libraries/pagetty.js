@@ -14,8 +14,8 @@ define([
     activeChannel: false,
     activeTitle: false,
     activeVariant: false,
+    activeItems: [],
     pager: 19,
-    channelNewItemsCount: {},
 
     init: function(user, channels, state) {
       var self = this;
@@ -55,13 +55,6 @@ define([
         $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
-      $(".btn-subscribe-submit").on("click", self.subscribe);
-      $(".subscribe-url, .subscribe-name").on("keypress", function(e) { if ((e.keyCode || e.which) == 13) self.subscribe(); });
-
-      $('#subscribeModal').on('shown', function () {
-        $('.subscribe-url').focus()
-      })
-
       $("#channels .nav-list .channel a").on("click", function(e) {
         e.preventDefault();
 
@@ -86,14 +79,6 @@ define([
 
       });
 
-      // Auto-update channels.
-
-      self.updateChannels();
-
-      window.setInterval(function() {
-        self.updateChannels();
-      }, 60000);
-
       // Sidebar scroll
 
       window.setTimeout(function() {
@@ -104,7 +89,7 @@ define([
 
       $(window).scroll(function() {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
-          self.loadMore(self.activeChannel, self.activeVariant);
+          self.loadItems(self.activeChannel, self.activeVariant);
         }
       });
 
@@ -123,6 +108,10 @@ define([
 
       // Run the application.
       this.runApp();
+
+      // Auto-update channels every minute.
+      window.setTimeout(function() { this.updateChannels(); }, 1000)
+      window.setInterval(function() { this.updateChannels(); }, 60000);
     },
     runApp: function() {
       var self = this;
@@ -175,7 +164,7 @@ define([
       $('.runway .channel').remove();
 
       if (channel_id == "all") {
-        html = self.renderItems(self.sortItems(this.all_items, variant));
+        this.activeItems = self.sortItems(this.all_items, variant);
       }
       else {
         if (!_.isUndefined(self.state.channels[channel_id]) && $.isArray(self.state.channels[channel_id].items) && self.state.channels[channel_id].items.length) {
@@ -185,37 +174,31 @@ define([
             items[i].channel = {id: channel_id, name: self.user.subscriptions[channel_id].name, url: self.channels[channel_id].url};
           }
 
-          html = self.renderItems(self.sortItems(items, variant));
+          this.activeItems = self.sortItems(items, variant);
         }
       }
 
       if (channel_id == "all") {
         $(".runway .inner").html(ich.channelAll({
-          items: html,
           variant: variant,
           subscription: {name: "All stories"},
           nav: self.navigation,
-          count: items.length,
+          count: this.activeItems.length,
           user: self.user
         }));
       }
       else {
         $(".runway .inner").html(ich.channel({
           channel: self.channels[channel_id],
-          items: html,
           variant: variant,
           subscription: self.user.subscriptions[channel_id],
           nav: self.navigation,
-          count: items.length,
-          user: self.use
+          count: this.activeItems.length,
+          user: self.user
         }));
       }
 
-      // Time ago.
-      $(selector + ' .items abbr.timeago').timeago();
-
-      // Lazy load images.
-      self.loadImages($(selector + " .items .show"));
+      self.loadItems(this.activeChannel, this.activeVariant);
 
       if (this.new_state && this.new_state.new_items) {
         $(".app .runway").addClass("with-messages");
@@ -366,18 +349,16 @@ define([
       }
     },
     renderItems: function(items) {
-      var html = "", item = {}, j = 0;
+      var html = '', item = {}, j = 0;
 
       for (var i in items) {
         item = _.clone(items[i]);
 
         item.stamp = moment(item.created).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
-        item.visible = (i <= this.pager) ? true : false;
-        item.className = 'item-short item-without-image';
-        item.className += item.visible ? " show" : " hide";
+        item.className = 'item-short item-without-image hide';
 
-        if (item.isnew) item.className += " new";
+        if (item.isnew) item.className += ' new';
 
         if (item.id && item.image) {
           item.image_url = '/imagecache/' + item.id + '-' + item.image_hash + '.jpg';
@@ -385,7 +366,7 @@ define([
 
         // Reduce long channel names
         if (item.channel.name.length > 40) {
-          item.channel.name = item.channel.name.substr(0, 40) + "...";
+          item.channel.name = item.channel.name.substr(0, 40) + '...';
         }
 
         html += ich.channelItem(item, true);
@@ -490,27 +471,25 @@ define([
 
       $('.total-new-count').text(total_new_count ? total_new_count : '');
     },
-    loadImages: function(items) {
-      $(items).find(".image").each(function() {
-        var container = this, image = new Image(), item = $(container).parent();
+    loadItems: function(channel_id, variant) {
+      var self = this;
+      var items = this.activeItems.splice(0, this.pager + 1);
 
-        image.src = $(item).data("image");
+      if (items.length) {
+        $(".runway .channel .items").append(this.renderItems(items));
+        var selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
 
-        image.onload = function() {
-          $(item).removeClass('item-without-image').addClass('item-with-image');
-          $(container).append(image);
-        };
-      });
-    },
-    loadMore: function(channel_id, variant) {
-      var self = this, selection = $(".channel-" + channel_id + "-" + variant + " .items .hide");
+        $(selection).removeClass("hide").addClass("show");
+        $(selection).find('abbr.timeago').timeago();
+        $(selection).find(".image").each(function() {
+          var container = this, image = new Image(), item = $(container).parent();
 
-      if (selection.length) {
-        var slice = selection.slice(0, this.pager + 1);
+          image.src = $(item).data("image");
 
-        self.loadImages(slice);
-        slice.each(function(index, element) {
-          $(this).removeClass("hide").addClass("show");
+          image.onload = function() {
+            $(item).removeClass('item-without-image').addClass('item-with-image');
+            $(container).append(image);
+          };
         });
       }
     },
@@ -568,19 +547,6 @@ define([
       else {
         return "/channel/" + channelId + ((!variant || variant == "original") ? "" : ("/" + variant));
       }
-    },
-    subscribe: function() {
-      $.ajax("/subscribe", {
-        type: "POST",
-        data: {url: $(".subscribe-url").val(), name: $(".subscribe-name").val()},
-        dataType: "json",
-        success: function(data) {
-          window.location = data.item_count ? ("/channel/" + data.channel_id) : ("/channel/" + data.channel_id + "/configure?empty");
-        },
-        error: function(xhr, status, error) {
-          Pagetty.error(xhr.responseText, 'subscribe-messages');
-        }
-      });
     },
     success: function(text, container) {
       var selector = "." + (container ? container : "messages");
