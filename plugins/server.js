@@ -388,14 +388,14 @@ exports.attach = function (options) {
   /**
    * API: Get app state.
    */
-  server.get("xxxxxx/api/state/refresh", app.middleware.restricted, function(req, res) {
+  server.get("/api/state/reset", app.middleware.restricted, function(req, res) {
     app.state.findOne({user: req.session.user._id}, function(err, state) {
-      if (err || !state) {
+      if (err) {
         res.send(err, 400);
       }
       else {
-        state.updateNewItemsCount(req.session.user, function(updated_state) {
-          res.json({new_items: updated_state.data.new_items});
+        state.reset(function() {
+          res.json(state);
         });
       }
     });

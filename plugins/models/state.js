@@ -14,7 +14,7 @@ exports.attach = function(options) {
    * Replace the current state with new state.
    */
   stateSchema.methods.refresh = function(callback) {
-    this.data = this.new_data;
+    this.data = _.clone(this.new_data);
     this.new_data = {};
 
     this.markModified('data');
@@ -49,7 +49,7 @@ exports.attach = function(options) {
     }
 
     // Save the current state, so it can be restored before save.
-    self.current_data = self.data;
+    self.current_data = _.clone(self.data);
 
     // Reset the new_items counter.
     self.data.new_items = 0;
@@ -145,6 +145,16 @@ exports.attach = function(options) {
 
     self.data.channels[channel._id].items = items;
     return channel.items_added;
+  }
+
+  /**
+   * TODO
+   */
+  stateSchema.methods.reset = function(callback) {
+    this.data = {channels: {}, new_items: 0}
+    this.save(function() {
+      callback();
+    });
   }
 
   /**

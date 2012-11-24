@@ -19,7 +19,7 @@ define([
 
     init: function(user, channels, state) {
       var self = this;
-
+console.dir(state);
       // User information.
       this.user = user;
       // Channel information.
