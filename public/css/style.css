@@ -275,7 +275,7 @@ header .logo {
 .app aside {
   position: fixed;
   top: 0;
-  width: 340px;
+  width: 280px;
   height: 100%;
 }
 .app .container {
@@ -296,7 +296,7 @@ header .logo {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   box-shadow: 0 0 10px #eee;
-  padding: 120px 0 20px 0;
+  padding: 110px 0 20px 0;
   min-height: 100%;
 }
 .app .runway.with-messages {
@@ -321,7 +321,7 @@ header .logo {
 }
 .channel div.title h1 {
   line-height: 36px;
-  margin: 6px 0 6px 100px;
+  margin: 6px 0 6px 0;
   height: 40px;
   overflow: hidden;
 }
@@ -361,7 +361,7 @@ header .logo {
   background: #bfe1f2;
 }
 .channel .variants {
-  margin: 0 0 15px 100px;
+  margin: 0 0 15px 0;
 }
 .channel .item {
   margin-bottom: 20px;
@@ -430,20 +430,20 @@ header .logo {
 .channel-side {
   position: absolute;
   display: block;
-  top: 89px;
-  left: 568px;
-  border-right: 1px solid #EEE;
-  background: white;
-  padding-right: 3px;
-  z-index: 1;
+  top: 32px;
+  left: 599px;
+  width: 40px;
 }
 .channel-side a {
   display: block;
-  width: 20px;
-  height: 40px;
-  line-height: 40px;
+  width: 40px;
+  height: 80px;
+  line-height: 80px;
+  font-size: 20px;
+  font-weight: normal;
   background: #eee;
-  margin: 3px 0;
+  border-radius: 3px;
+  margin: 0 0 10px 0;
   text-align: center;
 }
 .channel-side a:hover {
