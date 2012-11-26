@@ -51,8 +51,11 @@ define([
         return ( ( x == y ) ? 0 : ( ( x > y ) ? 1 : -1 ) );
       });
 
+      var domain = null;
+
       for (var i in this.navigation) {
-        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
+        domain = this.channels[this.navigation[i].channel_id].domain;
+        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a style="background-image: url(http://s2.googleusercontent.com/s2/favicons?domain=' + escape(domain) + ')" href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
       // Calculate nav height;
@@ -213,10 +216,6 @@ define([
       }
 
       self.loadItems(this.activeChannel, this.activeVariant);
-
-      if (this.new_state && this.new_state.new_items) {
-        $(".app .runway").addClass("with-messages");
-      }
 
       // Add active classes to channel navigation links.
 
@@ -407,7 +406,6 @@ define([
       }
     },
     hideUpdateNotification: function() {
-      $(".app .runway").removeClass("with-messages");
       $(".new-stories").hide();
       $('.channel .refresh').hide();
 

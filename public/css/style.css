@@ -181,7 +181,7 @@ header .logo {
   opacity: .5;
 }
 .nav-list > li > a {
-  padding: 8px 15px !important;
+  padding: 8px 15px 8px 40px !important;
 }
 .nav-list > .active > a, .nav-list > .active > a:hover {
   color: white !important;
@@ -248,11 +248,13 @@ header .logo {
 #channels .list li.channel-all a {
 }
 #channels .list a {
+  background-repeat: no-repeat;
+  background-position: 15px center;
   padding-right: 20px !important;
 }
 #channels .list a:active {
   text-shadow: none;
-  background: #ddd;
+  background-color: #ddd;
 }
 .touch #channels .list a:active,
 .touch #channels .list a:hover {
