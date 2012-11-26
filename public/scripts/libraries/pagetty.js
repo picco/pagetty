@@ -19,7 +19,7 @@ define([
 
     init: function(user, channels, state) {
       var self = this;
-console.dir(state);
+
       // User information.
       this.user = user;
       // Channel information.
@@ -402,7 +402,8 @@ console.dir(state);
 
         // Mobile.
         $('.new-items-count').html(this.new_state.new_items);
-        $('.refresh').show();
+        $('.channel .refresh').show();
+        $('.channel-side .refresh').addClass('highlighted');
         this.updateTitle();
       }
     },
@@ -410,7 +411,8 @@ console.dir(state);
       this.updateNotificationActive = false;
       $(".app .runway").removeClass("with-messages");
       $(".channel .messages").hide();
-      $('.refresh').hide();
+      $('.channel .refresh').hide();
+      $('.channel-side .refresh').removeClass('highlighted');
       this.updateTitle();
     },
     updateTitle: function() {

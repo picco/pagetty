@@ -26,7 +26,7 @@
     tab_corner_radius:5,
     tab_font_size:20,
     tab_image_hash:'RmVlZGJhY2s%3D',
-    tab_alignment:'right',
+    tab_alignment:'left',
     tab_text_color:'#FFFFFF',
     tab_bg_color:'#23AD43',
     tab_hover_color:'#2BD452'
