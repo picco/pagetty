@@ -299,9 +299,6 @@ header .logo {
   padding: 0 0 20px 0;
   min-height: 100%;
 }
-.app .runway.with-messages {
-  padding-top: 45px;
-}
 .channel div.title {
   background: #fff;
   padding: 10px 0 0 0;
@@ -465,7 +462,7 @@ header .logo {
   background: #5BB75B;
 }
 .channel-side a.highlighted i {
-  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");  
+  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
 }
 .channel-side a * {
   vertical-align: inherit;
