@@ -57,10 +57,8 @@ define([
 
       // Calculate nav height;
 
-      $('#channels .list').css('max-height', ($(window).height() - 140) + 'px');
-
       $(window).resize(function() {
-        $('#channels .list').css('max-height', ($(window).height() - 140) + 'px');
+        self.adjustUI();
       });
 
       $("#channels .nav-list .channel a").on("click", function(e) {
@@ -74,6 +72,13 @@ define([
         else {
           History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
         }
+      });
+
+      // Act on refresh.
+
+      $(".new-stories a, .channel .refresh").on("click", function(e) {
+        self.refreshChannels();
+        e.preventDefault();
       });
 
       // Act on statechange.
@@ -150,6 +155,7 @@ define([
       // Reveal the UI when everything is loaded.
       $(".app-loading").hide();
       $(".app .container").show();
+      self.adjustUI();
     },
     showChannel: function(channel_id, variant) {
       var self = this;
@@ -240,11 +246,6 @@ define([
           History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
           return false;
         }
-      });
-
-      $(selector + " .new-stories, " + selector + " .refresh").on("click", function(e) {
-        self.refreshChannels();
-        e.preventDefault();
       });
 
       $(selector + ' .toggle-channel-nav').on('click', function(e) {
@@ -395,25 +396,23 @@ define([
     },
     showUpdateNotification: function() {
       if (this.new_state && this.new_state.new_items > 0) {
-        $('.app .runway').addClass("with-messages");
-        $('.channel .messages .count').text(this.new_state.new_items);
-        $('.channel .messages .lbl').text(this.new_state.new_items == 1 ? 'new story' : 'new stories');
-        $('.channel .messages').show();
-
-        // Mobile.
+        $('.new-stories .count').text(this.new_state.new_items);
+        $('.new-stories .lbl').text(this.new_state.new_items == 1 ? 'new story' : 'new stories');
+        $('.new-stories').show();
         $('.new-items-count').html(this.new_state.new_items);
         $('.channel .refresh').show();
-        $('.channel-side .refresh').addClass('highlighted');
+
         this.updateTitle();
+        this.adjustUI();
       }
     },
     hideUpdateNotification: function() {
-      this.updateNotificationActive = false;
       $(".app .runway").removeClass("with-messages");
-      $(".channel .messages").hide();
+      $(".new-stories").hide();
       $('.channel .refresh').hide();
-      $('.channel-side .refresh').removeClass('highlighted');
+
       this.updateTitle();
+      this.adjustUI();
     },
     updateTitle: function() {
       if (this.new_items && this.new_state.new_items) {
@@ -526,6 +525,18 @@ define([
           prevId = id;
         }
       }
+    },
+    adjustUI: function() {
+      var wh = $(window).outerHeight();
+      var ah = 33; // #account
+      var chh = $('#channels .header').height();
+      var nsh = $('#channels .new-stories').height();
+console.log(wh);
+console.log(ah);
+console.log(chh);
+console.log(nsh);
+console.log('--');
+      $('#channels .list').css('max-height', (wh - ah - chh - nsh - 40) + 'px');
     },
     adjustChannelNavPos: function(back) {
       var st = $("#channels .list").scrollTop();

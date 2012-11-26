@@ -12,6 +12,7 @@
           <div class="header clearfix">
             <h3>My channels</h3>
             <a href="/subscribe" class="btn btn-small btn-success btn-subscribe"><i class="icon-plus icon-white"></i> Add content</a>
+            <div class="new-stories"><a href="#"><i class="icon-refresh"></i> <span class="count"></span> <span class="lbl"></span>. Click here to update.</a></div>
           </div>
           <ul class="nav nav-list list">
             <li class="channel channel-all"><a href="#" data-channel="all">All stories <span class="new-count total-new-count pull-right"></span></a></li>

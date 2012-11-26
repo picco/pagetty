@@ -229,10 +229,9 @@ header .logo {
 #channels li {
 }
 #channels .header {
-  border-bottom: 1px solid #eee;
   padding: 15px;
 }
-#channels .header a {
+#channels .header .btn {
   float: right;
 }
 #channels .header h3 {
@@ -244,9 +243,9 @@ header .logo {
   margin-bottom: 10px;
   max-height: 500px;
   overflow: hidden;
+  border-top: 1px solid #eee;
 }
 #channels .list li.channel-all a {
-  border-bottom: 1px solid #eee;
 }
 #channels .list a {
   padding-right: 20px !important;
@@ -338,19 +337,20 @@ header .logo {
 .channel .no-items {
   margin: 0 20px 20px 20px;
 }
-.channel .messages {
+.new-stories {
   display: none;
-}
-.channel .new-stories {
-  display: block;
-  background: #D9EDF7;
+  clear: both;
   font-size: 11px;
   text-align: center;
-  border-radius: 3px;
-  margin: 10px 0 10px 0;
-  padding: 8px 6px;
+  padding-top: 15px;
 }
-.channel .new-stories:hover {
+.new-stories a {
+  display: block;
+  background: #D9EDF7;
+  padding: 8px;
+  border-radius: 3px;
+}
+.new-stories a:hover {
   background: #bfe1f2;
 }
 .channel .variants {
