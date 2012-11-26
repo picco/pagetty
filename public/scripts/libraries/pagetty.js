@@ -438,8 +438,6 @@ define([
       var self = this;
       var stateData = History.getState().data;
 
-      self.showProgress();
-
       $.get("/api/state/refresh");
 
       self.state = self.new_state;
@@ -456,7 +454,7 @@ define([
         History.pushState({page: "channel", channel: "all", variant: "time"}, null, self.channelUrl("all", "time"));
       }
 
-      self.hideProgress();
+      $("#channels .list").scrollTop(0);
     },
     updateCounts: function() {
       var total_new_count = 0;
@@ -529,11 +527,7 @@ define([
       var ah = 33; // #account
       var chh = $('#channels .header').height();
       var nsh = $('#channels .new-stories').height();
-console.log(wh);
-console.log(ah);
-console.log(chh);
-console.log(nsh);
-console.log('--');
+
       $('#channels .list').css('max-height', (wh - ah - chh - nsh - 40) + 'px');
     },
     adjustChannelNavPos: function(back) {
