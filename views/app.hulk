@@ -15,7 +15,6 @@
             <div class="new-stories"><a href="#"><i class="icon-refresh"></i> <span class="count"></span> <span class="lbl"></span>. Click here to update.</a></div>
           </div>
           <ul class="nav nav-list list">
-            <li class="channel channel-all"><a href="#" style="background-image: url(http://s2.googleusercontent.com/s2/favicons?domain=pagetty.com)" data-channel="all">All stories <span class="new-count total-new-count pull-right"></span></a></li>
           </ul>
         </div>
       </aside>
@@ -27,9 +26,9 @@
 </div>
 <!-- CONTROLLER -->
 <script type="text/javascript">
-  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/user/channels", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, channels) {
+  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/lists", "json!/api/channels", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, lists, channels) {
     $(document).ready(function() {
-      pagetty.init(user, channels);
+      pagetty.init(user, lists, channels);
     });
   });
 </script>

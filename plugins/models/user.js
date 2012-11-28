@@ -14,6 +14,7 @@ exports.attach = function(options) {
     subscriptions: mongoose.Schema.Types.Mixed,
     high: Date,
     low: Date,
+    default_style: String,
     verification: {type: String, index: true},
     verified: {type: Boolean, index: true},
   }, {
@@ -99,7 +100,7 @@ exports.attach = function(options) {
       },
       // Add channel to user's subscriptions.
       function(next) {
-        self.updateSubscription(channel._id, {name: name}, function(err) {
+        self.updateSubscription(channel._id, {name: name, style: "default"}, function(err) {
           err ? next("Could not update user subscription.") : next();
         });
       },

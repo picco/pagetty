@@ -11,51 +11,64 @@ define([
 ],function(channelItemTemplate, channelTemplate, channelAllTemplate) {
 
   var Pagetty = {
-    activeChannel: false,
-    activeTitle: false,
-    activeVariant: false,
-    activePage: 0,
-    activeExhausted: false,
-    activeLoadInProgress: false,
-    new_items: 0,
-
-    init: function(user, channels) {
+    init: function(user, lists, channels) {
       var self = this;
 
-      // User information.
       this.user = user;
-      // Channel information.
+      this.lists = lists;
       this.channels = channels;
-      // Prepared navigation data.
-      this.navigation = [];
+      this.new_items = 0;
 
-      // Initialize theme.
+      this.activeList = {
+        id: false,
+        name: false,
+        variant: false,
+        page: 0,
+        exhausted: false,
+        load_in_progress: false,
+        style: false,
+        style_class: false,
+      }
+
+      // Initialize templates.
+
       ich.addTemplate("channelItem", channelItemTemplate);
       ich.addTemplate("channel", channelTemplate);
       ich.addTemplate("channelAll", channelAllTemplate);
 
-      // Pagetty
-
-      for (channel_id in this.user.subscriptions) {
-        this.navigation.push({channel_id: channel_id, name: this.user.subscriptions[channel_id].name});
-      }
-
-      this.navigation.sort(function(a, b) {
-        var x = a.name.toLowerCase(), y = b.name.toLowerCase();
-        return ( ( x == y ) ? 0 : ( ( x > y ) ? 1 : -1 ) );
-      });
-
-      var domain = null;
-
-      for (var i in this.navigation) {
-        domain = this.channels[this.navigation[i].channel_id].domain;
-        $("#channels .list").append('<li class="channel channel-' + this.navigation[i].channel_id + '"><a style="background-image: url(http://s2.googleusercontent.com/s2/favicons?domain=' + escape(domain) + ')" href="/channel/' + this.navigation[i].channel_id + '" data-channel="' + this.navigation[i].channel_id + '">' + _.escape(this.navigation[i].name) + ' <span class="new-count pull-right"></span></a></li>');
+      for (var i in this.lists) {
+        $("#channels .list").append('<li class="channel channel-' + this.lists[i]._id + '"><a href="/channel/' + this.lists[i]._id + '" data-channel="' + this.lists[i]._id + '">' + _.escape(this.lists[i].name) + ' <span class="new-count pull-right"></span></a></li>');
       }
 
       // Calculate nav height;
 
       $(window).resize(function() {
         self.adjustUI();
+      });
+
+      // Change channel styles.
+
+      $(document).on("click", ".channel-style", function() {
+        self.activeStyleClass = $(this).data('style');
+        self.activeStyle = self.activeStyleClass == "default" ? self.user.default_style : self.activeStyleClass;
+
+        $('.channel').removeClass('channel-plain channel-small channel-large').addClass('channel-' + self.activeStyle);
+        $('.channel-style').removeClass('active');
+        $(this).addClass('active');
+
+        self.user.subscriptions[self.activeChannel].style = self.activeStyleClass;
+        $.post('/api/channel/style/' + self.activeChannel + '/' + self.activeStyleClass);
+
+        return false;
+      });
+
+      // Variant navigation.
+
+      $(document).on("click", ".variant", function() {
+        var variant = $(this).data("variant");
+
+        History.pushState({page: "channel", channel: self.activeChannel, variant: variant}, null, self.channelUrl(self.activeChannel, variant));
+        return false;
       });
 
       $("#channels .nav-list .channel a").on("click", function(e) {
@@ -155,12 +168,9 @@ define([
       var self = this;
       var items = [];
       var html = "";
-      var selector = "";
       var messages = {};
 
-      if (!variant) {
-        variant = channel_id == "all" ? "time" : "original";
-      }
+      if (!variant) variant = "time";
 
       this.activeChannel = channel_id;
       this.activeVariant = variant;
@@ -169,8 +179,16 @@ define([
       this.activeLoadInProgress = false;
       this.activeTitle = this.activeChannel == "all" ? "All stories" : this.user.subscriptions[channel_id].name;
 
-      // Reusable selector for this channel: .channel-id-variant
-      selector = ".channel-" + channel_id + "-" + variant;
+      // Update style related items.
+
+      if ($.inArray(this.user.subscriptions[this.activeChannel].style, ["plain", "small", "large"]) != -1) {
+        this.activeStyle = this.user.subscriptions[this.activeChannel].style;
+        this.activeStyleClass = this.activeStyle;
+      }
+      else {
+        this.activeStyle = this.user.default_style;
+        this.activeStyleClass = "default";
+      }
 
       $('.runway .channel').remove();
 
@@ -179,7 +197,8 @@ define([
           variant: variant,
           subscription: {name: "All stories"},
           nav: self.navigation,
-          user: self.user
+          user: self.user,
+          style: self.activeStyle
         }));
       }
       else {
@@ -188,9 +207,18 @@ define([
           variant: variant,
           subscription: self.user.subscriptions[channel_id],
           nav: self.navigation,
-          user: self.user
+          user: self.user,
+          style: self.activeStyle
         }));
       }
+
+      // Show the time range selection links only if one of score variants is active.
+
+      if (!this.activeVariant.indexOf("score")) {
+        $(".score-range").show();
+      }
+
+      $('.channel-style-' + this.activeStyleClass).addClass('active');
 
       self.loadItems(this.activeChannel, this.activeVariant);
 
@@ -206,37 +234,29 @@ define([
 
       // Bindings
 
-      $(selector + " a.variant").on("click", function() {
-        var channel = $(this).data("channel"), variant = $(this).data("variant");
-        History.pushState({page: "channel", channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
-        return false;
-      });
-
-      $(selector + " .item .site a").on("click", function(e) {
+      $(".channel .item .site a").on("click", function(e) {
         var channel = $(this).data("channel");
 
         if (self.activeChannel == channel) {
           return true;
         }
         else {
-          History.pushState({page: "channel", channel: channel, variant: 'original'}, null, self.channelUrl(channel, 'original'));
+          History.pushState({page: "channel", channel: channel, variant: 'time'}, null, self.channelUrl(channel, 'time'));
           return false;
         }
       });
 
-      $(selector + ' .toggle-channel-nav').on('click', function(e) {
-        var selector = '.channel-' + self.activeChannel + '-' + self.activeVariant;
-
-        $(selector + ' .channel-nav').addClass('hide');
+      $('.channel .toggle-channel-nav').on('click', function(e) {
+        $('.channel .channel-nav').addClass('hide');
 
         if ($(this).hasClass('open')) {
           $(this).removeClass('open');
-          $(selector + ' .items').removeClass('hide');
+          $('.channel .items').removeClass('hide');
         }
         else {
           $(this).addClass('open');
-          $(selector + ' .items').addClass('hide');
-          $(selector + ' .channel-nav').removeClass('hide');
+          $('.channel .items').addClass('hide');
+          $('.channel .channel-nav').removeClass('hide');
         }
 
         e.preventDefault();
@@ -244,7 +264,7 @@ define([
 
       });
 
-      $(selector + ".app .logo, " + selector + " .app .mobile-logo").on("click", function(e) {
+      $(".channel .app .logo, .channel .app .mobile-logo").on("click", function(e) {
         if (self.activeChannel != 'all') {
           var channel = 'all', variant = 'time';
           History.pushState({page: 'channel', channel: channel, variant: variant}, null, self.channelUrl(channel, variant));
@@ -252,7 +272,7 @@ define([
         }
       });
 
-      $(selector + " .nav-list .channel a").on("click", function(e) {
+      $(".channel .nav-list .channel a").on("click", function(e) {
         e.preventDefault();
 
         var channel = $(this).data("channel"), variant = $(this).data("variant");
@@ -265,17 +285,17 @@ define([
         }
       });
 
-      $(selector + ' .next-channel').on("click", function() {
+      $('.channel .next-channel').on("click", function() {
         self.openNextChannel.call(self);
         return false;
       });
 
-      $(selector + ' .prev-channel').on("click", function() {
+      $('.channel .prev-channel').on("click", function() {
         self.openPrevChannel.call(self);
         return false;
       });
 
-      $(selector + ' .up').on("click", function() {
+      $('.channel .up').on("click", function() {
         window.scrollTo(0, 0);
         return false;
       });
@@ -292,21 +312,20 @@ define([
       for (var i in items) {
         item = _.clone(items[i]);
 
-        item.channel_name = this.user.subscriptions[item.channel_id].name;
-        item.channel_url = this.channels[item.channel_id].url;
+        if (this.activeChannel == "all") {
+          item.channel_name = this.user.subscriptions[item.channel_id].name;
+          item.channel_url = this.channels[item.channel_id].url;
 
-        if (item.channel_name.length > 40) {
-          item.channel_name = item.channel_name.substr(0, 40) + '...';
+          if (item.channel_name.length > 40) {
+            item.channel_name = item.channel_name.substr(0, 40) + '...';
+          }
         }
 
-        item.stamp = moment(item.created).format();
+        item.stamp = moment(item.date).format();
         item.score = parseInt(item.score) ?  this.formatScore(item.score) : false;
-        item.className = 'item-short item-without-image hide';
+        item.className = 'hide';
 
-        console.dir(item.created);
-        console.dir(this.user);
-
-        if (item.created > this.user.low) item.className += ' new';
+        if (item.created >= this.user.low) item.className += ' new';
 
         if (item.image) {
           item.image_url = '/imagecache/' + item._id + '-' + item.image_hash + '.jpg';
@@ -394,7 +413,7 @@ define([
       if (!this.activeExhausted && !this.activeLoadInProgress) {
         this.activeLoadInProgress;
 
-        $.getJSON('/api/items/' + this.activeChannel + '/' + this.activePage).success(function(items) {
+        $.getJSON('/api/items/' + this.activeChannel + '/' + this.activeVariant + '/' + this.activePage).success(function(items) {
           if (items.length) {
             $(".runway .channel .items").append(self.renderItems(items));
             var selection = $(".channel-" + self.activeChannel + "-" + self.activeVariant + " .items .hide");
@@ -464,7 +483,7 @@ define([
       var found = false;
 
       if (this.activeChannel == 'all') {
-        History.pushState({page: "channel", channel: this.navigation[0].channel_id, variant: 'original'}, null, this.channelUrl(this.navigation[0].channel_id, 'original'));
+        History.pushState({page: "channel", channel: this.navigation[0].channel_id, variant: 'time'}, null, this.channelUrl(this.navigation[0].channel_id, 'time'));
         this.adjustChannelNavPos();
         return;
       }
@@ -492,7 +511,7 @@ define([
         }
       }
       else {
-        return "/channel/" + channelId + ((!variant || variant == "original") ? "" : ("/" + variant));
+        return "/channel/" + channelId + ((!variant || variant == "time") ? "" : ("/" + variant));
       }
     },
     success: function(text, container) {

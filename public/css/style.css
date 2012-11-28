@@ -358,37 +358,42 @@ header .logo {
 .channel .variants {
   margin: 0 0 15px 0;
 }
-.channel .item {
+
+.score-range {
+  display: none;
+  margin-top: 10px;
+}
+
+/* CHANNEL ITEM */
+
+.item {
   margin-bottom: 20px;
   padding: 0 20px;
 }
-.channel .item:last-child {
+.item:last-child {
   border-bottom: none;
   margin-bottom: 0;
 }
-.channel .item.new .new {
+.item.new .new {
   display: block !important;
 }
-.channel .item .image img {
-  margin-top: 10px;
-}
-.channel .item .title {
+.item .title {
   position: relative;
   margin-bottom: 8px;
 }
-.channel .item .title a  {
+.item .title a  {
   display: block;
   color: #333;
   line-height: 27px;
   text-rendering: auto !important;
 }
-.channel .item .title a:hover {
+.item .title a:hover {
   color: #00AEEF;
 }
-.channel .item .title a:visited  {
+.item .title a:visited  {
   color: #999;
 }
-.channel .item .title .new {
+.item .title .new {
   display: none;
   position: absolute;
   left: -20px;
@@ -397,15 +402,15 @@ header .logo {
   width: 6px;
   height: 1em;
 }
-.channel .item .meta {
+.item .meta {
   color: #999;
   font-size: 11px;
   text-transform: uppercase;
 }
-.channel .item .meta abbr {
+.item .meta abbr {
   border-bottom: none;
 }
-.channel .item .score {
+.item .action {
   color: #000;
   background: #f1f1f1;
   font-size: 11px;
@@ -414,9 +419,48 @@ header .logo {
   margin-right: 6px;
   padding: 5px 8px;
 }
-.channel .item .score:hover {
+.item .action:hover {
   background: #dadada;
 }
+
+/* SMALL CHANNEL ITEM */
+
+.channel-small .image-small {
+  display: block;
+  float: left;
+  overflow: hidden;
+  margin-right: 20px;
+  width: 150px;
+  max-height: 100px;
+}
+.channel-small .image-small img {
+  width: 150px;
+}
+.channel-small .image-large {
+  display: none;
+}
+.channel-small h2, .channel-small .meta {
+  margin-left: 170px;
+}
+
+/* LARGE CHANNEL ITEM */
+
+.channel-large .image-large {
+  display: block;
+  padding-top: 10px;
+}
+.channel-large .image-small {
+  display: none;
+}
+
+/* PLAIN CHANNEL ITEM */
+
+.channel-plain .image {
+  display: none;
+}
+
+/* *** */
+
 .new-count {
   font-size: 11px;
   color: #aaa;

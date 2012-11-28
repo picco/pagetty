@@ -92,28 +92,21 @@ exports.attach = function (options) {
         fs.readFile(filename, function (err, existing_file) {
           if (err) {
             if (err.code == "ENOENT") {
-              app.channel.findOne({items: {$elemMatch: {id: new mongoose.Types.ObjectId(item_id)}}}, function(err, channel) {
+              app.item.findById(item_id, function(err, item) {
                 if (err) throw err;
 
-                if (channel == null) {
+                if (item == null) {
                   console.log("Cache item not found: " + cache_id);
                   res.writeHead(404);
                   res.end("Cache item not found.");
                   return;
                 }
                 else {
-                  for (var i in channel.items) {
-                    if (channel.items[i].id == item_id) {
-                      var url = channel.items[i].image;
-                      break;
-                    }
-                  }
-
-                  app.fetchWithoutCache({url: url, evaluateScripts: false}, function(err, buffer) {
+                  app.fetchWithoutCache({url: item.image, evaluateScripts: false}, function(err, buffer) {
                     if (err) {
-                      console.log("Original unavailable: " + url + " " + cache_id);
+                      console.log("Original unavailable: " + item.image + " " + cache_id);
                       res.writeHead(404);
-                      res.end("Original unavailable: " + url + " " + cache_id);
+                      res.end("Original unavailable: " + item.image + " " + cache_id);
                       return;
                     }
 
@@ -126,16 +119,16 @@ exports.attach = function (options) {
                         if (err) {
                           fs.unlink(filename);
                           res.writeHead(500);
-                          res.end("Error generating thumbnail " + cache_id + " from: " + url);
-                          console.log("Error generating thumbnail " + cache_id + " from: " + url);
+                          res.end("Error generating thumbnail " + cache_id + " from: " + item.image);
+                          console.log("Error generating thumbnail " + cache_id + " from: " + item.image);
                           return;
                         }
                         else {
-                          console.log("Image at " + url + " conveted in: " + app.timer(convertStart) + "ms");
+                          console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
 
                           fs.readFile(filename, function (err, created_file) {
                             if (err) throw err;
-                            console.log("Serving resized version: " + cache_id + " from: " + url);
+                            console.log("Serving resized version: " + cache_id + " from: " + item.image);
                             res.writeHead(200, headers);
                             res.end(created_file);
                             return;
@@ -275,7 +268,7 @@ exports.attach = function (options) {
    */
   server.get("/", this.renderApp);
   server.get(/^\/channel\/[^\/]+$/, app.middleware.restricted, this.renderApp);
-  server.get(/^\/channel\/[^\/]+\/(time|score)$/, app.middleware.restricted, this.renderApp);
+  server.get(/^\/channel\/[^\/]+\/(time|score)/, app.middleware.restricted, this.renderApp);
 
   /**
    * API: return authenticated user information.
@@ -284,30 +277,30 @@ exports.attach = function (options) {
     res.json({
       _id: req.session.user._id,
       created: req.session.user.created,
+      high: req.session.user.high,
       low: req.session.user.low,
+      default_style: req.session.user.default_style,
       mail: req.session.user.mail,
       subscriptions: req.session.user.subscriptions
     });
   });
 
   /**
-   * API: return subscriptions for the authenticated users.
+   * API: return channel data for the authenticated user.
    */
-  server.get("/api/user/channels", app.middleware.restricted, function(req, res) {
-    var channelsObject = {};
+  server.get("/api/channels", app.middleware.restricted, function(req, res) {
+    // TODO
+    res.json([]);
+  });
 
-    req.session.user.subscribedChannels(function(channels) {
-      // Convert dates to timestamps as dates cause problems with different platforms.
-      for (var i in channels) {
-        delete channels[i].items;
-        channels[i].items_added = channels[i].items_added ? channels[i].items_added.getTime() : null;
-        channels[i].items_updated = channels[i].items_updated ? channels[i].items_updated.getTime() : null;
-
-        // Return an object keyed by channel id instead of plain array.
-        channelsObject[channels[i]._id] = channels[i];
-      }
-
-      res.json(channelsObject);
+  /**
+   * API: Update the style of the channel.
+   */
+  server.post("/api/channel/style/:id/:style", app.middleware.restricted, function(req, res) {
+    req.session.user.subscriptions[req.params.id].style = req.params.style;
+    req.session.user.markModified("subscriptions");
+    req.session.user.save(function(err) {
+      err ? res.send(500) : res.send(200);
     });
   });
 
@@ -328,19 +321,16 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Get all items.
+   * API: Get number of new stories.
    */
-  server.get("/api/items/all/:page", app.middleware.restricted, function(req, res) {
-    var channels = _.keys(req.session.user.subscriptions);
-    var query = {channel_id: {$in: channels}, pos: {$gt: 0}, created: {$lte: req.session.user.high}};
-
-    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort({date: 'desc'}).execFind(function(err, items) {
+  server.get("/api/lists", app.middleware.restricted, function(req, res) {
+    app.list.find({user_id: req.session.user._id}, function(err, lists) {
       if (err) {
         console.log(err);
         res.send(500);
       }
       else {
-        res.json(items);
+        res.json(lists);
       }
     });
   });
@@ -348,10 +338,46 @@ exports.attach = function (options) {
   /**
    * API: Get items.
    */
-  server.get("/api/items/:channel/:page", app.middleware.restricted, function(req, res) {
-    var query = {channel_id: req.params.channel, created: {$lte: req.session.user.high}};
+  server.get("/api/items/:channel/:variant/:page", app.middleware.restricted, function(req, res) {
+    if (req.params.channel == "all") {
+      var channels = _.keys(req.session.user.subscriptions);
+      var query = {channel_id: {$in: channels}, pos: {$gt: 0}, created: {$lte: req.session.user.high}};
+      var sort = {date: 'desc'};
+    }
+    else {
+      var now = new Date();
+      var range = new Date();
+      var query = {channel_id: req.params.channel};
+      var sort = {pos: 'asc'};
 
-    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort('pos').execFind(function(err, items) {
+      switch (req.params.variant) {
+        case "score-current":
+          sort = {score: 'desc'};
+          query.pos = {$gt: 0};
+          break;
+        case "score-day":
+          sort = {score: 'desc'};
+          query.date = {$gte: range.setDate(now.getDate() - 1)};
+          break;
+        case "score-week":
+          sort = {score: 'desc'};
+          query.date = {$gte: range.setDate(now.getDate() - 7)};
+          break;
+        case "score-month":
+          sort = {score: 'desc'};
+          query.date = {$gte: range.setDate(now.getDate() - 30)};
+          break;
+        case "score-year":
+          sort = {score: 'desc'};
+          query.date = {$gte: range.setDate(now.getDate() - 365)};
+          break;
+        case "score-all":
+          sort = {score: 'desc'};
+          break;
+      }
+    }
+
+    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort(sort).execFind(function(err, items) {
       if (err) {
         console.log(err);
         res.send(500);
@@ -384,7 +410,7 @@ exports.attach = function (options) {
    * API: Update item pointers - high, low.
    */
   server.get("/api/update", app.middleware.restricted, function(req, res) {
-    req.session.user.low = req.session.high;
+    req.session.user.low = req.session.user.high;
     req.session.user.high = new Date();
 
     req.session.user.save(function(err) {

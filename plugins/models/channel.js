@@ -44,17 +44,18 @@ exports.attach = function(options) {
    */
   channelSchema.methods.updateItems = function(useCache, callback) {
     var self = this;
+    var date = new Date();
 
     async.waterfall([
       function(next) {
-        self.fetchItems(useCache, function(err, title, items) {
+        self.fetchItems(date, useCache, function(err, title, items) {
           self.title = title;
           next(err, items);
         });
       },
       function(items, next) {
-        self.syncItems(items, function(err) {
-          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + self.items.length);
+        self.syncItems(date, items, function(err) {
+          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + items.length);
           next(err);
         });
       },
@@ -66,19 +67,19 @@ exports.attach = function(options) {
   /**
    * Fetch fresh items for the given channel.
    */
-  channelSchema.methods.fetchItems = function(useCache, callback) {
+  channelSchema.methods.fetchItems = function(date, useCache, callback) {
     if (this.type == 'rss') {
-      this.fetchRssItems(callback)
+      this.fetchRssItems(date, callback)
     }
     else {
-      this.fetchHtmlItems(useCache, callback)
+      this.fetchHtmlItems(date, useCache, callback)
     }
   }
 
   /**
    * Fetch fresh items for the given channel.
    */
-  channelSchema.methods.fetchHtmlItems = function(useCache, callback) {
+  channelSchema.methods.fetchHtmlItems = function(date, useCache, callback) {
     var self = this, params = [];
 
     async.waterfall([
@@ -93,7 +94,7 @@ exports.attach = function(options) {
         });
       },
       function(body, rules, next) {
-        parser.processHTML(self, body, rules, function(title, items) {
+        parser.processHTML(date, self, body, rules, function(title, items) {
           params.title = title;
           params.items = items;
           next();
@@ -107,14 +108,14 @@ exports.attach = function(options) {
   /**
    * Fetch fresh items for the given channel.
    */
-  channelSchema.methods.fetchRssItems = function(callback) {
+  channelSchema.methods.fetchRssItems = function(date, callback) {
     var self = this;
 
     feedparser.parseUrl(this.url, function(err, meta, articles) {
       if (err) {
         callback(err);
       } else {
-        parser.processRSS(self.url, articles, function(items) {
+        parser.processRSS(date, self.url, articles, function(items) {
           callback(null, meta.title, items);
         });
       }
@@ -124,7 +125,7 @@ exports.attach = function(options) {
   /**
    * Update all items for a given channel.
    */
-  channelSchema.methods.syncItems = function(items, callback) {
+  channelSchema.methods.syncItems = function(date, items, callback) {
     var self = this;
 
     // Set the pos attribute to zero so that we can identify current items.
@@ -134,6 +135,9 @@ exports.attach = function(options) {
 
       async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
         if (err) console.log(err);
+
+        // Update the items_updated attribute.
+        self.items_updated = date;
 
         // Save the items_added, items_updated attributes.
         self.save(function(err) {
@@ -149,8 +153,6 @@ exports.attach = function(options) {
    */
   channelSchema.methods.syncItem = function(new_item, callback) {
     var self = this;
-
-    self.items_updated = new_item.created;
 
     app.item.findOne({channel_id: this._id, target: new_item.target}, function(err, current_item) {
       if (err) {
@@ -181,13 +183,15 @@ exports.attach = function(options) {
         new_item.channel_id = self._id;
         new_item.image_hash = hash('adler32', new_item.image);
 
-        app.channel.fetchImage(new_item);
-
         app.item.create(new_item, function(err) {
           if (err) console.log(err);
+
           // When adding new items, the created stamp of this batch needs to be assigned to items_added attribute of the channel.
           self.items_added = new_item.created;
-          callback();
+
+          app.channel.fetchImage(new_item, function() {
+            callback();
+          });
         });
       }
     });
@@ -244,6 +248,7 @@ exports.attach = function(options) {
   channelSchema.methods.createProfile = function(callback) {
     var self = this;
     var profile = {segments: [], content: {}};
+    var date = new Date();
 
     async.waterfall([
       function(next) {
@@ -258,7 +263,7 @@ exports.attach = function(options) {
         });
       },
       function(next) {
-        self.fetchItems(true, function(err, title, items) {
+        self.fetchItems(date, true, function(err, title, items) {
           if (err) {
             next(err);
           }

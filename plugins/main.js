@@ -18,6 +18,7 @@ exports.attach = function (options) {
   this.use(require('./models/state.js'));
   this.use(require('./models/channel.js'));
   this.use(require('./models/item.js'));
+  this.use(require('./models/list.js'));
   this.use(require('./models/cache.js'));
   this.use(require('./models/rule.js'));
   this.use(require('./models/user.js'));
