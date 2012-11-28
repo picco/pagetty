@@ -27,9 +27,9 @@
 </div>
 <!-- CONTROLLER -->
 <script type="text/javascript">
-  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/user/channels", "json!/api/state", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, channels, appState) {
+  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/user/channels", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, channels) {
     $(document).ready(function() {
-      pagetty.init(user, channels, appState);
+      pagetty.init(user, channels);
     });
   });
 </script>

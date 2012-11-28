@@ -284,6 +284,7 @@ exports.attach = function (options) {
     res.json({
       _id: req.session.user._id,
       created: req.session.user.created,
+      low: req.session.user.low,
       mail: req.session.user.mail,
       subscriptions: req.session.user.subscriptions
     });
@@ -327,76 +328,72 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Get app state.
+   * API: Get all items.
    */
-  server.get("/api/state", app.middleware.restricted, function(req, res) {
-    app.state.findOne({user: req.session.user._id}, function(err, state) {
+  server.get("/api/items/all/:page", app.middleware.restricted, function(req, res) {
+    var channels = _.keys(req.session.user.subscriptions);
+    var query = {channel_id: {$in: channels}, pos: {$gt: 0}, created: {$lte: req.session.user.high}};
+
+    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort({date: 'desc'}).execFind(function(err, items) {
       if (err) {
-        res.send(err, 400);
-      }
-      else if (state) {
-        res.json(state.data);
+        console.log(err);
+        res.send(500);
       }
       else {
-        app.state.generate(req.session.user, function(err, created_state) {
-          err ? res.send(err, 400) : res.json(created_state.data);
-        });
+        res.json(items);
       }
     });
   });
 
   /**
-   * API: Client auto-update call.
+   * API: Get items.
    */
-  server.get("/api/state/new/:stamp", app.middleware.restricted, function(req, res) {
-    app.state.findOne({user: req.session.user._id}, function(err, state) {
+  server.get("/api/items/:channel/:page", app.middleware.restricted, function(req, res) {
+    var query = {channel_id: req.params.channel, created: {$lte: req.session.user.high}};
+
+    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort('pos').execFind(function(err, items) {
       if (err) {
-        res.send(err, 400);
-      }
-      else if (state) {
-        state.update(req.session.user, false, function(updated_state) {
-          if (updated_state.new_data.stamp == req.params.stamp) {
-            res.send(200);
-          }
-          else {
-            res.json(updated_state.new_data);
-          }
-        });
+        console.log(err);
+        res.send(500);
       }
       else {
-        res.send("State missing.", 400);
+        res.json(items);
       }
     });
   });
 
   /**
-   * API: Get app state.
+   * API: Get number of new stories.
    */
-  server.get("/api/state/refresh", app.middleware.restricted, function(req, res) {
-    app.state.findOne({user: req.session.user._id}, function(err, state) {
-      if (err || !state) {
-        res.send(err, 400);
+  server.get("/api/items/new", app.middleware.restricted, function(req, res) {
+    var channels = _.keys(req.session.user.subscriptions);
+    var query = {channel_id: {$in: channels}, created: {$gt: req.session.user.high}};
+
+    app.item.count(query, function(err, count) {
+      if (err) {
+        console.log(err);
+        res.send(500);
       }
       else {
-        state.refresh(function() {
-          res.send(200);
-        });
+        res.json({count: count});
       }
     });
   });
 
   /**
-   * API: Get app state.
+   * API: Update item pointers - high, low.
    */
-  server.get("/api/state/reset", app.middleware.restricted, function(req, res) {
-    app.state.findOne({user: req.session.user._id}, function(err, state) {
+  server.get("/api/update", app.middleware.restricted, function(req, res) {
+    req.session.user.low = req.session.high;
+    req.session.user.high = new Date();
+
+    req.session.user.save(function(err) {
       if (err) {
-        res.send(err, 400);
+        console.log(err);
+        res.send(400);
       }
       else {
-        state.reset(function() {
-          res.json(state);
-        });
+        res.send(200);
       }
     });
   });

@@ -12,6 +12,8 @@ exports.attach = function(options) {
     pass: String,
     created: Date,
     subscriptions: mongoose.Schema.Types.Mixed,
+    high: Date,
+    low: Date,
     verification: {type: String, index: true},
     verified: {type: Boolean, index: true},
   }, {
@@ -305,12 +307,14 @@ exports.attach = function(options) {
    * Try to authenticate the user, create an account on the fly if not present.
    */
   userSchema.statics.findOrCreate = function(mail, callback) {
+    var date = new Date();
+
     app.user.findOne({mail: mail}, function(err, user) {
       if (user) {
         callback(null, user);
       }
       else {
-        app.user.create({mail: mail, pass: null, subscriptions: {}, created: new Date(), verification: null, verified: true}, function(err, user) {
+        app.user.create({mail: mail, pass: null, subscriptions: {}, created: date, high: date, low: date, verification: null, verified: true}, function(err, user) {
           app.mail({to: user.mail, subject: 'Welcome to pagetty.com'}, 'signup_auto', {user: user});
           callback(err, user);
         });
@@ -347,9 +351,9 @@ exports.attach = function(options) {
       else {
         var id = new mongoose.Types.ObjectId(id);
         var pass = app.user.hashPassword(id.toString(), data.pass);
-        var created = new Date();
+        var date = new Date();
         var verification = require('crypto').createHash('sha1').update('qwmi39ds' + created.getTime(), 'utf8').digest('hex');
-        var user = new app.user({_id: id, mail: data.mail, pass: pass, subscriptions: {}, created: created, verification: verification, verified: false});
+        var user = new app.user({_id: id, mail: data.mail, pass: pass, subscriptions: {}, created: date, high: date, low: date, verification: verification, verified: false});
 
         user.save(function(err) {
           if (err) {

@@ -52,29 +52,12 @@ exports.attach = function(options) {
           next(err, items);
         });
       },
-      /*
-      function(items, next) {
-        self.fetchSocialData(items, function(items) {
-          next(null, items);
-        });
-      },
-      */
       function(items, next) {
         self.syncItems(items, function(err) {
-          next(err);
-        });
-      },
-      function(next) {
-        self.save(function(err) {
           console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + self.items.length);
           next(err);
-        })
-      },
-      function(next) {
-        self.fetchImages(function() {
-          next();
         });
-      }
+      },
     ], function(err) {
       callback(err);
     });
@@ -110,7 +93,7 @@ exports.attach = function(options) {
         });
       },
       function(body, rules, next) {
-        parser.processHTML(self.url, body, rules, function(title, items) {
+        parser.processHTML(self, body, rules, function(title, items) {
           params.title = title;
           params.items = items;
           next();
@@ -139,165 +122,116 @@ exports.attach = function(options) {
   }
 
   /**
-   * Gather social media data for given items.
+   * Update all items for a given channel.
    */
-  channelSchema.methods.fetchSocialData = function(items, callback) {
-    app.forEach(items, function(item, next) {
-      app.facebook.likes(item.target, function(count) {
-        item.fb_likes = count;
-        next();
+  channelSchema.methods.syncItems = function(items, callback) {
+    var self = this;
+
+    // Set the pos attribute to zero so that we can identify current items.
+    // The pos attribute will be reset for each
+    app.item.update({chanel_id: self._id}, {$set: {pos: 0}}, function(err) {
+      if (err) console.log(err);
+
+      async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
+        if (err) console.log(err);
+
+        // Save the items_added, items_updated attributes.
+        self.save(function(err) {
+          if (err) console.log(err);
+          callback();
+        });
       });
-    }, function() {
-      callback(items);
     });
   }
 
   /**
-   * Update the existing items with new data while preserving existing item id.
+   * Sync a single channel item data.
    */
-  channelSchema.methods.syncItems = function(new_items, callback) {
+  channelSchema.methods.syncItem = function(new_item, callback) {
     var self = this;
-    var counter = 0;
-    var synced_items = [];
-    var tmp_item;
-    var now = new Date();
 
-    if (new_items.length) {
-      for (var i in new_items) {
-        var exists = false;
+    self.items_updated = new_item.created;
 
-        for (var j in this.items) {
-          if (this.items[j].target == new_items[i].target) {
-            exists = true;
-            tmp_item = new_items[i];
-            // Preserve id and image_hash values.
-            tmp_item.id = this.items[j].id;
-            tmp_item.image_hash = this.items[j].image_hash;
-            synced_items.push(tmp_item);
-            break;
-          }
-        }
-
-        if (!exists) {
-          tmp_item = new_items[i];
-          tmp_item.id = app.createObjectID();
-          // RSS items have created created value, HTML items don't.
-          tmp_item.created = tmp_item.created || null;
-          synced_items.push(tmp_item);
-
-          // Client side update's don't know how to update themselves otherwise.
-          self.items_added = now;
-        }
+    app.item.findOne({channel_id: this._id, target: new_item.target}, function(err, current_item) {
+      if (err) {
+        console.log('Error: syncItem() find item query failed.');
       }
-    }
+      else if (current_item) {
+        current_item.title = new_item.title;
+        current_item.target = new_item.target;
+        current_item.image = new_item.image;
+        current_item.image_hash = hash('adler32', new_item.image);
+        current_item.comments = new_item.comments;
+        current_item.score = new_item.score;
+        current_item.relative_score = new_item.relative_score;
+        current_item.rule = new_item.rule;
+        current_item.pos = new_item.pos;
 
-    self.items_updated = now;
-
-    if (synced_items.length) {
-      _.each(synced_items, function(item, key) {
-        if (item.created == null) {
-          // This is new item that's not present in current channel items.
-          app.history.findOne({"item.target": item.target}, function(err, doc) {
-            if (err) throw err;
-
-            if (doc == null) {
-              // The item is not found in history, treat as new.
-              item.created = now;
-              var historyRecord = new app.history({channel: self._id, item: item});
-              historyRecord.save(function(err) {
-                if (err) console.log("History write failed: " + err);
-              });
-            }
-            else {
-              // The item is present in the history, use the old "created" date.
-              item.created = doc.item.created;
-            }
-
-            if (++counter == synced_items.length) {
-              self.items = parser.calculateRelativeScore(synced_items);
-              callback();
-            }
-          });
+        if (new_item.image != current_item.image) {
+          app.channel.fetchImage(current_item);
         }
-        else {
-          if (++counter == synced_items.length) {
-            self.items = parser.calculateRelativeScore(synced_items);
-            callback();
-          }
-        }
-      });
-    }
-    else {
-      callback();
-    }
-  }
 
-  /**
-   * TODO
-   */
-  channelSchema.methods.fetchImages = function(callback) {
-    var self = this;
-
-    async.forEach(this.items, function(item, cb) {
-      self.fetchImage(item, function(err) {
-        cb();
-      });
-    }, function(err) {
-      self.markModified('items');
-      self.save(function(err) {
-        callback();
-      });
-    });
-  }
-
-  /**
-   * TODO
-   */
-  channelSchema.methods.fetchImage = function(item, callback) {
-    if (item.image) {
-      if (item.image_hash == hash('adler32', item.image)) {
-        // An up-to-date thumbnail already exists, no need to recreate.
-        callback();
-        return;
+        current_item.save(function(err) {
+          if (err) console.log(err);
+          callback();
+        });
       }
       else {
-        item.image_hash = hash('adler32', item.image);
+        // Add additional data before saving.
+        new_item.channel_id = self._id;
+        new_item.image_hash = hash('adler32', new_item.image);
 
-        var cache_id = item.id + '-' + item.image_hash;
-        var filename = "./imagecache/" + cache_id + ".jpg";
+        app.channel.fetchImage(new_item);
 
-        app.fetchWithoutCache({url: item.image, evaluateScripts: false}, function(err, buffer) {
+        app.item.create(new_item, function(err) {
+          if (err) console.log(err);
+          // When adding new items, the created stamp of this batch needs to be assigned to items_added attribute of the channel.
+          self.items_added = new_item.created;
+          callback();
+        });
+      }
+    });
+  }
+
+  /**
+   * TODO
+   */
+  channelSchema.statics.fetchImage = function(item, callback) {
+    if (item.image) {
+      var cache_id = item.id + '-' + item.image_hash;
+      var filename = "./imagecache/" + cache_id + ".jpg";
+
+      app.fetchWithoutCache({url: item.image, evaluateScripts: false}, function(err, buffer) {
+        if (err) {
+          console.log("Error: Original unavailable: " + item.image + " " + item.id);
+          callback("Original unavailable.");
+          return;
+        }
+
+        fs.writeFile(filename, buffer, function (err) {
           if (err) {
-            console.log("Error: Original unavailable: " + item.image + " " + item.id);
-            callback("Original unavailable.");
+            console.log("Error: Thumbail write failed: " + filename);
+            callback("Thumbail write failed.");
             return;
           }
 
-          fs.writeFile(filename, buffer, function (err) {
+          var convertStart = new Date().getTime();
+
+          im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata) {
             if (err) {
-              console.log("Error: Thumbail write failed: " + filename);
-              callback("Thumbail write failed.");
+              fs.unlink(filename);
+              console.log("Error: Thumbnail generation failed: " + cache_id + " from: " + item.image);
+              callback("Error generating thumbnail.");
               return;
             }
-
-            var convertStart = new Date().getTime();
-
-            im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata) {
-              if (err) {
-                fs.unlink(filename);
-                console.log("Error: Thumbnail generation failed: " + cache_id + " from: " + item.image);
-                callback("Error generating thumbnail.");
-                return;
-              }
-              else {
-                console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
-                callback(null);
-                return;
-              }
-            });
+            else {
+              console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
+              callback(null);
+              return;
+            }
           });
         });
-      }
+      });
     }
     else {
       callback();
