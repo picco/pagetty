@@ -1,34 +1,33 @@
-<!-- LAYOUT -->
-<img class="app-loading" src="/images/loading.gif" />
-<div class="container clearfix">
-  <div class="row">
-    <div class="sidebar span5">
-      <aside>
-        <div id="account" class="clearfix">
-          <a class="user mail" href="/account"><i class="icon-user"></i> {{user.mail}}</a>
-          <a class="btn-logout" href="/signout" title="Sign out"><i class="icon-off"></i> Sign out</a>
-        </div>
-        <div id="channels">
-          <div class="header clearfix">
-            <h3>My channels</h3>
-            <a href="/subscribe" class="btn btn-small btn-success btn-subscribe"><i class="icon-plus icon-white"></i> Add content</a>
-            <div class="new-stories"><a href="#"><i class="icon-refresh"></i> <span class="count"></span> <span class="lbl"></span>. Click here to update.</a></div>
-          </div>
-          <ul class="nav nav-list list">
-          </ul>
-        </div>
-      </aside>
-      &nbsp;
+<div class="wrapper">
+  <div class="sidebar clearfix">
+    <div class="inner">
+      <div class="header clearfix">
+        <h3 class="pull-left">My feeds</h3>
+        <a href="/subscribe" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
+      </div>
+      <div class="notification"><a href="#"><i class="icon-refresh icon-white"></i> <span class="count">0</span> <span class="text">new stories</span>. Click here to update.</a></div>
+      <nav>
+        <ul>
+          {{#lists}}
+            <li class="list-{{_id}}{{active}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: url({{icon}})">{{name}}</a></li>
+          {{/lists}}
+        </ul>
+      </nav>
     </div>
-    <div class="stage span10"><div class="runway"><div class="inner"></div></div></div>
-    <div class="span1">&nbsp;</div>
   </div>
-</div>
-<!-- CONTROLLER -->
-<script type="text/javascript">
-  require(["/scripts/libraries/pagetty.js?b=" + build, "json!/api/user", "json!/api/lists", "json!/api/channels", "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty, user, lists, channels) {
-    $(document).ready(function() {
-      pagetty.init(user, lists, channels);
+  <div class="controls">
+    <div class="inner">
+      <a class="logout tt" href="/signout" data-placement="left" title="Sign out"><i class="icon-off"></i></a>
+      <a class="user tt" href="/account" data-placement="left" title="My account ({{user.mail}})"><i class="icon-user"></i></a>
+      <a class="tt" data-placement="left" onmouseover="UE.Popin.preload();" title="Give feeedback" href="#" onclick="UE.Popin.show(); return false;"><i class="icon-question-sign"></i></a>
+      <a class="content-width tt" href="#" data-placement="left" title="Resize content area"><i class="icon-resize-horizontal"></i></a>
+    </div>
+  </div>
+  <div class="content">{{> list}}</div>
+  <!-- CONTROLLER -->
+  <script type="text/javascript">
+    require(["/scripts/libraries/pagetty.js?b=" + build, "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty) {
+      pagetty.init({{{list_json}}}, {{{lists_json}}}, "{{{variant}}}", {{{new_count}}});
     });
-  });
-</script>
+  </script>
+</div>

@@ -23,6 +23,10 @@ exports.attach = function (options) {
   this.use(require('./models/rule.js'));
   this.use(require('./models/user.js'));
 
+  this.templates = {
+    list: hogan.compile(fs.readFileSync("views/list.hulk", "utf8")),
+  };
+
   /**
    * Decodes an URL-encoded string.
    * Ref: http://stackoverflow.com/questions/4292914/javascript-url-decode-function

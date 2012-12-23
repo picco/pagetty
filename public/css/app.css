@@ -1,0 +1,347 @@
+
+/* APP ---------------------------------------------------------------------- */
+
+.app {
+  background: #fafafa;
+}
+.app .wrapper {
+  height: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  border-left: 1px solid #eee;
+}
+.app img.u {
+  display: none;
+}
+.app-wide .wrapper {
+  border-left: none !important;
+  max-width: inherit;
+}
+.app-wide img.u {
+  display: inline;
+}
+
+/* SIDEBAR ------------------------------------------------------------------ */
+
+.sidebar {
+  display: none;
+  float: left;
+  width: 280px;
+}
+.sidebar .inner {
+  position: fixed;
+  width: 281px;
+  height: 100%;
+}
+.sidebar .header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+.notification {
+  display: none;
+  margin: 15px;
+  width: 251px;
+  height: 40px;
+  background: #FAA732;
+  text-align: center;
+  border-radius: 3px;
+}
+.notification:hover {
+  opacity: .8;
+}
+.notification a {
+  display: block;
+  font-size: 11px;
+  line-height: 40px;
+  color: #fff;
+}
+nav {
+  margin: 15px 0 15px 0;
+  border-radius: 3px;
+}
+nav ul {
+  margin: 0 0 10px 0;
+  overflow: hidden;
+}
+nav ul a {
+  display: block;
+  background-repeat: no-repeat;
+  background-position: 15px center;
+  padding: 6px 15px 6px 40px;
+}
+nav ul a:active {
+  text-shadow: none;
+  background-color: #ddd;
+}
+nav li.active a {
+  background-color: #00aeef !important;
+  color: white !important;
+}
+
+/* CONTENT ------------------------------------------------------------------ */
+
+.content {
+  margin: 0 80px 0 0;
+  height: 100%;
+}
+
+/* LIST --------------------------------------------------------------------- */
+
+.list {
+  position: relative;
+  background: #fff;
+  border-left: 1px solid #eee;
+  border-right: 1px solid #eee;
+  box-shadow: 0 0 10px #eee;
+  min-height: 100%;
+}
+.list header {
+  border-bottom: 1px solid #eee;
+}
+.list header .inner {
+  margin: 0 20px;
+  padding: 10px 0;
+}
+.list h1 a {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  height: 46px;
+  color: #333;
+  font-weight: bold;
+  line-height: 46px;
+}
+.variants .mini {
+  border-radius: 5px;
+  padding: 3px 6px;
+  color: #333;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.variants .mini:hover {
+  background: #fafafa;
+}
+.variants .dropdown {
+  float: left;
+}
+
+/* ITEMS -------------------------------------------------------------------- */
+
+/* ARTICLE ------------------------------------------------------------------ */
+
+article h2 {
+  position: relative;
+}
+article .inner {
+  padding: 20px 19px 20px 20px;
+}
+article h2 a {
+  display: block;
+  color: #333;
+  font-size: 21px;
+  font-weight: normal;
+  line-height: 27px;
+}
+article h2 a:visited {
+  color: #999;
+}
+article .new {
+  display: none;
+  position: absolute;
+  top: 21px;
+  background: red;
+  width: 6px;
+  height: 24px;
+}
+article.new .new {
+  display: block;
+}
+article .meta {
+  margin-top: 8px;
+  height: 24px;
+  line-height: 24px;
+  vertical-align: middle;
+  color: #999;
+  font-size: 11px;
+  text-transform: uppercase;
+  overflow: hidden;
+}
+article .image {
+  display: block;
+  margin-top: 10px;
+}
+article .action {
+  margin-right: 6px;
+  border-radius: 3px;
+  background: #f1f1f1;
+  padding: 5px 8px;
+  color: black;
+  font-size: 11px;
+  line-height: 11px;
+}
+article .action:hover {
+  background: #dadada;
+}
+article .channel {
+  font-weight: bold;
+}
+article abbr {
+  border: none !important;
+}
+.app-wide article .image {
+  display: block;
+  height: 200px;
+  line-height: 200px;
+  text-align: center;
+  vertical-align: middle;
+}
+.app-wide article .image img {
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* CONTROLS ----------------------------------------------------------------- */
+
+.controls {
+  float: right;
+  margin: 20px 20px 0 0;
+  width: 40px;
+}
+.controls .inner {
+  position: fixed;
+}
+.controls a {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin: 0 0 10px 0;
+  border-radius: 3px;
+  background: #eee;
+  color: #333;
+  font-size: 14px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 40px;
+}
+.controls a:hover {
+  background: #ddd;
+}
+.controls a.active {
+  background: #00AEEF;
+}
+.controls a.active i {
+  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
+}
+.controls a.big {
+  line-height: 80px;
+  height: 80px;
+}
+.controls a.gap {
+  margin-bottom: 60px;
+}
+.controls a.gap2 {
+  margin-bottom: 110px;
+}
+.controls a.highlighted {
+  background: #5BB75B;
+}
+.controls a.highlighted i {
+  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
+}
+
+/* EXPERIMENTAL ------------------------------------------------------------- */
+
+article {
+  position: relative;
+  float: left;
+  border-bottom: 1px solid #eee;
+  width: 100%;
+  box-shadow: inset 0 0 20px 0 white;
+}
+article h2 {
+  overflow: hidden;
+}
+article .inner {
+  overflow: hidden;
+}
+
+/* RESPONSIVE */
+
+@media (min-width: 720px) {
+  .sidebar {
+    display: block;
+  }
+  .content {
+    margin-left: 280px;
+  }
+}
+@media (max-width: 999px) {
+  .app article .image {
+    display: block;
+    height: inherit;
+    line-height: inherit;
+    text-align: inherit;
+    vertical-align: inherit;
+  }
+}
+
+@media (min-width: 1000px) {
+  .app-wide article {
+    width: 50%;
+  }
+  .app-wide article h2 {
+    max-height: 54px;
+    overflow: hidden;
+  }
+  .app-wide article .title {
+    height: 90px;
+  }
+  .app-wide article .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(2n) .inner {
+    border-right: none;
+  }
+}
+@media (min-width: 1320px) {
+  .app-wide article {
+    width: 33.33%;
+  }
+  .app-wide article:nth-child(2n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(3n) .inner {
+    border-right: none;
+  }
+}
+@media (min-width: 1630px) {
+  .app-wide article {
+    width: 25%;
+  }
+  .app-wide article:nth-child(2n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(3n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(4n) .inner {
+    border-right: none;
+  }
+}
+@media (min-width: 1900px) {
+  .app-wide article {
+    width: 20%;
+  }
+  .app-wide article:nth-child(2n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(3n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(4n) .inner {
+    border-right: 1px solid #eee;
+  }
+  .app-wide article:nth-child(5n) .inner {
+    border-right: none;
+  }
+}

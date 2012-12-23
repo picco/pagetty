@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html class="{{{bodyClass}}}">
+<html>
 <head>
   <title>Pagetty</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="/bootstrap/bootstrap/css/bootstrap.min.css?b={{build}}">
   <link rel="stylesheet" type="text/css" href="/css/style.css?b={{build}}">
-  <link rel="stylesheet" type="text/css" href="/zocial/css/zocial.css?b={{build}}">
+  <link rel="stylesheet" type="text/css" href="/css/app.css?b={{build}}">
   <meta name="description" content="Pagetty is a unique news reader that can follow any webpage. No RSS required." />
   <script type="text/javascript">
     var build = '{{build}}';
@@ -14,22 +14,14 @@
   <script src="/scripts/libraries/modernizr.js?b={{build}}"></script>
   <script data-main="/scripts/main" src="/scripts/libraries/require-jquery.js?b={{build}}"></script>
 </head>
-<body class="{{{bodyClass}}}">
-  <div class="stripe"></div>
+<body class="{{app_style}}">
   {{{ body }}}
   <script type='text/javascript'>
-
     var _ues = {
-    host:'pagetty.userecho.com',
-    forum:'12911',
-    lang:'en',
-    tab_corner_radius:5,
-    tab_font_size:20,
-    tab_image_hash:'RmVlZGJhY2s%3D',
-    tab_alignment:'left',
-    tab_text_color:'#FFFFFF',
-    tab_bg_color:'#23AD43',
-    tab_hover_color:'#2BD452'
+      host:'pagetty.userecho.com',
+      forum:'12911',
+      lang:'en',
+      tab_show:false,
     };
 
     (function() {
@@ -37,7 +29,6 @@
         _ue.src = ('https:' == document.location.protocol ? 'https://s3.amazonaws.com/' : 'http://') + 'cdn.userecho.com/js/widget-1.4.gz.js';
         var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(_ue, s);
       })();
-
   </script>
   <script type="text/javascript">
       var _gaq = _gaq || [];

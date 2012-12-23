@@ -1,0 +1,24 @@
+{
+    display: ;    /* Where and how the box is placed */
+    position: ;
+    float: ;
+    clear: ;
+
+    visibility: ; /* Can the box be seen? */
+    opacity: ;
+    z-index: ;
+
+    margin: ;     /* Layers of the box model */
+    outline: ;
+    border: ;
+    background: ;
+    padding: ;
+
+    width: ;      /* Content dimensions and scrollbars */
+    height: ;
+    overflow: ;
+
+    color: ;      /* Text */
+    text: ;
+    line-height: ;
+}

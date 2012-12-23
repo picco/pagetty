@@ -1,0 +1,49 @@
+exports.attach = function(options) {
+  var app = this;
+  var mongoose = require('mongoose');
+
+  var listSchema = mongoose.Schema({
+    user_id: {type: mongoose.Schema.Types.ObjectId, index: true},
+    channel_id: {type: mongoose.Schema.Types.ObjectId, index: true},
+    type: {type: String, index: true},
+    name: String,
+    style: String,
+    weight: Number,
+  });
+
+  /**
+   * Validate the entity before saving.
+   */
+  listSchema.pre("save", function(next) {
+    var validator = app.getValidator();
+
+    validator.check(this.name, "Name must start with a character.").is(/\w+.*/);
+
+    if (validator.hasErrors()) {
+      next(new Error(validator.getErrors()[0]));
+    }
+    else {
+      next();
+    }
+  });
+
+  /**
+   * Prepare list for output.
+   */
+  listSchema.methods.prepare = function(variant) {
+    var variants = {
+      time: "Most recent",
+      day: "Popular today",
+      week: "Popular last week",
+      month: "Popular last month",
+      year: "Popular last year",
+      all: "Most popular of all time",
+    };
+
+    this["variant_name"] = variants[variant];
+    this["active_" + variant] = "active";
+    return this;
+  }
+
+  this.list = app.db.model('List', listSchema, 'lists');
+}

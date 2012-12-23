@@ -14,7 +14,7 @@ exports.attach = function(options) {
     subscriptions: mongoose.Schema.Types.Mixed,
     high: Date,
     low: Date,
-    default_style: String,
+    narrow: Boolean,
     verification: {type: String, index: true},
     verified: {type: Boolean, index: true},
   }, {
@@ -146,17 +146,19 @@ exports.attach = function(options) {
       },
       // Check that the user is not yet subscribed.
       function(next) {
-        if (self.subscriptions[channel._id]) {
-          next("You are already subscribed to this site.");
-        }
-        else {
-          next();
-        }
+        app.list.count({user_id: self._id, channel_id: channel_id}, function(err, count) {
+          if (count) {
+            next("You are already subscribed to this site.");
+          }
+          else {
+            next();
+          }
+        });
       },
-      // Add channel to user's subscriptions.
+      // Create a list for this subscription.
       function(next) {
-        self.updateSubscription(channel._id, {name: channel.title}, function(err) {
-          err ? next("Could not update user subscription.") : next();
+        app.list.create({type: "channel", name: channel.title, user_id: self._id, channel_id: channel_id, weight: null}, function(err) {
+          err ? next("Could not subscribe to this site.") : next();
         });
       },
       // Increment channel's subscribers counter.
@@ -172,65 +174,18 @@ exports.attach = function(options) {
   }
 
   /**
-   * Update the user's subscription information. Currently only name.
-   */
-  userSchema.methods.updateSubscription = function(channel_id, data, callback) {
-    var validator = app.getValidator();
-
-    validator.check(data.name, "Name must start with a character.").is(/\w+.*/);
-
-    if (validator.hasErrors()) {
-      callback(validator.getErrors()[0]);
-    }
-    else {
-      this.subscriptions[channel_id] = data;
-      this.markModified('subscriptions');
-
-      this.save(function(err) {
-        callback(err);
-      });
-    }
-  }
-
-  /**
    * Unsubscribe user from a given channel.
    */
   userSchema.methods.unsubscribe = function(channel_id, callback) {
-    var self = this, channel = false;
+    var self = this;
 
-    async.series([
-      function(next) {
-        app.channel.findById(channel_id, function(err, doc) {
-          channel = doc;
-          next(err);
+    app.list.remove({user_id: self._id, channel_id: channel_id}, function(err) {
+      app.channel.findById(channel_id, function(err, channel) {
+        channel.updateSubscriberCount(function(err) {
+          app.notify.onUnSubscribe(self, channel);
+          callback();
         });
-      },
-      function(next) {
-        app.state.findOne({user: self._id}, function(err, state) {
-          if (err) {
-            next(err);
-          }
-          else if (state) {
-            delete state.data.channels[channel_id];
-            state.markModified('data');
-            state.save(function(err) {
-              next(err);
-            });
-          }
-        });
-      },
-      function(next) {
-        delete self.subscriptions[channel_id];
-        self.markModified('subscriptions');
-        self.save(function(err) {
-          channel.updateSubscriberCount(function(err) {
-            next(err);
-          });
-        });
-      },
-    ], function(err) {
-      app.notify.onUnSubscribe(self, channel);
-      callback(err);
+      });
     });
   }
 

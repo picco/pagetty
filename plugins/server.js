@@ -90,12 +90,12 @@ exports.attach = function (options) {
           };
 
         fs.readFile(filename, function (err, existing_file) {
-          if (err) {
-            if (err.code == "ENOENT") {
+          if (err || 1) {
+            if (1 || err.code == "ENOENT") {
               app.item.findById(item_id, function(err, item) {
                 if (err) throw err;
 
-                if (item == null) {
+                if (item == null && 0) {
                   console.log("Cache item not found: " + cache_id);
                   res.writeHead(404);
                   res.end("Cache item not found.");
@@ -115,7 +115,8 @@ exports.attach = function (options) {
 
                       var convertStart = new Date().getTime();
 
-                      im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
+                      //im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
+                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "400x300>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
                         if (err) {
                           fs.unlink(filename);
                           res.writeHead(500);
@@ -256,7 +257,86 @@ exports.attach = function (options) {
    */
   this.renderApp = function(req, res) {
     if (req.session.user) {
-      res.render("app", {bodyClass: "app", user: req.session.user});
+      var vars = {user: req.session.user, lists_json: {}};
+
+      vars.variant = req.params.variant ? req.params.variant : 'time';
+      vars.app_style = req.session.user.narrow ? "app" : "app app-wide";
+
+      async.series([
+        function(next) {
+          if (req.params.list_id) {
+            app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, list) {
+              if (err) console.log(err);
+              vars.list = list.prepare(vars.variant);
+              vars.list_json = JSON.stringify(list);
+              next();
+            });
+          }
+          else {
+            app.list.findOne({user_id: req.session.user._id, type: "all"}, function(err, list) {
+              if (err) console.log(err);
+              vars.list = list;
+              vars.list_json = JSON.stringify(list);
+              next();
+            });
+          }
+        },
+        function(next) {
+          app.list.find({user_id: req.session.user._id}).sort({name: "asc"}).execFind(function(err, lists) {
+            if (err) console.log(err);
+
+            lists.sort(function(a, b) {
+              if (a.type == "all") {
+                return -1;
+              }
+              else if (b.type == "all") {
+                return 1;
+              }
+              else {
+                return b.name < a.name;
+              }
+            });
+
+            async.forEach(lists, function(list, callback) {
+              vars.lists_json[list._id] = list;
+              list.active = vars.list._id.toString() == list._id.toString() ? ' active' : '';
+
+              if (list.type == "channel") {
+                app.channel.findById(list.channel_id, function(err, channel) {
+                  list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + channel.domain;
+                  callback();
+                })
+              }
+              else if (list.type == "all") {
+                list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=pagetty.com';
+                callback();
+              }
+              else {
+                callback();
+              }
+            }, function() {
+              vars.lists = lists;
+              vars.lists_json = JSON.stringify(vars.lists_json);
+              next();
+            });
+
+          });
+        },
+        function(next) {
+          app.item.getListItems(req.session.user, vars.list, vars.variant, 0, function(err, items) {
+            vars.items = items;
+            next();
+          })
+        },
+        function(next) {
+          app.item.newCount(req.session.user, function(count) {
+            vars.new_count = count;
+            next();
+          });
+        },
+      ], function(err, callback) {
+        res.render("app", vars);
+      });
     }
     else {
       res.render("index");
@@ -267,31 +347,8 @@ exports.attach = function (options) {
    * TODO
    */
   server.get("/", this.renderApp);
-  server.get(/^\/channel\/[^\/]+$/, app.middleware.restricted, this.renderApp);
-  server.get(/^\/channel\/[^\/]+\/(time|score)/, app.middleware.restricted, this.renderApp);
-
-  /**
-   * API: return authenticated user information.
-   */
-  server.get("/api/user", app.middleware.restricted, function(req, res) {
-    res.json({
-      _id: req.session.user._id,
-      created: req.session.user.created,
-      high: req.session.user.high,
-      low: req.session.user.low,
-      default_style: req.session.user.default_style,
-      mail: req.session.user.mail,
-      subscriptions: req.session.user.subscriptions
-    });
-  });
-
-  /**
-   * API: return channel data for the authenticated user.
-   */
-  server.get("/api/channels", app.middleware.restricted, function(req, res) {
-    // TODO
-    res.json([]);
-  });
+  server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
+  server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
 
   /**
    * API: Update the style of the channel.
@@ -321,69 +378,43 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Get number of new stories.
+   * API: Store the default app style.
    */
-  server.get("/api/lists", app.middleware.restricted, function(req, res) {
-    app.list.find({user_id: req.session.user._id}, function(err, lists) {
-      if (err) {
-        console.log(err);
+  server.get("/api/app/style/:narrow", app.middleware.restricted, function(req, res) {
+    req.session.user.narrow = req.params.narrow == 1 ? true : false;
+    req.session.user.save(function(err) {
+      res.send(200);
+    });
+  });
+
+  /**
+   * API: Load items from client-side.
+   */
+  server.get("/api/items/:list/:variant/:page", app.middleware.restricted, function(req, res) {
+    app.list.findById(req.params.list, function(err, list) {
+      if (err || !list) {
         res.send(500);
       }
       else {
-        res.json(lists);
+        app.item.getListItems(req.session.user, list, req.params.variant, req.params.page, function(err, items) {
+          res.render("items", {items: items, list: list.prepare(req.params.variant), layout: false});
+        });
       }
     });
   });
 
   /**
-   * API: Get items.
+   * API: Load items from client-side.
    */
-  server.get("/api/items/:channel/:variant/:page", app.middleware.restricted, function(req, res) {
-    if (req.params.channel == "all") {
-      var channels = _.keys(req.session.user.subscriptions);
-      var query = {channel_id: {$in: channels}, pos: {$gt: 0}, created: {$lte: req.session.user.high}};
-      var sort = {date: 'desc'};
-    }
-    else {
-      var now = new Date();
-      var range = new Date();
-      var query = {channel_id: req.params.channel};
-      var sort = {pos: 'asc'};
-
-      switch (req.params.variant) {
-        case "score-current":
-          sort = {score: 'desc'};
-          query.pos = {$gt: 0};
-          break;
-        case "score-day":
-          sort = {score: 'desc'};
-          query.date = {$gte: range.setDate(now.getDate() - 1)};
-          break;
-        case "score-week":
-          sort = {score: 'desc'};
-          query.date = {$gte: range.setDate(now.getDate() - 7)};
-          break;
-        case "score-month":
-          sort = {score: 'desc'};
-          query.date = {$gte: range.setDate(now.getDate() - 30)};
-          break;
-        case "score-year":
-          sort = {score: 'desc'};
-          query.date = {$gte: range.setDate(now.getDate() - 365)};
-          break;
-        case "score-all":
-          sort = {score: 'desc'};
-          break;
-      }
-    }
-
-    app.item.find(query).skip(req.params.page * app.conf.load_items).limit(app.conf.load_items).sort(sort).execFind(function(err, items) {
-      if (err) {
-        console.log(err);
+  server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
+    app.list.findById(req.params.list, function(err, list) {
+      if (err || !list) {
         res.send(500);
       }
       else {
-        res.json(items);
+        app.item.getListItems(req.session.user, list, req.params.variant, 0, function(err, items) {
+          res.render("list", {items: items, list: list.prepare(req.params.variant), layout: false});
+        });
       }
     });
   });
@@ -392,17 +423,8 @@ exports.attach = function (options) {
    * API: Get number of new stories.
    */
   server.get("/api/items/new", app.middleware.restricted, function(req, res) {
-    var channels = _.keys(req.session.user.subscriptions);
-    var query = {channel_id: {$in: channels}, created: {$gt: req.session.user.high}};
-
-    app.item.count(query, function(err, count) {
-      if (err) {
-        console.log(err);
-        res.send(500);
-      }
-      else {
-        res.json({count: count});
-      }
+    app.item.newCount(req.session.user, function(count) {
+      res.json({count: count});
     });
   });
 
@@ -428,13 +450,21 @@ exports.attach = function (options) {
    * Subscribe user to a site.
    */
   server.get("/subscribe", app.middleware.restricted, function(req, res) {
-    app.channel.find({subscriptions: {$gt: 0}}, function(err, channels) {
-      for (var i in channels) {
-        channels[i].url_short = channels[i].url.length > 100 ? channels[i].url.substr(0, 100) + '...' : channels[i].url;
-        channels[i].status = req.session.user.subscriptions[channels[i]._id] ? 'status-subscribed'  : 'status-not-subscribed';
+    var subscriptions = [];
+
+    app.list.find({user_id: req.session.user._id, type: "channel"}, function(err, lists) {
+      for (var i in lists) {
+        subscriptions.push(lists[i].channel_id.toString());
       }
 
-      res.render("subscribe", {channels: channels});
+      app.channel.find({subscriptions: {$gt: 0}}, function(err, channels) {
+        for (var i in channels) {
+          channels[i].url_short = channels[i].url.length > 100 ? channels[i].url.substr(0, 100) + '...' : channels[i].url;
+          channels[i].status = subscriptions.indexOf(channels[i]._id.toString()) == -1 ? 'status-not-subscribed'  : 'status-subscribed';
+        }
+
+        res.render("subscribe", {channels: channels});
+      });
     });
   });
 
@@ -467,11 +497,19 @@ exports.attach = function (options) {
   });
 
   /**
-   * Update channel subscription information
+   * Update list data.
    */
-  server.post("/subscription", app.middleware.restricted, function(req, res) {
-    req.session.user.updateSubscription(req.body.channel_id, {name: req.body.name}, function(err) {
-      err ? res.send(err, 400) : res.send(200);
+  server.post("/list", app.middleware.restricted, function(req, res) {
+    app.list.findById(req.body.list_id, function(err, list) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else {
+        list.name = req.body.name;
+        list.save(function(err) {
+          err ? res.send(err, 400) : res.send(200);
+        });
+      }
     });
   });
 
@@ -612,14 +650,30 @@ exports.attach = function (options) {
   });
 
   /**
-   * Display the channel profiling page.
+   * Display the list profiling page.
    */
-  server.get("/channel/:channel/configure", app.middleware.restricted, function(req, res) {
+  server.get("/configure/:list", app.middleware.restricted, function(req, res) {
     var params = {};
+
     async.series([
+      // Load list.
+      function(next) {
+        app.list.findById(req.params.list, function(err, list) {
+          if (err) {
+            next(err);
+          }
+          else if (list.type != "channel") {
+            next("You cannot configure this list.");
+          }
+          else {
+            params.list = list;
+            next();
+          }
+        })
+      },
       // Load channel.
       function(next) {
-        app.channel.findById(req.params.channel, function(err, channel) {
+        app.channel.findById(params.list.channel_id, function(err, channel) {
           if (err) {
             next(err);
           }
@@ -636,22 +690,19 @@ exports.attach = function (options) {
           next();
         });
       },
-      // Create profile.
-      function(next) {
-        params.channel.createProfile(function(err, profile) {
-          params.profile = profile;
-          next(err);
-        });
-      },
     // Send response.
     ], function(err) {
-      params.channel.url_short = params.channel.url.length > 100 ? params.channel.url.substr(0, 100) + '...' : params.channel.url;
-      res.render("configure", {
-        channel: params.channel,
-        subscription: req.session.user.subscriptions[params.channel._id],
-        profile: params.profile,
-        rules: params.rules,
-      });
+      if (err) {
+        res.send(err, 500);
+      }
+      else {
+        params.channel.url_short = params.channel.url.length > 100 ? params.channel.url.substr(0, 100) + '...' : params.channel.url;
+        res.render("configure", {
+          list: params.list,
+          channel: params.channel,
+          rules: params.rules,
+        });
+      }
     });
 
   });
@@ -847,6 +898,31 @@ exports.attach = function (options) {
           res.send("Empty content.");
         }
       });
+    });
+  });
+
+  /**
+   * Initialize demo session.
+   */
+  server.get("/convert", function(req, res) {
+    app.list.remove(function(err) {
+      console.log(err);
+    });
+
+    app.user.find({}, function(err, users) {
+      if (err) throw err;
+
+      for (var i in users) {
+        app.list.create({type: 'all', name: 'All stories', style: 'small', user_id: users[i]._id, weight: null}, function(err) {
+          console.log('here');
+        });
+
+        for (var j in users[i].subscriptions) {
+          app.list.create({type: 'channel', channel_id: j, name: users[i].subscriptions[j].name, style: 'small', user_id: users[i]._id, weight: null}, function(err) {
+            console.log('here');
+          });
+        }
+      }
     });
   });
 }

@@ -1,9 +1,13 @@
 require.config({
   paths: {
+    columnizer: "libraries/jquery.columnizer",
     datatables: "libraries/jquery.datatables.min",
     moment: "libraries/moment.min",
     history: "libraries/jquery.history.min",
     icanhaz: "libraries/icanhaz.min",
+    isotope: "libraries/jquery.isotope.min",
+    masonry: "libraries/jquery.masonry.min",
+    gal: "libraries/jquery.grid-a-licious.min",
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
     timeago: "libraries/jquery.timeago.min",

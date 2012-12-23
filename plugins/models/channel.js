@@ -23,19 +23,22 @@ exports.attach = function(options) {
   });
 
   /**
-   * TODO
+   * Update the subscriber count of the channel.
    */
   channelSchema.methods.updateSubscriberCount = function(callback) {
     var self = this;
-    var query = {};
-
-    query["subscriptions." + this._id] = {$exists: 1};
-
-    app.user.find(query).count(function(err, count) {
-      self.subscriptions = count;
-      self.save(function(err) {
+    
+    app.list.count({type: "channel", channel_id: this._id}, function(err, count) {
+      if (err) {
+        console.log(err);
         callback(err);
-      });
+      }
+      else {
+        self.subscriptions = count;
+        self.save(function(err) {
+          callback(err);
+        });
+      }
     });
   }
 

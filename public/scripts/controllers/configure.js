@@ -13,10 +13,10 @@ Controller = {
 
     if (window.location.href.match(/empty/)) $('#emptyModal').modal({show: true});
 
-    $(".btn-save-subscription").click(self.saveSubscription);
+    $(".btn-save-list").click(self.saveList);
 
-    $("#subscription .name").keypress(function(e) {
-      if (e.keyCode == 13) self.saveSubscription();
+    $("#list .name").keypress(function(e) {
+      if (e.keyCode == 13) self.saveList();
     });
 
     $(".btn-unsubscribe").click(function() {
@@ -107,10 +107,10 @@ Controller = {
       return false;
     });
   },
-  saveSubscription: function() {
-    $.ajax("/subscription", {
+  saveList: function() {
+    $.ajax("/list", {
       type: "POST",
-      data: {channel_id: channel_id, name: $("#subscription .name").val()},
+      data: {list_id: list_id, name: $("#list .name").val()},
       success: function(data, status) {
         pagetty.success('Changes saved.');
       },

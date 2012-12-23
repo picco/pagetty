@@ -3,7 +3,7 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   background: #fff;
 }
 a {
@@ -56,17 +56,17 @@ h1, h2, h3 {
 
 /* REUSABLE COMPONENTS ------------------------------------------------------ */
 
-header {
+.page header {
   border-bottom: 1px solid #eee;
   margin-bottom: 20px;
   padding-bottom: 20px;
 }
-header h1 {
+.page header h1 {
   line-height: 87px;
   height: 87px;
   overflow: hidden;
 }
-header .logo {
+.page header .logo {
   margin-left: 21px;
 }
 .app-loading {
@@ -75,19 +75,6 @@ header .logo {
   left: 50%;
   margin-top: -10px;
   margin-left: -110px;
-}
-.btn-a {
-  font-size: 11px;
-  border-radius: 5px;
-  border: 1px solid #fff;
-  padding: 3px 6px;
-  white-space: nowrap;
-}
-.btn-a.active {
-  background: #f1f1f1;
-}
-.btn-a:active {
-  border: 1px solid #f1f1f1;
 }
 .center, table .center {
   text-align: center;
@@ -140,10 +127,10 @@ header .logo {
 .messages {
   margin: 1em 0;
 }
-.page h1 {
+.page .body h1 {
   margin-bottom: .5em;
 }
-.page h2 {
+.page .body h2 {
   margin-bottom: .5em;
 }
 .space-bottom {
@@ -195,323 +182,6 @@ header .logo {
 
 .ie9 {
   display: none;
-}
-
-/* APP ---------------------------------------------------------------------- */
-
-#account {
-  font-size: 11px;
-  margin: 15px 15px 0 15px;
-}
-#account .btn-logout {
-  float: right;
-  color: #333;
-  font-size: 11px;
-}
-#account .user {
-  float: left;
-  color: #333;
-  font-size: 11px;
-}
-/* hide the channel nav scrollbar */
-#ascrail2000 {
-  display: none;
-}
-#add-subscription input {
-  width: 95%;
-}
-#channels {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 3px;
-  margin: 15px 0 20px 0;
-}
-#channels li {
-}
-#channels .header {
-  padding: 15px;
-}
-#channels .header .btn {
-  float: right;
-}
-#channels .header h3 {
-  float: left;
-  line-height: 28px;
-  margin: 0;
-}
-#channels .list {
-  margin-bottom: 10px;
-  max-height: 500px;
-  overflow: hidden;
-  border-top: 1px solid #eee;
-}
-#channels .list li.channel-all a {
-}
-#channels .list a {
-  background-repeat: no-repeat;
-  background-position: 15px center;
-  padding-right: 20px !important;
-}
-#channels .list a:active {
-  text-shadow: none;
-  background-color: #ddd;
-}
-.touch #channels .list a:active,
-.touch #channels .list a:hover {
-  color: #08c;
-  text-shadow: inherit;
-  background: inherit;
-}
-.app {
-  background-color: #fafafa;
-  background-image: -moz-linear-gradient(top, #eee 0%, #fafafa 20px, #fafafa 100%);
-  background-image: -webkit-linear-gradient(top, #eee 0%, #fafafa 20px, #fafafa 100%);
-  background-attachment: fixed;
-}
-.app .container,
-.app .row,
-.app .stage {
-  height: 100%;
-}
-.app aside {
-  position: fixed;
-  top: 0;
-  width: 280px;
-  height: 100%;
-}
-.app .container {
-  display: none;
-}
-.channel .logo {
-  position: absolute;
-  top: -16px;
-  left: 20px;
-}
-.app .stage {
-  position: relative;
-  background: #fff;
-  padding-bottom: 20px;
-}
-.app .runway {
-  background: #fff;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
-  box-shadow: 0 0 10px #eee;
-  padding: 0 0 20px 0;
-  min-height: 100%;
-}
-.channel div.title {
-  background: #fff;
-  padding: 10px 0 0 0;
-}
-.channel div.title-mobile {
-  display: none;
-}
-.channel div.title .wrapper {
-  position: relative;
-  border-bottom: 1px solid #eee;
-  margin-bottom: 10px;
-  padding: 0 20px 0 20px;
-}
-.channel div.title h1 {
-  line-height: 36px;
-  margin: 6px 0 6px 0;
-  height: 40px;
-  overflow: hidden;
-}
-.channel div.title a {
-  color: #333;
-}
-.channel h2 a {
-  font-size: 21px;
-}
-.channel h1 a:active,
-.channel h2 a:active {
-  color: #333 !important;
-}
-.channel h1 a:hover,
-.channel h2 a:hover {
-  color: #0D28B1 !important;
-}
-.channel .items {
-  background: #fff;
-}
-.channel .no-items {
-  margin: 0 20px 20px 20px;
-}
-.new-stories {
-  display: none;
-  clear: both;
-  font-size: 11px;
-  text-align: center;
-  padding-top: 15px;
-}
-.new-stories a {
-  display: block;
-  background: #D9EDF7;
-  padding: 8px;
-  border-radius: 3px;
-}
-.new-stories a:hover {
-  background: #bfe1f2;
-}
-.channel .variants {
-  margin: 0 0 15px 0;
-}
-
-.score-range {
-  display: none;
-  margin-top: 10px;
-}
-
-/* CHANNEL ITEM */
-
-.item {
-  margin-bottom: 20px;
-  padding: 0 20px;
-}
-.item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-}
-.item.new .new {
-  display: block !important;
-}
-.item .title {
-  position: relative;
-  margin-bottom: 8px;
-}
-.item .title a  {
-  display: block;
-  color: #333;
-  line-height: 27px;
-  text-rendering: auto !important;
-}
-.item .title a:hover {
-  color: #00AEEF;
-}
-.item .title a:visited  {
-  color: #999;
-}
-.item .title .new {
-  display: none;
-  position: absolute;
-  left: -20px;
-  top: 2px;
-  background: red;
-  width: 6px;
-  height: 1em;
-}
-.item .meta {
-  color: #999;
-  font-size: 11px;
-  text-transform: uppercase;
-}
-.item .meta abbr {
-  border-bottom: none;
-}
-.item .action {
-  color: #000;
-  background: #f1f1f1;
-  font-size: 11px;
-  line-height: 11px;
-  border-radius: 3px;
-  margin-right: 6px;
-  padding: 5px 8px;
-}
-.item .action:hover {
-  background: #dadada;
-}
-
-/* SMALL CHANNEL ITEM */
-
-.channel-small .image-small {
-  display: block;
-  float: left;
-  overflow: hidden;
-  margin-right: 20px;
-  width: 150px;
-  max-height: 100px;
-}
-.channel-small .image-small img {
-  width: 150px;
-}
-.channel-small .image-large {
-  display: none;
-}
-.channel-small h2, .channel-small .meta {
-  margin-left: 170px;
-}
-
-/* LARGE CHANNEL ITEM */
-
-.channel-large .image-large {
-  display: block;
-  padding-top: 10px;
-}
-.channel-large .image-small {
-  display: none;
-}
-
-/* PLAIN CHANNEL ITEM */
-
-.channel-plain .image {
-  display: none;
-}
-
-/* *** */
-
-.new-count {
-  font-size: 11px;
-  color: #aaa;
-  border-bottom: none !important;
-}
-.channel-side {
-  position: fixed;
-  display: block;
-  top: 20px;
-  margin-left: 578px;
-  width: 40px;
-}
-.channel-side a {
-  display: block;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  font-size: 20px;
-  font-weight: normal;
-  background: #eee;
-  border-radius: 3px;
-  margin: 0 0 10px 0;
-  text-align: center;
-}
-.channel-side a:hover {
-  background: #ddd;
-}
-.channel-side a.active {
-  background: #00AEEF;
-}
-.channel-side a.active i {
-  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
-}
-.channel-side a.big {
-  line-height: 80px;
-  height: 80px;
-}
-.channel-side a.gap {
-  margin-bottom: 60px;
-}
-.channel-side a.gap2 {
-  margin-bottom: 110px;
-}
-.channel-side a.highlighted {
-  background: #5BB75B;
-}
-.channel-side a.highlighted i {
-  background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
-}
-.channel-side a * {
-  vertical-align: inherit;
 }
 
 /* PAGE: FRONT -------------------------------------------------------------- */
@@ -603,12 +273,6 @@ input.item {
 
 /* RESPONSIVE --------------------------------------------------------------- */
 
-@media (min-width: 961px) {
-  .channel-nav {
-    display: none;
-  }
-}
-
 @media (max-width: 960px) {
   header .logo {
     margin-left: 0;
@@ -625,68 +289,6 @@ input.item {
     width: auto;
     margin-left: 0;
   }
-  #account {
-    margin-top: 0;
-  }
-  .app {
-    background: white !important;
-  }
-  .app .container,
-  .app .row,
-  .app .stage {
-    height: auto;
-  }
-  .app aside {
-    position: static;
-    width: auto;
-    margin-top: 20px;
-    padding: 0 20px;
-  }
-  .app .container {
-    padding: 0;
-  }
-  .app .runway {
-    border: none;
-    box-shadow: none;
-    padding: 0 !important;
-  }
-  .app .stage {
-    background: inherit;
-    padding-bottom: 0;
-    margin-top: 46px;
-  }
-  .channel div.title {
-    display: none;
-  }
-  .channel div.title-mobile {
-    display: block;
-    position: fixed;
-    top: 0;
-    background: white;
-    border-bottom: 1px solid #eee;
-    width: 100%;
-    z-index: 100;
-  }
-  .channel div.title-mobile h1 {
-    font-size: 24px;
-    line-height: 45px;
-    height: 45px;
-    overflow: hidden;
-    margin-left: 26px;
-  }
-  .channel div.title-mobile .wrapper {
-    padding: 0 50px 0 20px;
-  }
-  .channel .items {
-    padding-top: 15px;
-  }
-  .channel .item .title .new {
-    left: -20px;
-  }
-  .channel-nav {
-    background: #fafafa;
-    padding-bottom: 15px;
-  }
   .hero {
     text-align: center;
     padding-top: 20px;
@@ -699,44 +301,11 @@ input.item {
   .frontpage input {
     margin-bottom: .5em;
   }
-  .app .logo {
-    top: 0 !important;
-    border-radius: 0;
-    line-height: 45px;
-    padding: 0;
-    height: 45px;
-    width: 40px;
-  }
-  .mobile-logo {
-    display: block;
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 24px;
-    height: 24px;
-    background: url(/images/logo.gif) no-repeat;
-  }
   .sidebar {
     display: none;
   }
   .stripe {
     display: none;
-  }
-  .nav a.active {
-    background: #eee;
-    font-weight: bold;
-  }
-  .nav .active a:hover {
-    color: white !important;
-    background: #00AEEF !important;
-  }
-  .nav a.variant.active {
-    background: inherit;
-    font-weight: bold;
-  }
-  .nav li a:hover {
-    color: #08c !important;
-    background-color: inherit !important;
   }
   .action {
     position: absolute;
@@ -766,26 +335,8 @@ input.item {
     clear: both !important;
     margin-bottom: 20px;
   }
-  .new-items-count {
-    background: #D9EDF7 !important;
-    border-radius: 3px;
-    padding: 3px 6px;
-  }
   .section {
     font-weight: bold;
     padding: 8px 0 !important;
-  }
-  .refresh {
-    display: none;
-    right: 45px;
-  }
-  .refresh a {
-    margin-left: 10px;
-  }
-  #channels .list > li > a:hover {
-    background: none;
-  }
-  #ueButton {
-    display: none;
   }
 }

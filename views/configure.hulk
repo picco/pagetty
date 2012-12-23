@@ -1,145 +1,86 @@
-<header>
-  <div class="container">
+<div class="page">
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="span12">
+          <a class="logo" href="/">Pagetty</a>
+          <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="body container">
     <div class="row">
       <div class="span12">
-        <a class="logo" href="/">Pagetty</a>
-        <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
-      </div>
-    </div>
-  </div>
-</header>
-<div class="page container">
-  <div class="row">
-    <div class="span12">
-      <div id="subscription" style="margin-bottom: 3em">
-        <h2>My subscription</h2>
-        <div class="messages"></div>
-        <div class="form-element">
-          <label>Channel URL:</label>
-          <strong>{{channel.url_short}}</strong>
-        </div>
-        <div class="form-element">
-          <label>Channel name: *</label>
-          <input class="name input-xxlarge form-text" type="text" name="channel:name" value="{{subscription.name}}" />
-        </div>
-        <a class="btn btn-primary btn-save-subscription">Save</a>
-        <a class="btn btn-danger btn-unsubscribe btn-action">Unsubscribe</a>
-      </div>
-    </div>
-    <div class="span4">
-      <h2>&nbsp;</h2>
-      <div style="text-align: center">
-        <a href="/channel/{{channel._id}}?autoUpdate" class="btn btn-large">View channel &raquo;</a>
-        <p style="margin: 1em 0">
-          <a href="{{channel.url}}" target="_blank">Open target website &raquo;</a>
-        </p>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="span16">
-      <ul id="tabs" class="nav nav-tabs">
-        <li class="active"><a href="#wizard-tab" data-toggle="tab">Content wizard</a></li>
-        <li><a href="#rules-tab" data-toggle="tab">Rules</a></li>
-      </ul>
-      <div class="tab-content">
-        <div class="tab-pane active" id="wizard-tab">
-          <div class="row">
-            <div class="span16">
-              <p>
-                Content wizard helps you create content aggregation rules easily without any HTML/CSS knowledge.<br/>
-                We detect possible content items on the website and separate them into segments. You can then add the matching items to the channel with just one click.<br/>
-                Content wizard may not work with some complex sites. In that case you need to edit aggregation rules manually using the Rules interface.<br/>
-                <strong>If you add content, an according rule will be created automatically. If you delete content, a matching rule will be deleted as well.</strong><br/><br/>
-              </p>
-            </div>
-            <div class="span8">
-              <h2>Content available on the site</h2>
-              {{#profile}}
-                {{#segments}}
-                  <div class="well">
-                    <p>Rule: {{itemSelector}}</p>
-                    <ul>
-                      {{#links}}
-                        <li><a href="{{href}}" target="_blank">{{title}}</a></li>
-                      {{/links}}
-                    </ul>
-                    <div class="clearfix">
-                      <a class="btn btn-success btn-add-to-channel pull-right" href="#"
-                         data-item-selector="{{itemSelector}}"
-                         data-target-selector="{{target.selector}}"
-                         data-target-attribute="{{target.attribute}}"
-                         data-title-selector="{{title.selector}}"
-                         data-title-attribute="{{title.attribute}}"
-                         data-image-selector="{{image.selector}}"
-                         data-image-attribute="{{image.attribute}}"
-                         data-comments-selector="{{comments.selector}}"
-                         data-comments-attribute="{{comments.attribute}}"
-                         data-score-selector="{{score.selector}}"
-                         data-score-attribute="{{score.attribute}}"
-                      >Add to channel &raquo;</a>
-                    </div>
-                  </div>
-                {{/segments}}
-              {{/profile}}
-            </div>
-            <div class="span8">
-              <h2>Current channel content</h2>
-              {{#profile}}
-                {{#content}}
-                  <div class="well">
-                    <p>Rule: {{itemSelector}}</p>
-                    <ul>
-                      {{#links}}
-                        <li><a href="{{href}}" target="_blank">{{title}}</a></li>
-                      {{/links}}
-                    </ul>
-                    <a class="btn btn-remove-from-channel btn-danger" href="#" data-rule="{{rule}}">&laquo; Remove from channel</a>
-                  </div>
-                {{/content}}
-                {{^content}}
-                  <div class="well">There's no content on the site that Pagetty can yet recognize. Add some content from the available content section or configure the aggregation rules manually under the <em>Rules</em> tab.</div>
-                {{/content}}
-              {{/profile}}
-            </div>
+        <div id="list" style="margin-bottom: 3em">
+          <h2>My subscription</h2>
+          <div class="messages"></div>
+          <div class="form-element">
+            <label>URL:</label>
+            <strong>{{channel.url_short}}</strong>
           </div>
+          <div class="form-element">
+            <label>Name: *</label>
+            <input class="name input-xxlarge form-text" type="text" name="list:name" value="{{list.name}}" />
+          </div>
+          <a class="btn btn-primary btn-save-list">Save</a>
+          <a class="btn btn-danger btn-unsubscribe btn-action">Unsubscribe</a>
         </div>
-        <!-- RULES TAB -->
-        <div class="tab-pane" id="rules-tab">
-          <div class="rules-messages"></div>
-          <p>
-            Rules are based on CSS selectors and define how the content will be aggregated from the web page.<br/>
-            <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
+      </div>
+      <div class="span4">
+        <h2>&nbsp;</h2>
+        <div style="text-align: center">
+          <a href="/list/{{list._id}}" class="btn btn-large">View stories &raquo;</a>
+          <p style="margin: 1em 0">
+            <a href="{{channel.url}}" target="_blank">Open target website &raquo;</a>
           </p>
-          <div id="rules">
-            {{#rules}}{{>rule}}{{/rules}}
-          </div>
-          <div class="form-actions">
-            <a class="btn btn-primary btn-save-rules" href="#">Save</a>
-            <a class="btn btn-success btn-add-rule">Add rule</a>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="span16">
+        <ul id="tabs" class="nav nav-tabs">
+          <li clasS="active"><a href="#rules-tab" data-toggle="tab">Rules</a></li>
+        </ul>
+        <div class="tab-content">
+          <!-- RULES TAB -->
+          <div class="tab-pane active" id="rules-tab">
+            <div class="rules-messages"></div>
+            <p>
+              Rules are based on CSS selectors and define how the content will be aggregated from the web page.<br/>
+              <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
+            </p>
+            <div id="rules">
+              {{#rules}}{{>rule}}{{/rules}}
+            </div>
+            <div class="form-actions">
+              <a class="btn btn-primary btn-save-rules" href="#">Save</a>
+              <a class="btn btn-success btn-add-rule">Add rule</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
-<!-- ASSETS -->
-<div class="assets">
-  <div class="modal hide" id="emptyModal" tabindex="-1" role="dialog" aria-labelledby="Empty dialog" aria-hidden="true">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h2 id="subscribeModalLabel">The channel does not yet have any content</h2>
-    </div>
-    <div class="modal-body">
-      <p>Use the Content wizard or the Rules interface to set up some content aggregation rules.</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" data-dismiss="modal" aria-hidden="true">M'kay</button>
+  <!-- ASSETS -->
+  <div class="assets">
+    <div class="modal hide" id="emptyModal" tabindex="-1" role="dialog" aria-labelledby="Empty dialog" aria-hidden="true">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h2 id="subscribeModalLabel">The channel does not yet have any content</h2>
+      </div>
+      <div class="modal-body">
+        <p>Use the Content wizard or the Rules interface to set up some content aggregation rules.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-dismiss="modal" aria-hidden="true">M'kay</button>
+      </div>
     </div>
   </div>
+  <!-- CONTROLLER -->
+  <script type="text/javascript">
+    var list_id = '{{list._id}}';
+    var channel_id = '{{channel._id}}';
+    require(['/bootstrap/bootstrap/js/bootstrap.min.js?b=' + build, '/scripts/controllers/configure.js?b=' + build]);
+  </script>
 </div>
-<!-- CONTROLLER -->
-<script type="text/javascript">
-  var channel_id = '{{channel._id}}';
-  require(['/bootstrap/bootstrap/js/bootstrap.min.js?b=' + build, '/scripts/controllers/configure.js?b=' + build]);
-</script>
