@@ -1,13 +1,13 @@
 {
   "server": {
-    "domain": "pagetty.com",
-    "env": "PROD",
+    "domain": "dev.pagetty.com",
+    "env": "DEV",
     "crawler": {
-      "batchSize": 10
+      "batchSize": 3
     },
     "google": {
-      "clientId": "1042288061895.apps.googleusercontent.com",
-      "clientSecret": "HXLgAqhqHxUQ_dn0R3ucb7F3"
+      "clientId": "1042288061895-3gq5j0n1add03mli5h04n66hf01l358s.apps.googleusercontent.com",
+      "clientSecret": "PaJKxVWxGToWYgYXKaEGTA00"
     }
   }
 }

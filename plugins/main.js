@@ -12,16 +12,14 @@ exports.attach = function (options) {
 
   this.conf = require('config').server;
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
-
+ 
   this.use(require('./notify.js'));
-  this.use(require('./facebook.js'));
-  this.use(require('./models/state.js'));
-  this.use(require('./models/channel.js'));
-  this.use(require('./models/item.js'));
-  this.use(require('./models/list.js'));
-  this.use(require('./models/cache.js'));
-  this.use(require('./models/rule.js'));
-  this.use(require('./models/user.js'));
+  this.use(require('./parser.js'));
+  this.use(require('../models/channel.js'));
+  this.use(require('../models/item.js'));
+  this.use(require('../models/list.js'));
+  this.use(require('../models/rule.js'));
+  this.use(require('../models/user.js'));
 
   this.templates = {
     list: hogan.compile(fs.readFileSync("views/list.hulk", "utf8")),
@@ -43,68 +41,10 @@ exports.attach = function (options) {
       callback("Invalid URL: " + options.url);
       return;
     }
-    else if (options.useCache) {
-      app.cache.findOne({url: options.url}, function(err, cache) {
-        if (err) {
-          callback(err);
-        }
-        else if (cache) {
-          console.log('Fetched content [from cache]: ' + options.url);
-          callback(null, cache.content);
-        }
-        else {
-          app.fetchWithoutCache(options, function(err, buffer) {
-            if (err) {
-              console.log('Error: ' + err);
-              callback(err);
-            }
-            else if (buffer.toString().length) {
-              app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
-                console.log('Fetched content [cache miss] (cache updated): ' + options.url);
-                if (err) console.log(err);
-                callback(err, buffer);
-              });
-            }
-            else {
-              callback('No content');
-            }
-          });
-        }
-      });
-    }
     else {
-      app.fetchWithoutCache(options, function(err, buffer) {
-        if (buffer.toString().length) {
-          app.cache.update({url: options.url}, {$set: {content: buffer, created: new Date()}}, {upsert: true}, function(err) {
-            console.log('Fetched content [no cache] (cache updated): ' + options.url);
-            if (err) console.log(err);
-            callback(err, buffer);
-          });
-        }
-        else {
-          callback('No content');
-        }
-      });
-    }
-  }
-
-  /**
-   * TODO
-   */
-  this.fetchWithoutCache = function(options, callback) {
-    async.waterfall([
-      // Download content.
-      function(next) {
-        if (options.evaluateScripts) {
-          // For PhantomJS requests, URL-s need to be decoded, otherwise the request fails.
-          exec('phantomjs --load-images=no --disk-cache=no --ignore-ssl-errors=yes --local-to-remote-url-access=yes ./lib/phantom.js ' + '"' + app.decodeUrl(options.url) + '"', {maxBuffer: 2000*1024}, function (error, stdout, stderr) {
-            if (stderr) {
-              console.log(stderr);
-            }
-            next(error, new Buffer(stdout));
-          });
-        }
-        else {
+      async.waterfall([
+        // Download content.
+        function(next) {
           // When encoding is null the content is returned as a Buffer.
           var r = request.defaults({timeout: 10000, encoding: null});
 
@@ -136,10 +76,15 @@ exports.attach = function (options) {
             }
           });
         }
-      }
-    ], function(err, buffer) {
-      callback(err, buffer);
-    });
+      ], function(err, buffer) {
+        if (buffer.toString().length) {
+          callback(err, buffer);
+        }
+        else {
+          callback('No content');
+        }
+      });
+    }
   }
 
   /**
@@ -196,7 +141,7 @@ exports.attach = function (options) {
     async.waterfall([
       function(next) {
         if (template) {
-          fs.readFile('./mail/' + template + '.hulk', function (err, data) {
+          fs.readFile('./templates/mail/' + template + '.hulk', function (err, data) {
             if (err) {
               next(err);
             }

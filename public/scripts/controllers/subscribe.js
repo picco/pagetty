@@ -118,7 +118,7 @@ Controller = {
         data: {url: $(".subscribe-url").val(), name: $(".subscribe-name").val()},
         dataType: "json",
         success: function(data) {
-          window.location = data.item_count ? ("/channel/" + data.channel_id) : ("/channel/" + data.channel_id + "/configure?empty");
+          window.location = "/";
         },
         error: function(xhr, status, error) {
           pagetty.error(xhr.responseText);

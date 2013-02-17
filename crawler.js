@@ -15,11 +15,15 @@ app.init(function (err) {
         if (err) {
           throw err;
         }
-        else {
-          channel.updateItems(false, function() {
+        else if (channel) {
+          channel.updateItems(function() {
             console.log("Update done.");
             process.exit();
           });
+        }
+        else {
+          console.log("Channel not found.");
+          process.exit();
         }
       })
     }

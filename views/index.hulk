@@ -11,11 +11,7 @@
     <div class="row">
       <div class="span11">
           <h1 class="heading">Pagetty reader</h1>
-          <h2 class="heading">Forget RSS. Discover a totally new kind of news reader.</h2>
-          <div class="sign-up">
-            <a class="btn btn-success btn-large btn-sign-up" href="/signup">Create a free account</a>
-            <a class="btn btn-large btn-demo" href="/demo">Live Demo</a>
-          </div>
+          <h2 class="heading">Currently in Private Beta</h2>
       </div>
       <div class="span5">
         <div class="sign-in" style="background: #fff; padding: 20px 20px 0 20px; border-radius: 5px">
@@ -30,10 +26,7 @@
               <a class="forgot" href="/password">Forgot password?</a>
             </div>
           </form>
-          <h3>Connect with</h3>
-          <a class='zocial facebook' href="/auth/facebook">Facebook</a>
-          <a class='zocial google' href="/auth/google">Google</a>
-          <br/><br/>
+          <br/>
         </div>
       </div>
     </div>
@@ -46,45 +39,7 @@
     </noscript>
   </div>
 </div>
-<div class="frontpage container">
-  <div class="row">
-    <div class="span16" style="text-align: center; margin-bottom: 20px;">
-      <h1>This is how it works</h1>
-      <h2>Instead of using RSS feeds, Pagetty aggregates content directly from the website itself.</h2>
-      <p style="margin-top: -1em; margin-bottom: 2em">We do this using CSS selector based rules engine that supports <strong>any website!</strong></p>
-    </div>
-  </div>
-  <div class="row" style="text-align: center">
-    <div class="span16">
-      <h1>Why is it better than RSS?</h1>
-      <h2>The reader mirrors the content exactly as it is displayed on the website itself.<br/>You can easily browse through all your favourite websites and see what's trending.</h2>
-      <img src="/images/how.jpg" title="How does it work?" style="margin-bottom: 20px" />
-    </div>
-  </div>
-  <div class="row" style="text-align: center; margin-bottom: 20px">
-    <div class="span8">
-      <h2>You can see the comment count and navigate directly to the comments section.</h2>
-    </div>
-    <div class="span8">
-      <h2>You can view the news in the same order as on the site or sort them by time or rating.</h2>
-    </div>
-  </div>
-  <div class="row" style="text-align: center; margin-bottom: 20px">
-    <div class="span16">
-      <h1>This is how the reader looks like</h1>
-      <h2>The reader is optimized for mobile use - use it from anywhere with any device!</h2>
-      <img src="/images/screen.jpg" title="Pagetty screenshot" />
-    </div>
-  </div>
-  <div class="row" style="text-align: center; margin-bottom: 40px">
-    <div class="span16">
-      <h1>Try it out, it's totally free!</h1>
-      <a class="btn btn-success btn-large btn-sign-up" href="/signup">Sign up now!</a>
-      <div style="margin: 20px 0">Still not sure? - <a href="/demo">try out our live demo!</a></div>
-    </div>
-  </div>
-</div>
-<div style="border-top: 1px solid #ccc">
+<div>
   <div class="container">
     <div class="row" style="margin: 40px 0; text-align: center">
       <div class="logos">

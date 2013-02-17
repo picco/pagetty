@@ -21,32 +21,8 @@ exports.attach = function (options) {
      */
     restricted: function(req, res, next) {
       if (req.session.user) {
-        if (req.session.user.mail == 'demo@pagetty.com') {
-          if (
-            req.route.path == '/api/state' ||
-            req.route.path == '/api/state/new/:stamp' ||
-            req.route.path == '/api/state/refresh' ||
-            req.route.path == '/' ||
-            req.route.path == '/account' ||
-            req.route.path == '/subscribe' ||
-            req.route.path == '/api/user' ||
-            req.route.path == '/api/user/channels' ||
-            req.route.path == '/api/channel/updates' ||
-            req.url.match(/\/channel\/.+/)
-          ) {
-            console.log(req.method + ': ' + req.url);
-            next();
-          }
-          else {
-            console.log('Request to forbidden demo URL [' + req.method + ']: ' + req.url);
-            res.statusCode = 403;
-            res.end("Unavailable in demo mode");
-          }
-        }
-        else {
-          console.log(req.method + ': ' + req.url);
-          next();
-        }
+        console.log(req.method + ': ' + req.url);
+        next();
       }
       else {
         console.log('Request to restricted URL [' + req.method + ']: ' + req.url);
@@ -90,19 +66,19 @@ exports.attach = function (options) {
           };
 
         fs.readFile(filename, function (err, existing_file) {
-          if (err || 1) {
-            if (1 || err.code == "ENOENT") {
+          if (err) {
+            if (err.code == "ENOENT") {
               app.item.findById(item_id, function(err, item) {
                 if (err) throw err;
 
-                if (item == null && 0) {
-                  console.log("Cache item not found: " + cache_id);
+                if (item == null) {
+                  console.log("Source item not found: " + item_id);
                   res.writeHead(404);
-                  res.end("Cache item not found.");
+                  res.end("Source item not found: " + item_id);
                   return;
                 }
                 else {
-                  app.fetchWithoutCache({url: item.image, evaluateScripts: false}, function(err, buffer) {
+                  app.fetch({url: item.image}, function(err, buffer) {
                     if (err) {
                       console.log("Original unavailable: " + item.image + " " + cache_id);
                       res.writeHead(404);
@@ -116,7 +92,7 @@ exports.attach = function (options) {
                       var convertStart = new Date().getTime();
 
                       //im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
-                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "400x300>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
+                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "500>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
                         if (err) {
                           fs.unlink(filename);
                           res.writeHead(500);
@@ -164,9 +140,9 @@ exports.attach = function (options) {
 
   // Create HTTPS server.
   var server = this.httpsServer = express.createServer({
-    ca: fs.readFileSync('./ssl/' + app.conf.domain + '/ca.crt'),
-    key: fs.readFileSync('./ssl/' + app.conf.domain + '/server.key.nopass'),
-    cert: fs.readFileSync('./ssl/' + app.conf.domain + '/server.crt')
+    ca: fs.readFileSync('./config/ssl/' + app.conf.domain + '/ca.crt'),
+    key: fs.readFileSync('./config/ssl/' + app.conf.domain + '/server.key.nopass'),
+    cert: fs.readFileSync('./config/ssl/' + app.conf.domain + '/server.crt')
   });
 
   everyauth.google
@@ -323,10 +299,15 @@ exports.attach = function (options) {
           });
         },
         function(next) {
-          app.item.getListItems(req.session.user, vars.list, vars.variant, 0, function(err, items) {
-            vars.items = items;
+          if (vars.list) {
+            app.item.getListItems(req.session.user, vars.list, vars.variant, 0, function(err, items) {
+              vars.items = items;
+              next();
+            });
+          }
+          else {
             next();
-          })
+          }
         },
         function(next) {
           app.item.newCount(req.session.user, function(count) {
@@ -368,7 +349,7 @@ exports.attach = function (options) {
     var $ = require('cheerio');
 
     app.channel.findById(req.params.id, function(err, channel) {
-      app.fetch({url: channel.url, evaluateScripts: true, useCache: true}, function(err, buffer) {
+      app.fetch({url: channel.url}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
         app.tidy(html, function(err, formatted) {
           res.send(_.escape(err ? html : formatted));
@@ -477,7 +458,7 @@ exports.attach = function (options) {
         res.send(err, 400);
       }
       else {
-        res.json({channel_id: channel._id, item_count: channel.items.length}, 200);
+        res.json(200);
       }
     });
   });
@@ -575,7 +556,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(true, function(err) {
+        channel.updateItems(function(err) {
           next(err, channel);
         });
       },
@@ -612,7 +593,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(true, function(err) {
+        channel.updateItems(function(err) {
           next();
         });
       },
@@ -640,7 +621,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(true, function(err) {
+        channel.updateItems(function(err) {
           next();
         });
       },
@@ -846,48 +827,11 @@ exports.attach = function (options) {
   /**
    * Initialize demo session.
    */
-  server.get("/demo", function(req, res) {
-    app.user.findOne({mail: "demo@pagetty.com"}, function(err, user) {
-      if (err) {
-        res.redirect("/");
-      }
-      else {
-        req.session.user = user;
-        app.notify.onSignin(user);
-        res.redirect("/");
-      }
-    });
-  });
-
-  /**
-   * Initialize demo session.
-   */
-  server.get("/cache/channel/:channel", function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {
-      if (err) throw err;
-
-      app.cache.findOne({url: channel.url}, function(err, cache) {
-        if (err) throw err;
-
-        if (cache) {
-          res.header("Content-Type", "text/plain");
-          res.end(cache.content.toString());
-        }
-        else {
-          res.send("No cache.");
-        }
-      });
-    });
-  });
-
-  /**
-   * Initialize demo session.
-   */
   server.get("/fetch/channel/:channel", function(req, res) {
     app.channel.findById(req.params.channel, function(err, channel) {
       if (err) throw err;
 
-      app.fetch({url: channel.url, useCache: false, evaluateScripts: true}, function(err, page) {
+      app.fetch({url: channel.url}, function(err, page) {
         if (err) throw err;
 
         if (page) {
@@ -898,31 +842,6 @@ exports.attach = function (options) {
           res.send("Empty content.");
         }
       });
-    });
-  });
-
-  /**
-   * Initialize demo session.
-   */
-  server.get("/convert", function(req, res) {
-    app.list.remove(function(err) {
-      console.log(err);
-    });
-
-    app.user.find({}, function(err, users) {
-      if (err) throw err;
-
-      for (var i in users) {
-        app.list.create({type: 'all', name: 'All stories', style: 'small', user_id: users[i]._id, weight: null}, function(err) {
-          console.log('here');
-        });
-
-        for (var j in users[i].subscriptions) {
-          app.list.create({type: 'channel', channel_id: j, name: users[i].subscriptions[j].name, style: 'small', user_id: users[i]._id, weight: null}, function(err) {
-            console.log('here');
-          });
-        }
-      }
     });
   });
 }
