@@ -15,7 +15,6 @@ exports.attach = function(options) {
     domain: String,
     title: String,
     subscriptions: Number,
-    items: Array,
     items_added: Date,
     items_updated: Date,
   });

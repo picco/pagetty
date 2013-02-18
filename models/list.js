@@ -27,9 +27,16 @@ exports.attach = function(options) {
   });
 
   /**
+   * Generate the special "all" list definition.
+   */
+  listSchema.statics.all = function() {
+    return {_id: "all", type: "all", name: "All stories", icon: 'https://s2.googleusercontent.com/s2/favicons?domain=pagetty.com'};
+  }
+
+  /**
    * Prepare list for output.
    */
-  listSchema.methods.prepare = function(variant) {
+  listSchema.statics.prepare = function(list, variant) {
     var variants = {
       time: "Most recent",
       day: "Popular today",
@@ -39,9 +46,9 @@ exports.attach = function(options) {
       all: "Most popular of all time",
     };
 
-    this["variant_name"] = variants[variant];
-    this["active_" + variant] = "active";
-    return this;
+    list["variant_name"] = variants[variant];
+    list["active_" + variant] = "active";
+    return list;
   }
 
   /**

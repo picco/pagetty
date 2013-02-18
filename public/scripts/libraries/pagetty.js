@@ -17,10 +17,6 @@ define([
       this.page = 1;
       this.new_count = new_count;
 
-      _.each(lists, function (list) {
-        if (list.type == "all") self.all = list;
-      });
-
       self.updateTitle();
       self.showUpdateNotification();
 
@@ -122,7 +118,7 @@ define([
     listUrl: function(list_id, variant) {
       var list = this.lists[list_id];
 
-      if (list.type == "all") {
+      if (list_id == "all") {
         if (!variant || variant == "time") {
           return "/"
         }
@@ -148,11 +144,11 @@ define([
       window.scrollTo(0, 0);
 
       $("nav ul li").removeClass("active");
-      $("nav ul li.list-" + self.all._id).addClass("active");
+      $("nav ul li.list-all").addClass("active");
 
       $.get('/api/update').success(function(data) {
         self.new_count = 0;
-        self.loadList(self.all._id, "time");
+        self.loadList("all", "time");
         self.hideUpdateNotification();
       });
     },

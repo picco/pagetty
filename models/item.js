@@ -47,7 +47,7 @@ exports.attach = function(options) {
   /**
    * Get list items.
    */
-  itemSchema.statics.getListItems = function(user, list, variant, page, callback) {
+  itemSchema.statics.getListItems = function(list, user, variant, page, callback) {
     var self = this;
     var query = {};
     var sort = {};
@@ -105,7 +105,7 @@ exports.attach = function(options) {
       async.forEach(items, function(item, cb) {
         app.channel.findById(item.channel_id, function(err, channel) {
           item.channel_url = channel.url;
-          item.list_name = list.type == "all" ? names[channel._id] : list.name;
+          item.list_name = list ? "All stories" : list.name;
           item.stamp = item.date.toISOString();
           item.new = item.created > user.low ? "new" : "";
           cb();

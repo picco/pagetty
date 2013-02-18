@@ -4,6 +4,7 @@ exports.attach = function(options) {
   var $ = require('cheerio');
   var async = require('async');
   var check = require('validator').check;
+  var feedparser = require('feedparser');
   var mongoose = require('mongoose');
   var uri = require('url');
 
@@ -27,15 +28,14 @@ exports.attach = function(options) {
   userSchema.methods.subscribe = function(url, name, callback) {
     var self = this;
     var channel = false;
+    var content = "";
     var urlComponents = uri.parse(url);
+    var domain = urlComponents.hostname;
     var type = null;
+    var xml_tag_pos = null;
 
     // Add http:// to the URL automatically if missing.
     if (url.indexOf('http') !== 0) url = 'http://' + url;
-
-    // Always add slash to the end of the address if no query string present.
-    // PROBLEM: http://dribbble.com/shots/popular.rss/
-    //if (url.indexOf('?') == -1 && url.charAt(url.length - 1) != '/') url += '/';
 
     async.series([
       // Check that the URL is valid.
@@ -43,7 +43,6 @@ exports.attach = function(options) {
         try {
           check(url, "URL must start with http:// or https://").regex(/^https?:\/\//);
           check(url, "URL is required.").notEmpty();
-          //check(url, "URL is not valid.").isUrl();
           check(name, "Name is required.").notEmpty();
         } catch (e) {
           next(e.message);
@@ -58,8 +57,8 @@ exports.attach = function(options) {
             next(err);
           }
           else if (buffer && buffer.toString().length) {
-            var content = buffer.toString();
-            var xml_tag_pos = content.indexOf('<?xml');
+            content = buffer.toString();
+            xml_tag_pos = content.indexOf('<?xml');
             type = (xml_tag_pos >= 0 && xml_tag_pos < 10) ? 'rss' : 'html';
             next();
           }
@@ -67,6 +66,18 @@ exports.attach = function(options) {
             next('Could not fetch content.');
           }
         });
+      },
+      // For RSS feeds, we need to detect the domain of the actual site.
+      function(next) {
+        if (type == "rss") {
+          feedparser.parseString(content, function(err, meta, articles) {
+            domain = uri.parse(meta.link).hostname;
+            next();
+          });
+        }
+        else {
+          next();
+        }
       },
       // Check that the channel exists and create it if necessary.
       function(next) {
@@ -76,7 +87,7 @@ exports.attach = function(options) {
             next();
           }
           else {
-            channel = new app.channel({type: type, url: url, domain: urlComponents.hostname});
+            channel = new app.channel({type: type, url: url, domain: domain});
             channel.save(function(err) {
               next(err);
             });

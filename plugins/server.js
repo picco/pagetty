@@ -224,7 +224,6 @@ exports.attach = function (options) {
    * Redirect any HTTP requests to the HTTPS site.
    */
   this.httpServer.get("*", function(req, res) {
-    console.log("Reditected user from HTTP");
     res.redirect("https://" + app.conf.domain + req.url);
   });
 
@@ -232,91 +231,67 @@ exports.attach = function (options) {
    * Render the main application.
    */
   this.renderApp = function(req, res) {
-    if (req.session.user) {
-      var vars = {user: req.session.user, lists_json: {}};
+    var self = this;
+    var list = null;
+    var user_lists = {all: app.list.all()};
+    var render = {};
 
-      vars.variant = req.params.variant ? req.params.variant : 'time';
-      vars.app_style = req.session.user.narrow ? "app" : "app app-wide";
+    if (req.session.user) {
+      var variant = req.params.variant ? req.params.variant : 'time';
 
       async.series([
         function(next) {
-          if (req.params.list_id) {
-            app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, list) {
-              if (err) console.log(err);
-              vars.list = list.prepare(vars.variant);
-              vars.list_json = JSON.stringify(list);
-              next();
-            });
-          }
-          else {
-            app.list.findOne({user_id: req.session.user._id, type: "all"}, function(err, list) {
-              if (err) console.log(err);
-              vars.list = list;
-              vars.list_json = JSON.stringify(list);
-              next();
-            });
-          }
+          app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, doc) {
+            if (doc) {
+              list = app.list.prepare(doc, variant);
+            }
+            else {
+              list = app.list.prepare(app.list.all(), variant);
+              user_lists.all.active = " active";
+            }
+            next();
+          });
         },
         function(next) {
           app.list.find({user_id: req.session.user._id}).sort({name: "asc"}).execFind(function(err, lists) {
             if (err) console.log(err);
 
             lists.sort(function(a, b) {
-              if (a.type == "all") {
-                return -1;
-              }
-              else if (b.type == "all") {
-                return 1;
-              }
-              else {
-                return b.name < a.name;
-              }
+              return b.name < a.name;
             });
 
-            async.forEach(lists, function(list, callback) {
-              vars.lists_json[list._id] = list;
-              list.active = vars.list._id.toString() == list._id.toString() ? ' active' : '';
-
-              if (list.type == "channel") {
-                app.channel.findById(list.channel_id, function(err, channel) {
-                  list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + channel.domain;
-                  callback();
-                })
-              }
-              else if (list.type == "all") {
-                list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=pagetty.com';
-                callback();
-              }
-              else {
-                callback();
-              }
+            async.forEach(lists, function(list, iterate) {
+              list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + list.domain;
+              list.active = (req.params.list_id == list._id) ? ' active' : '';
+              user_lists[list._id] = list;
+              iterate();
             }, function() {
-              vars.lists = lists;
-              vars.lists_json = JSON.stringify(vars.lists_json);
               next();
             });
 
           });
         },
         function(next) {
-          if (vars.list) {
-            app.item.getListItems(req.session.user, vars.list, vars.variant, 0, function(err, items) {
-              vars.items = items;
-              next();
-            });
-          }
-          else {
+          app.item.getListItems(list, req.session.user, variant, 0, function(err, items) {
+            render.items = items;
             next();
-          }
+          });
         },
         function(next) {
           app.item.newCount(req.session.user, function(count) {
-            vars.new_count = count;
+            render.new_count = count;
             next();
           });
         },
       ], function(err, callback) {
-        res.render("app", vars);
+        render.app_style = req.session.user.narrow ? "app" : "app app-wide";
+        render.list = list;
+        render.list_json = JSON.stringify(list);
+        render.lists = _.toArray(user_lists);
+        render.lists_json = JSON.stringify(user_lists);
+        render.user = req.session.user;
+        render.variant = variant;
+        res.render("app", render);
       });
     }
     else {
@@ -371,33 +346,31 @@ exports.attach = function (options) {
   /**
    * API: Load items from client-side.
    */
-  server.get("/api/items/:list/:variant/:page", app.middleware.restricted, function(req, res) {
-    app.list.findById(req.params.list, function(err, list) {
-      if (err || !list) {
-        res.send(500);
-      }
-      else {
-        app.item.getListItems(req.session.user, list, req.params.variant, req.params.page, function(err, items) {
-          res.render("items", {items: items, list: list.prepare(req.params.variant), layout: false});
-        });
-      }
-    });
-  });
-
-  /**
-   * API: Load items from client-side.
-   */
   server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
-    app.list.findById(req.params.list, function(err, list) {
-      if (err || !list) {
-        res.send(500);
-      }
-      else {
-        app.item.getListItems(req.session.user, list, req.params.variant, 0, function(err, items) {
-          res.render("list", {items: items, list: list.prepare(req.params.variant), layout: false});
-        });
-      }
-    });
+    if (req.params.list == "all") {
+      list = app.list.all();
+
+      app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+        res.render("list", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+      });
+    }
+    else {
+      app.list.findOne(req.params.list, function(err, list) {
+        if (err) {
+          res.send(500);
+        }
+        else {
+          if (list) {
+            app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+              res.render("list", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+            });
+          }
+          else {
+            res.send(500);
+          }
+        }
+      });
+    }
   });
 
   /**
