@@ -5,6 +5,7 @@ exports.attach = function (options) {
   var _ = require('underscore');
   var $ = require('cheerio');
   var async = require('async');
+  var check = require('validator').check;
   var everyauth = require('everyauth');
   var express = require('express');
   var fs = require('fs');
@@ -260,10 +261,10 @@ exports.attach = function (options) {
               return b.name < a.name;
             });
 
-            async.forEach(lists, function(list, iterate) {
-              list.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + list.domain;
-              list.active = (req.params.list_id == list._id) ? ' active' : '';
-              user_lists[list._id] = list;
+            async.forEach(lists, function(item, iterate) {
+              item.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + item.domain;
+              item.active = (req.params.list_id == item._id) ? ' active' : '';
+              user_lists[item._id] = item;
               iterate();
             }, function() {
               next();
@@ -300,29 +301,16 @@ exports.attach = function (options) {
   }
 
   /**
-   * TODO
+   * APP URL's.
    */
   server.get("/", this.renderApp);
   server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
   server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
 
   /**
-   * API: Update the style of the channel.
-   */
-  server.post("/api/channel/style/:id/:style", app.middleware.restricted, function(req, res) {
-    req.session.user.subscriptions[req.params.id].style = req.params.style;
-    req.session.user.markModified("subscriptions");
-    req.session.user.save(function(err) {
-      err ? res.send(500) : res.send(200);
-    });
-  });
-
-  /**
    * API: send the whole source code of the channel.
    */
   server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
-    var $ = require('cheerio');
-
     app.channel.findById(req.params.id, function(err, channel) {
       app.fetch({url: channel.url}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
@@ -401,52 +389,39 @@ exports.attach = function (options) {
   });
 
   /**
+   * Display subscription page.
+   */
+  server.get("/add", app.middleware.restricted, function(req, res) {
+    res.render("subscribe");
+  });
+
+  /**
    * Subscribe user to a site.
+   */
+  server.post("/subscribe/options", app.middleware.restricted, function(req, res) {
+    app.parseFeed(req.body.url, function(err, feed) {
+      if (err) {
+        res.send(err, 400);
+      }
+      else {
+        if (feed.type == "rss") {
+          req.session.user.subscribe(feed.url, function(err) {
+            err ? res.send(err, 400) : res.json({status: "subscribed"}, 200);
+          });
+        }
+        else {
+          res.json({status: "options", options: feed.feeds, type: feed.type, url: feed.url}, 200);
+        }
+      }
+    });
+  });
+
+  /**
+   * Subscribe user to a feed.
    */
   server.get("/subscribe", app.middleware.restricted, function(req, res) {
-    var subscriptions = [];
-
-    app.list.find({user_id: req.session.user._id, type: "channel"}, function(err, lists) {
-      for (var i in lists) {
-        subscriptions.push(lists[i].channel_id.toString());
-      }
-
-      app.channel.find({subscriptions: {$gt: 0}}, function(err, channels) {
-        for (var i in channels) {
-          channels[i].url_short = channels[i].url.length > 100 ? channels[i].url.substr(0, 100) + '...' : channels[i].url;
-          channels[i].status = subscriptions.indexOf(channels[i]._id.toString()) == -1 ? 'status-not-subscribed'  : 'status-subscribed';
-        }
-
-        res.render("subscribe", {channels: channels});
-      });
-    });
-  });
-
-  /**
-   * Subscribe user to a site.
-   */
-  server.post("/subscribe", app.middleware.restricted, function(req, res) {
-    req.session.user.subscribe(req.body.url, req.body.name, function(err, channel) {
-      if (err) {
-        res.send(err, 400);
-      }
-      else {
-        res.json(200);
-      }
-    });
-  });
-
-  /**
-   * Subscribe user to a site.
-   */
-  server.post("/subscribe/channel", app.middleware.restricted, function(req, res) {
-    req.session.user.subscribeToChannel(req.body.channel_id, function(err, channel) {
-      if (err) {
-        res.send(err, 400);
-      }
-      else {
-        res.send(200);
-      }
+    req.session.user.subscribe(req.query.url, function(err, feed, channel) {
+      res.redirect("/");
     });
   });
 
@@ -529,7 +504,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(function(err) {
+        channel.crawl(function(err) {
           next(err, channel);
         });
       },
@@ -566,7 +541,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(function(err) {
+        channel.crawl(function(err) {
           next();
         });
       },
@@ -594,7 +569,7 @@ exports.attach = function (options) {
       },
       // Update channel items.
       function(channel, next) {
-        channel.updateItems(function(err) {
+        channel.crawl(function(err) {
           next();
         });
       },
@@ -796,28 +771,6 @@ exports.attach = function (options) {
       }
     });
   });
-
-  /**
-   * Initialize demo session.
-   */
-  server.get("/fetch/channel/:channel", function(req, res) {
-    app.channel.findById(req.params.channel, function(err, channel) {
-      if (err) throw err;
-
-      app.fetch({url: channel.url}, function(err, page) {
-        if (err) throw err;
-
-        if (page) {
-          res.header("Content-Type", "text/plain");
-          res.end(page.toString());
-        }
-        else {
-          res.send("Empty content.");
-        }
-      });
-    });
-  });
-}
 
 exports.init = function(done) {
   this.httpsServer.listen(8443);

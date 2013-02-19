@@ -16,7 +16,7 @@ app.init(function (err) {
           throw err;
         }
         else if (channel) {
-          channel.updateItems(function() {
+          channel.crawl(function() {
             console.log("Update done.");
             process.exit();
           });
@@ -29,9 +29,9 @@ app.init(function (err) {
     }
     else {
       app.lastUpdate = new Date().getTime();
-      app.channel.updateItemsBatch(true);
+      app.channel.crawlBatch(true);
       // Poll every 10 seconds, the actual limits are enforced by the method itself.
-      setInterval(function() {app.channel.updateItemsBatch()}, 10000);
+      setInterval(function() {app.channel.crawlBatch()}, 10000);
     }
   }
 });

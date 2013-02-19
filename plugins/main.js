@@ -1,18 +1,22 @@
 exports.attach = function (options) {
   var app = this;
+  var _ = require("underscore");
+  var $ = require("cheerio");
   var async = require('async');
   var exec = require('child_process').exec;
+  var feedparser = require("feedparser");
   var fs = require('fs');
   var hogan = require('hogan.js');
   var mongoose = require('mongoose');
   var nodemailer = require('nodemailer');
   var request = require('request');
   var spawn = require('child_process').spawn;
+  var uri = require("url");
   var zlib = require('zlib');
 
   this.conf = require('config').server;
   this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
- 
+
   this.use(require('./notify.js'));
   this.use(require('./parser.js'));
   this.use(require('../models/channel.js'));
@@ -77,11 +81,11 @@ exports.attach = function (options) {
           });
         }
       ], function(err, buffer) {
-        if (buffer.toString().length) {
+        if (buffer && buffer.toString().length) {
           callback(err, buffer);
         }
         else {
-          callback('No content');
+          callback('No content.');
         }
       });
     }
@@ -118,23 +122,23 @@ exports.attach = function (options) {
   }
 
   /**
-   * TODO
+   * Convert anything into an valid ObjectID.
    */
-  this.objectId = function(id) {
+  app.objectId = function(id) {
     return (typeof id == "object") ? id : new mongoose.Types.ObjectId(id);
   }
 
   /**
    * Create an unique ObjectID from current timestamp.
    */
-  this.createObjectID = function() {
+  app.createObjectID = function() {
     return new mongoose.Types.ObjectId(new Date().getTime() / 1000);
   }
 
   /**
    * Send an email using a template.
    */
-  this.mail = function(mail, template, templateData) {
+  app.mail = function(mail, template, templateData) {
     mail.transport = nodemailer.createTransport("SMTP");
     mail.from = app.conf.mail.from;
 
@@ -169,7 +173,7 @@ exports.attach = function (options) {
   /**
    * TODO
    */
-  this.tidy = function(html, callback) {
+  app.tidy = function(html, callback) {
     var buffer = '', err = '';
 
     var tidy = spawn('tidy',
@@ -202,9 +206,83 @@ exports.attach = function (options) {
   }
 
   /**
-   * A more convenient forEach implementation.
+   * Detect if content is an RSS feed or an HTML page.
    */
-  this.forEach = function(collection, iterator, callback) {
-    async.forEach(collection, iterator, callback);
+  app.detectFeedType = function(content) {
+    var xml_tag_pos = content.indexOf("<?xml");
+    return (xml_tag_pos >= 0 && xml_tag_pos < 10) ? "rss" : "html";
+  }
+
+  /**
+   * Extract the linked RSS feeds from HTML.
+   */
+  app.discoverFeeds = function(html, callback) {
+    var feeds = {};
+    var items = $(html).find("link[type*=rss], link[type*=atom]").toArray();
+
+    for (var i in items) {
+      feeds[$(items[i]).attr("href")] = {url: $(items[i]).attr("href"), title: $(items[i]).attr("title") || $(items[i]).attr("href")};
+    }
+
+    callback(_.toArray(feeds));
+  }
+
+  /**
+   * Check the type and health of the feed and gather some metadata.
+   */
+  app.parseFeed = function(url, callback) {
+    var feed = {url: url};
+
+    // Add http:// to the URL automatically if missing.
+    if (feed.url.indexOf('http') !== 0) feed.url = 'http://' + feed.url;
+
+    async.series([
+      // Check that the URL actually returns some data.
+      // Detect if HTML or RSS feed.
+      function(next) {
+        app.fetch({url: feed.url}, function(err, buffer) {
+          if (err) {
+            next(err);
+          }
+          else if (buffer && buffer.toString().length) {
+            feed.content = buffer.toString();
+            feed.type = app.detectFeedType(feed.content);
+            next();
+          }
+          else {
+            next("Could not fetch content.");
+          }
+        });
+      },
+      // Detect the domain and title attributes.
+      function(next) {
+        if (feed.type == "rss") {
+          feedparser.parseString(feed.content, function(err, meta, articles) {
+            feed.domain = uri.parse(meta.link).hostname;
+            feed.title = meta.title;
+            next();
+          });
+        }
+        else {
+          feed.domain = uri.parse(url).hostname;
+          feed.title = $(feed.content).find("title").text() || feed.url;
+          next();
+        }
+      },
+      // Search for available RSS feeds in HTML feeds.
+      function(next) {
+        if (feed.type == "html") {
+          app.discoverFeeds(feed.content, function(feeds) {
+            feed.feeds = feeds;
+            next();
+          });
+        }
+        else {
+          next();
+        }
+      },
+    ], function(err) {
+      callback(err, feed);
+    });
   }
 }

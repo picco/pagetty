@@ -3,6 +3,7 @@ require.config({
     columnizer: "libraries/jquery.columnizer",
     datatables: "libraries/jquery.datatables.min",
     moment: "libraries/moment.min",
+    handlebars: "libraries/handlebars",
     history: "libraries/jquery.history.min",
     icanhaz: "libraries/icanhaz.min",
     isotope: "libraries/jquery.isotope.min",

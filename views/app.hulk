@@ -3,7 +3,7 @@
     <div class="inner">
       <div class="header clearfix">
         <h3 class="pull-left">My feeds</h3>
-        <a href="/subscribe" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
+        <a href="/add" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
       </div>
       <div class="notification"><a href="#"><i class="icon-refresh icon-white"></i> <span class="count">0</span> <span class="text">new stories</span>. Click here to update.</a></div>
       <nav>

@@ -42,7 +42,7 @@ exports.attach = function(options) {
   /**
    * Update items.
    */
-  channelSchema.methods.updateItems = function(callback) {
+  channelSchema.methods.crawl = function(callback) {
     var self = this;
     var date = new Date();
 
@@ -196,7 +196,7 @@ exports.attach = function(options) {
   /**
    * TODO
    */
-  channelSchema.statics.updateItemsBatch = function update(forceStart) {
+  channelSchema.statics.crawlBatch = function update(forceStart) {
     var self = this;
     var now = new Date().getTime();
     var batchSize = app.conf.crawler.batchSize; // max number of channels updated during single run.
@@ -211,7 +211,7 @@ exports.attach = function(options) {
         console.log('Expired channels found: ' + (channels ? channels.length : 0));
 
         _.each(channels, function(channel) {
-          channel.updateItems(false, function() {
+          channel.crawl(false, function() {
             app.lastUpdate = new Date().getTime();
           });
         })

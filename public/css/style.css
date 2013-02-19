@@ -127,11 +127,17 @@ h1, h2, h3 {
 .messages {
   margin: 1em 0;
 }
+.no-margin {
+  margin: 0 !important;
+}
 .page .body h1 {
   margin-bottom: .5em;
 }
 .page .body h2 {
   margin-bottom: .5em;
+}
+.right, .table .right {
+  text-align: right;
 }
 .space-bottom {
   padding-bottom: 20px;

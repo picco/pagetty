@@ -25,84 +25,48 @@ exports.attach = function(options) {
   /**
    * Subscribe user to a given channel.
    */
-  userSchema.methods.subscribe = function(url, name, callback) {
+  userSchema.methods.subscribe = function(url, callback) {
     var self = this;
-    var channel = false;
-    var content = "";
-    var urlComponents = uri.parse(url);
-    var domain = urlComponents.hostname;
-    var type = null;
-    var xml_tag_pos = null;
-
-    // Add http:// to the URL automatically if missing.
-    if (url.indexOf('http') !== 0) url = 'http://' + url;
+    var channel = null;
+    var feed = null;
 
     async.series([
-      // Check that the URL is valid.
+      // Parse the feed contents.
       function(next) {
-        try {
-          check(url, "URL must start with http:// or https://").regex(/^https?:\/\//);
-          check(url, "URL is required.").notEmpty();
-          check(name, "Name is required.").notEmpty();
-        } catch (e) {
-          next(e.message);
-          return;
-        }
-        next();
-      },
-      // Check that the channel actually returns some data and detect if HTML or RSS feed.
-      function(next) {
-        app.fetch({url: url}, function(err, buffer) {
+        app.parseFeed(url, function(err, parsed_feed) {
           if (err) {
             next(err);
           }
-          else if (buffer && buffer.toString().length) {
-            content = buffer.toString();
-            xml_tag_pos = content.indexOf('<?xml');
-            type = (xml_tag_pos >= 0 && xml_tag_pos < 10) ? 'rss' : 'html';
-            next();
-          }
           else {
-            next('Could not fetch content.');
+            feed = parsed_feed;
+            next();
           }
         });
       },
-      // For RSS feeds, we need to detect the domain of the actual site.
-      function(next) {
-        if (type == "rss") {
-          feedparser.parseString(content, function(err, meta, articles) {
-            domain = uri.parse(meta.link).hostname;
-            next();
-          });
-        }
-        else {
-          next();
-        }
-      },
       // Check that the channel exists and create it if necessary.
       function(next) {
-        app.channel.findOne({url: url}, function(err, doc) {
+        app.channel.findOne({url: feed.url}, function(err, doc) {
           if (doc) {
             channel = doc;
             next();
           }
           else {
-            channel = new app.channel({type: type, url: url, domain: domain});
+            channel = new app.channel({type: feed.type, url: feed.url, domain: feed.domain});
             channel.save(function(err) {
               next(err);
             });
           }
         });
       },
-      // Update channel items.
+      // Update the channel items.
       function(next) {
-        channel.updateItems(function() {
+        channel.crawl(function() {
           next();
         });
       },
       // Create a list (subscription) for the user.
       function(next) {
-        app.list.createFromChannel(self._id, channel._id, name, function(err) {
+        app.list.createFromChannel(self._id, channel._id, feed.title, function(err) {
           err ? next("Could not update user subscription.") : next();
         });
       },
