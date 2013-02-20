@@ -1,0 +1,56 @@
+<div class="rule clearfix">
+  <div class="well">
+    <h2>RSS scraper for <strong>{{channel.domain}}</strong></h2>
+    <div class="form-container-multiple clearfix">
+      <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Image selector</label>
+        <input class="image-selector" type="text" name="channel:rule:image:selector" value="{{image.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="image-attribute input-medium" type="text" name="channel:rule:image:attribute" value="{{image.attribute}}" />
+      </div>
+      <div class="form-element">
+        <label>source</label>
+        <select>
+          <option value=""></option>
+          <option value="rss">RSS item description</option>
+          <option value="page">Target page</option>
+        </select>
+      </div>
+      <div class="form-description clearfix">
+        Matches an element contains the image associated with the article. Selector is usually "img" and attribute "src".<br/>
+        Examples: img.thumbnail, img[src*=jpg], selector: src, data-src
+      </div>
+    </div>
+    <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Score selector</label>
+        <input class="score-selector" type="text" name="channel:rule:score:selector" value="{{score.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="score-attribute input-medium" type="text" name="channel:rule:score:attribute" value="{{score.attribute}}" />
+      </div>
+      <div class="form-description clearfix">
+        Matches an element that contains the comment count, rating or some other similar property of the article.<br>
+        Example: a.commentCount, attribute is usually empty - in that case HTML element text value is used.
+      </div>
+    </div>
+    <div class="form-container-multiple clearfix">
+      <div class="form-element">
+        <label>Comments selector</label>
+        <input class="comments-selector" type="text" name="channel:rule:comments:selector" value="{{comments.selector}}" />
+      </div>
+      <div class="form-element">
+        <label>attribute</label>
+        <input class="comments-attribute input-medium" type="text" name="channel:rule:comments:attribute" value="{{comments.attribute}}" />
+      </div>
+      <div class="form-description clearfix">
+        Matches an element that points to the comments section of the article.<br/>
+        Example: a.commentCount, attribute is usually "href".
+      </div>
+    </div>
+  </div>
+</div>

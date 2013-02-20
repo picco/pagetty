@@ -1,20 +1,18 @@
 
 /* APP ---------------------------------------------------------------------- */
 
-.app {
+.app, .app body {
   background: #fafafa;
 }
 .app .wrapper {
   height: 100%;
   max-width: 900px;
   margin: 0 auto;
-  border-left: 1px solid #eee;
 }
 .app img.u {
   display: none;
 }
 .app-wide .wrapper {
-  border-left: none !important;
   max-width: inherit;
 }
 .app-wide img.u {
@@ -35,7 +33,6 @@
 }
 .sidebar .header {
   padding: 15px;
-  border-bottom: 1px solid #eee;
 }
 .notification {
   display: none;
@@ -56,7 +53,7 @@
   color: #fff;
 }
 nav {
-  margin: 15px 0 15px 0;
+  margin: 0 0 15px 0;
   border-radius: 3px;
 }
 nav ul {
@@ -167,7 +164,7 @@ article .meta {
   overflow: hidden;
 }
 article .image {
-  display: block;
+  display: none;
   margin-top: 10px;
 }
 article .action {
@@ -189,7 +186,7 @@ article abbr {
   border: none !important;
 }
 .app-wide article .image {
-  display: block;
+  display: none;
   height: 200px;
   line-height: 200px;
   text-align: center;
@@ -277,7 +274,7 @@ article .inner {
 }
 @media (max-width: 999px) {
   .app article .image {
-    display: block;
+    display: none;
     height: inherit;
     line-height: inherit;
     text-align: inherit;

@@ -16,8 +16,8 @@
           <h2>My subscription</h2>
           <div class="messages"></div>
           <div class="form-element">
-            <label>URL:</label>
-            <strong>{{channel.url_short}}</strong>
+            <label>Feed URL:</label>
+            <strong><a href="{{channel.url}}" target="_blank">{{channel.url_short}}</a></strong>
           </div>
           <div class="form-element">
             <label>Name: *</label>
@@ -39,25 +39,16 @@
     </div>
     <div class="row">
       <div class="span16">
-        <ul id="tabs" class="nav nav-tabs">
-          <li clasS="active"><a href="#rules-tab" data-toggle="tab">Rules</a></li>
-        </ul>
-        <div class="tab-content">
-          <!-- RULES TAB -->
-          <div class="tab-pane active" id="rules-tab">
-            <div class="rules-messages"></div>
-            <p>
-              Rules are based on CSS selectors and define how the content will be aggregated from the web page.<br/>
-              <strong>All rules are domain specific and shared by all Pagetty users!</strong> Any changes here affect the whole <span class="label">{{channel.domain}}</span> domain.
-            </p>
-            <div id="rules">
-              {{#rules}}{{>rule}}{{/rules}}
-            </div>
-            <div class="form-actions">
-              <a class="btn btn-primary btn-save-rules" href="#">Save</a>
-              <a class="btn btn-success btn-add-rule">Add rule</a>
-            </div>
-          </div>
+        <div id="rules">
+          {{#eq channel.type html}}
+            {{> html_rule}}
+          {{else}}
+            {{> rss_rule}}
+          {{/eq}}
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-primary btn-save-rules" href="#">Save</a>
+          <a class="btn btn-success btn-add-rule">Add rule</a>
         </div>
       </div>
     </div>

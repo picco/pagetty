@@ -19,6 +19,7 @@ define([
 
       self.updateTitle();
       self.showUpdateNotification();
+      self.loadImages();
 
       $('.items article abbr').timeago();
       $(".sidebar .inner").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
@@ -84,8 +85,8 @@ define([
           $(".content").html(content);
           $('.items article abbr').timeago();
 
-          self.updateTitle();
           window.scrollTo(0, 0);
+          self.updateTitle();
         }
       );
     },
@@ -113,6 +114,23 @@ define([
             self.list_loading = false;
             self.list_exhausted = true;
           });
+      }
+    },
+    loadImages: function() {
+      var articles = $("article").toArray();
+
+      for (var i in articles) {
+        var a = $(articles[i]);
+        var id = a.data("id");
+        var ih = a.data("image");
+        this.loadImage(id, ih);
+      }
+    },
+    loadImage: function(id, ih) {
+      if (ih) {
+        $('<img src="/imagecache/' + id + '-' + ih + '.jpg" />').load(function() {
+          $("." + id + " .image").append($(this)).show();
+        });
       }
     },
     listUrl: function(list_id, variant) {

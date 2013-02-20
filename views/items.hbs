@@ -1,5 +1,5 @@
 {{#items}}
-  <article class="{{new}}">
+  <article class="{{new}} {{_id}}" data-id="{{_id}}" data-image="{{image_hash}}">
     <div class="new"></div>
     <div class="inner">
       <div class="title">
@@ -9,7 +9,7 @@
           <a class="channel" href="{{channel_url}}" target="_blank">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
         </div>
       </div>
-      <a class="image" target="_blank" href="{{target}}"><img src="/imagecache/{{_id}}-{{image_hash}}.jpg" alt="{{title}}" onerror="this.parentNode.removeChild(this);" /></a>
+      <a class="image" target="_blank" href="{{target}}"></a>
     </div>
   </article>
 {{/items}}

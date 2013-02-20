@@ -6,227 +6,57 @@ exports.attach = function (options) {
   var $ = require('cheerio');
   var async = require('async');
   var check = require('validator').check;
-  var everyauth = require('everyauth');
   var express = require('express');
   var fs = require('fs');
   var gzippo = require('gzippo');
-  var hulk = require('hulk-hogan');
+  var hbs = require("hbs");
   var im = require('imagemagick');
-  var hash = require('mhash').hash;
   var mongoStore = require('connect-mongo')(express);
   var mongoose = require('mongoose');
 
-  this.middleware = {
-    /**
-     * Authentication middleware.
-     */
-    restricted: function(req, res, next) {
-      if (req.session.user) {
-        console.log(req.method + ': ' + req.url);
-        next();
-      }
-      else {
-        console.log('Request to restricted URL [' + req.method + ']: ' + req.url);
-        res.statusCode = 403;
-        res.end("Access denied");
-      }
-    },
+  app.everyauth = require('everyauth');
+  app.http = require('http');
+  app.https = require('https');
 
-    /**
-     * Session middleware.
-     */
-    session: function(req, res, next) {
-      if (req.session.user) {
-        app.user.findById(req.session.user._id, function(err, user) {
-          // Updates the user object, since it may have changed.
-          req.session.user = user;
-          next();
-        });
-      }
-      else {
-        next();
-      }
-    },
+  // Load server plugins.
+  app.use(require('./middleware.js'));
 
-    /**
-     * Middleware for serving cached images.
-     */
-    imagecache: function(req, res, next) {
-      var match = /\/imagecache\/(([\w\d]{24})-([\w\d]{8}))\.jpg/.exec(req.url);
+  // Create an Express server.
+  app.server = express();
 
-      if (match) {
-        var self = this,
-          cache_id = match[1], // the whole xxx-xx part
-          item_id = match[2], // only item id part
-          image_hash = match[3], // only image hash part
-          filename = "./imagecache/" + cache_id + ".jpg",
-          headers = {
-            "Content-Type": "image/jpeg",
-            "Cache-Control": "public, max-age=3153600",
-            ETag: cache_id
-          };
-
-        fs.readFile(filename, function (err, existing_file) {
-          if (err) {
-            if (err.code == "ENOENT") {
-              app.item.findById(item_id, function(err, item) {
-                if (err) throw err;
-
-                if (item == null) {
-                  console.log("Source item not found: " + item_id);
-                  res.writeHead(404);
-                  res.end("Source item not found: " + item_id);
-                  return;
-                }
-                else {
-                  app.fetch({url: item.image}, function(err, buffer) {
-                    if (err) {
-                      console.log("Original unavailable: " + item.image + " " + cache_id);
-                      res.writeHead(404);
-                      res.end("Original unavailable: " + item.image + " " + cache_id);
-                      return;
-                    }
-
-                    fs.writeFile(filename, buffer, function (err) {
-                      if (err) throw err;
-
-                      var convertStart = new Date().getTime();
-
-                      //im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
-                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "500>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
-                        if (err) {
-                          fs.unlink(filename);
-                          res.writeHead(500);
-                          res.end("Error generating thumbnail " + cache_id + " from: " + item.image);
-                          console.log("Error generating thumbnail " + cache_id + " from: " + item.image);
-                          return;
-                        }
-                        else {
-                          console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
-
-                          fs.readFile(filename, function (err, created_file) {
-                            if (err) throw err;
-                            console.log("Serving resized version: " + cache_id + " from: " + item.image);
-                            res.writeHead(200, headers);
-                            res.end(created_file);
-                            return;
-                          });
-                        }
-                      });
-                    });
-                  });
-                }
-              });
-            }
-            else {
-              throw err;
-            }
-          }
-          else {
-            console.log("Serving existing version: " + cache_id);
-            res.writeHead(200, headers);
-            res.end(existing_file);
-            return;
-          }
-        });
-      }
-      else {
-        next();
-      }
-    }
-  };
-
-  // Create HTTP server.
-  app.httpServer = express.createServer();
-
-  // Create HTTPS server.
-  var server = this.httpsServer = express.createServer({
+  app.ssl_options = {
     ca: fs.readFileSync('./config/ssl/' + app.conf.domain + '/ca.crt'),
     key: fs.readFileSync('./config/ssl/' + app.conf.domain + '/server.key.nopass'),
     cert: fs.readFileSync('./config/ssl/' + app.conf.domain + '/server.crt')
+  };
+
+  // Define partials used by Handlebars.
+  hbs.registerPartial('list', fs.readFileSync(app.dir + '/views/list.hbs', 'utf8'));
+  hbs.registerPartial('items', fs.readFileSync(app.dir + '/views/items.hbs', 'utf8'));
+  hbs.registerPartial('html_rule', fs.readFileSync(app.dir + '/views/html_rule.hbs', 'utf8'));
+  hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
+
+  hbs.registerHelper("eq", function(v1, v2, options) {
+    return (v1 == v2) ? options.fn(this) : options.inverse(this);
   });
-
-  everyauth.google
-    .appId(app.conf.google.clientId)
-    .appSecret(app.conf.google.clientSecret)
-    .scope(['https://www.googleapis.com/auth/userinfo.email http://www.google.com/reader/api'])
-    .handleAuthCallbackError(function(req, res) {
-      res.redirect('/');
-    })
-    .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
-      var promise = this.Promise();
-
-      app.user.findOrCreate(userMetadata.email, function (err, user) {
-        if (err) {
-          promise.fail(err);
-        }
-        else {
-          session.user = user;
-          promise.fulfill(user);
-        }
-      });
-
-      return promise;
-    })
-    .redirectPath('/');
-
-  everyauth.facebook
-    .appId(app.conf.facebook.clientId)
-    .appSecret(app.conf.facebook.clientSecret)
-    .scope('email')
-    .handleAuthCallbackError(function(req, res) {
-      res.redirect('/');
-    })
-    .findOrCreateUser(function(session, accessToken, accessTokenExtra, userMetadata) {
-      var promise = this.Promise();
-      app.user.findOrCreate(userMetadata.email, function (err, user) {
-        if (err) {
-          promise.fail(err);
-        }
-        else {
-          session.user = user;
-          promise.fulfill(user);
-        }
-      });
-
-      return promise;
-    })
-    .redirectPath('/');
 
   // Set up server middleware and configuration.
-  server.register('.hulk', hulk);
-  server.use(app.middleware.imagecache);
-  server.use(gzippo.staticGzip('./public', {contentTypeMatch: /text|javascript|json/}));
-  server.use(express.bodyParser());
-  server.use(express.cookieParser());
-  server.use(express.session({secret: 'nõude', store: new mongoStore({db: app.conf.db_name})}));
-  server.use(app.middleware.session);
-  server.set('view engine', 'hulk');
-  server.set('views', './views');
+  app.server.use(app.middleware.forceHTTPS);
+  app.server.use(app.middleware.imagecache);
+  app.server.use(gzippo.staticGzip('./public', {contentTypeMatch: /text|javascript|json/}));
+  app.server.use(express.bodyParser());
+  app.server.use(express.cookieParser());
+  app.server.use(express.session({secret: 'nõude', store: new mongoStore({db: app.conf.db_name})}));
+  app.server.use(app.middleware.session);
+  app.server.set('view engine', 'hbs');
+  app.server.set('views', './views');
   // View cache is enabled by default for production in express, but this messes things up.
-  server.set('view cache', false);
-  server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
-  server.use(gzippo.compress());
-  server.use(server.router);
-  server.use(everyauth.middleware());
-
-  server.dynamicHelpers({
-    build: function(req, res) {
-      return hash('adler32', process.env.BUILD);
-    },
-  });
-
-  everyauth.everymodule.userPkey('_id');
-  everyauth.everymodule.findUserById(function (user_id, callback) {
-    app.user.findById(user_id, callback);
-  });
-
-  /**
-   * Redirect any HTTP requests to the HTTPS site.
-   */
-  this.httpServer.get("*", function(req, res) {
-    res.redirect("https://" + app.conf.domain + req.url);
-  });
+  app.server.set('view cache', false);
+  app.server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
+  app.server.use(gzippo.compress());
+  //app.server.use(app.server.router);
+  app.server.use(app.everyauth.middleware());
+  app.server.use(app.middleware.locals);
 
   /**
    * Render the main application.
@@ -303,14 +133,14 @@ exports.attach = function (options) {
   /**
    * APP URL's.
    */
-  server.get("/", this.renderApp);
-  server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
-  server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
+  app.server.get("/", this.renderApp);
+  app.server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
+  app.server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
 
   /**
    * API: send the whole source code of the channel.
    */
-  server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
+  app.server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
     app.channel.findById(req.params.id, function(err, channel) {
       app.fetch({url: channel.url}, function(err, buffer) {
         var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
@@ -324,7 +154,7 @@ exports.attach = function (options) {
   /**
    * API: Store the default app style.
    */
-  server.get("/api/app/style/:narrow", app.middleware.restricted, function(req, res) {
+  app.server.get("/api/app/style/:narrow", app.middleware.restricted, function(req, res) {
     req.session.user.narrow = req.params.narrow == 1 ? true : false;
     req.session.user.save(function(err) {
       res.send(200);
@@ -334,7 +164,7 @@ exports.attach = function (options) {
   /**
    * API: Load items from client-side.
    */
-  server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
+  app.server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
     if (req.params.list == "all") {
       list = app.list.all();
 
@@ -343,12 +173,13 @@ exports.attach = function (options) {
       });
     }
     else {
-      app.list.findOne(req.params.list, function(err, list) {
+      app.list.findById(req.params.list, function(err, list) {
         if (err) {
           res.send(500);
         }
         else {
           if (list) {
+            console.dir(list);
             app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
               res.render("list", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
             });
@@ -364,7 +195,7 @@ exports.attach = function (options) {
   /**
    * API: Get number of new stories.
    */
-  server.get("/api/items/new", app.middleware.restricted, function(req, res) {
+  app.server.get("/api/items/new", app.middleware.restricted, function(req, res) {
     app.item.newCount(req.session.user, function(count) {
       res.json({count: count});
     });
@@ -373,7 +204,7 @@ exports.attach = function (options) {
   /**
    * API: Update item pointers - high, low.
    */
-  server.get("/api/update", app.middleware.restricted, function(req, res) {
+  app.server.get("/api/update", app.middleware.restricted, function(req, res) {
     req.session.user.low = req.session.user.high;
     req.session.user.high = new Date();
 
@@ -391,14 +222,14 @@ exports.attach = function (options) {
   /**
    * Display subscription page.
    */
-  server.get("/add", app.middleware.restricted, function(req, res) {
+  app.server.get("/add", app.middleware.restricted, function(req, res) {
     res.render("subscribe");
   });
 
   /**
    * Subscribe user to a site.
    */
-  server.post("/subscribe/options", app.middleware.restricted, function(req, res) {
+  app.server.post("/subscribe/options", app.middleware.restricted, function(req, res) {
     app.parseFeed(req.body.url, function(err, feed) {
       if (err) {
         res.send(err, 400);
@@ -419,7 +250,7 @@ exports.attach = function (options) {
   /**
    * Subscribe user to a feed.
    */
-  server.get("/subscribe", app.middleware.restricted, function(req, res) {
+  app.server.get("/subscribe", app.middleware.restricted, function(req, res) {
     req.session.user.subscribe(req.query.url, function(err, feed, channel) {
       res.redirect("/");
     });
@@ -428,7 +259,7 @@ exports.attach = function (options) {
   /**
    * Update list data.
    */
-  server.post("/list", app.middleware.restricted, function(req, res) {
+  app.server.post("/list", app.middleware.restricted, function(req, res) {
     app.list.findById(req.body.list_id, function(err, list) {
       if (err) {
         res.send(err, 400);
@@ -445,7 +276,7 @@ exports.attach = function (options) {
   /**
    * Unsubscrbe user from a site.
    */
-  server.post("/unsubscribe", app.middleware.restricted, function(req, res) {
+  app.server.post("/unsubscribe", app.middleware.restricted, function(req, res) {
     req.session.user.unsubscribe(req.body.channel_id, function(err) {
       err ? res.send(err, 400) : res.send(200);
     });
@@ -454,7 +285,7 @@ exports.attach = function (options) {
   /**
    * Save channel configuration.
    */
-  server.post("/rules", app.middleware.restricted, function(req, res) {
+  app.server.post("/rules", app.middleware.restricted, function(req, res) {
     var validator = app.getValidator();
     var old_rules = [];
 
@@ -520,7 +351,7 @@ exports.attach = function (options) {
   /**
    * Create a rule from a profiler configuration.
    */
-  server.post("/rule/create", app.middleware.restricted, function(req, res) {
+  app.server.post("/rule/create", app.middleware.restricted, function(req, res) {
     async.waterfall([
       // Load channel.
       function(next) {
@@ -553,7 +384,7 @@ exports.attach = function (options) {
   /**
   * Create a rule from a profiler configuration.
   */
-  server.post("/rule/delete", app.middleware.restricted, function(req, res) {
+  app.server.post("/rule/delete", app.middleware.restricted, function(req, res) {
     async.waterfall([
       // Load channel.
       function(next) {
@@ -581,7 +412,7 @@ exports.attach = function (options) {
   /**
    * Display the list profiling page.
    */
-  server.get("/configure/:list", app.middleware.restricted, function(req, res) {
+  app.server.get("/configure/:list", app.middleware.restricted, function(req, res) {
     var params = {};
 
     async.series([
@@ -590,6 +421,9 @@ exports.attach = function (options) {
         app.list.findById(req.params.list, function(err, list) {
           if (err) {
             next(err);
+          }
+          else if (!list) {
+            next("List not found.");
           }
           else if (list.type != "channel") {
             next("You cannot configure this list.");
@@ -612,10 +446,10 @@ exports.attach = function (options) {
           }
         })
       },
-      // Load rules.
+      // Load rule.
       function(next) {
-        app.rule.find({domain: params.channel.domain}, function(err, rules) {
-          params.rules = rules;
+        app.rule.findOne({domain: params.channel.domain}, function(err, rule) {
+          params.rule = rule;
           next();
         });
       },
@@ -629,7 +463,7 @@ exports.attach = function (options) {
         res.render("configure", {
           list: params.list,
           channel: params.channel,
-          rules: params.rules,
+          rule: params.rule,
         });
       }
     });
@@ -639,7 +473,7 @@ exports.attach = function (options) {
   /**
    * Log the user in to the system.
    */
-  server.post("/signin", function(req, res) {
+  app.server.post("/signin", function(req, res) {
     app.user.authenticate(req.body.mail, req.body.password, function(err, user) {
       if (err) {
         res.redirect("/");
@@ -655,7 +489,7 @@ exports.attach = function (options) {
   /**
    * Log the user out of the system.
    */
-  server.get("/signout", function(req, res) {
+  app.server.get("/signout", function(req, res) {
     delete req.session.user;
     res.redirect('/');
   });
@@ -663,14 +497,14 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get("/signup", function(req, res) {
+  app.server.get("/signup", function(req, res) {
     res.render('signup');
   });
 
   /**
    * Process sign-up request.
    */
-  server.post("/signup", function(req, res) {
+  app.server.post("/signup", function(req, res) {
     app.user.signup(req.body, function(err) {
       err ? res.send(err, 400) : res.send(200);
     });
@@ -679,14 +513,14 @@ exports.attach = function (options) {
   /**
    * Display sign-up confirmation page.
    */
-  server.get("/signup/verification", function(req, res) {
+  app.server.get("/signup/verification", function(req, res) {
     res.render('signup_verification');
   });
 
   /**
    * Activate the user account and log in automatically.
    */
-  server.get('/activate/:verification', function(req, res) {
+  app.server.get('/activate/:verification', function(req, res) {
     app.user.findOne({verification: req.params.verification, verified: false}, function(err, user) {
       if (user) {
         user.activate(function(err) {
@@ -705,14 +539,14 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get("/account", app.middleware.restricted, function(req, res) {
+  app.server.get("/account", app.middleware.restricted, function(req, res) {
     res.render('account', {user:  _.clone(req.session.user)});
   });
 
   /**
    * Update account settings.
    */
-  server.post("/account", app.middleware.restricted, function(req, res) {
+  app.server.post("/account", app.middleware.restricted, function(req, res) {
     var validator = app.getValidator();
 
     if (req.session.user.pass !== null) validator.check(app.user.hashPassword(req.session.user._id, req.body.existing_pass), 'Existing password is not correct.').equals(req.session.user.pass);
@@ -735,7 +569,7 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get('/account/delete', app.middleware.restricted, function(req, res) {
+  app.server.get('/account/delete', app.middleware.restricted, function(req, res) {
     req.session.user.remove(function(err) {
       delete req.session.user;
       res.redirect('/');
@@ -745,19 +579,19 @@ exports.attach = function (options) {
   /**
    * Display sign-up form.
    */
-  server.get('/password', function(req, res) {
+  app.server.get('/password', function(req, res) {
     res.render('password');
   });
 
   /**
    * Handle password reminder form submission.
    */
-  server.post('/password', function(req, res) {
+  app.server.post('/password', function(req, res) {
     app.user.findOne({mail: req.body.mail}, function(err, user) {
       if (err) throw err;
 
       if (user) {
-        var new_pass = hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
+        var new_pass = app.hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
         user.pass = app.user.hashPassword(user._id, new_pass);
         user.save(function(err) {
           app.mail({to: user.mail, subject: 'A new password has been created'}, 'password', {password: new_pass});
@@ -771,9 +605,11 @@ exports.attach = function (options) {
       }
     });
   });
+}
 
 exports.init = function(done) {
-  this.httpsServer.listen(8443);
-  this.httpServer.listen(8080);
+  var app = this;
+  app.http.createServer(app.server).listen(8080);
+  app.https.createServer(app.ssl_options, app.server).listen(8443);
   done();
 }

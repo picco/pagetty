@@ -6,6 +6,7 @@ exports.attach = function (options) {
   var exec = require('child_process').exec;
   var feedparser = require("feedparser");
   var fs = require('fs');
+  var hbs = require('hbs');
   var hogan = require('hogan.js');
   var mongoose = require('mongoose');
   var nodemailer = require('nodemailer');
@@ -14,8 +15,12 @@ exports.attach = function (options) {
   var uri = require("url");
   var zlib = require('zlib');
 
-  this.conf = require('config').server;
-  this.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
+  // App root directory.
+  app.dir = fs.realpathSync(__dirname + '/..');
+
+  app.hash = require('mhash').hash;
+  app.conf = require('config').server;
+  app.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
   this.use(require('./notify.js'));
   this.use(require('./parser.js'));
@@ -26,7 +31,7 @@ exports.attach = function (options) {
   this.use(require('../models/user.js'));
 
   this.templates = {
-    list: hogan.compile(fs.readFileSync("views/list.hulk", "utf8")),
+    list: hogan.compile(fs.readFileSync("views/list.hbs", "utf8")),
   };
 
   /**

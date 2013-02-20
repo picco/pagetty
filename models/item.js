@@ -53,7 +53,7 @@ exports.attach = function(options) {
     var sort = {};
     var items = [];
     var names = {};
-console.dir(list);
+    
     async.series([function(next) {
       if (list.type == "all") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
