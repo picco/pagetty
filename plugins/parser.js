@@ -52,14 +52,9 @@ exports.attach = function (options) {
     async.forEach(articles, function(article, next_article) {
       async.waterfall([
         function(next) {
-          if (rule && (rule.image.mode == "page" || rule.score.mode == "page" || rule.comments.mode == "page")) {
-            app.fetch({url: self.processURL(baseURL, article.link)}, function(err, buffer) {
-              buffer ? next(null, buffer.toString()) : next(null, "");
-            });
-          }
-          else {
-            next(null, "");
-          }
+          app.fetch({url: self.processURL(baseURL, article.link)}, function(err, buffer) {
+            buffer ? next(null, buffer.toString()) : next(null, "");
+          });
         },
       ], function(err, page) {
         var item = self.processItem({
@@ -105,18 +100,20 @@ exports.attach = function (options) {
         rule: null,
       }
 
-      if (options.rssItem.image.url) {
-        item.image = self.processURL(options.baseURL, options.rssItem.image.url);
-      }
-      else if (options.rssItem.enclosures && options.rssItem.enclosures[0] && options.rssItem.enclosures[0].type == 'image/jpeg') {
-        item.image = self.processURL(options.baseURL, options.rssItem.enclosures[0].url);
-      }
-      else {
-        item.image = self.processURL(options.baseURL, self.processElement(options.rssItem.description, 'img', 'src'));
+      if (!item.image) {
+        item.image = self.processURL(options.baseURL, self.processElement(options.page, "meta[property='og:image']", "content"));
       }
 
-      if (!item.image && options.rule && options.page) {
+      if (!item.image && options.rule && options.rule.image.selector) {
         item.image = self.processURL(options.baseURL, self.processElement(options.page, options.rule.image.selector, options.rule.image.attribute));
+      }
+
+      if (!item.image && options.rssItem.image.url) {
+        item.image = self.processURL(options.baseURL, options.rssItem.image.url);
+      }
+
+      if (!item.image && options.rssItem.enclosures && options.rssItem.enclosures[0] && options.rssItem.enclosures[0].type == 'image/jpeg') {
+        item.image = self.processURL(options.baseURL, options.rssItem.enclosures[0].url);
       }
 
       if (options.rule && options.page) {

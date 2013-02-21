@@ -13,6 +13,7 @@ exports.attach = function(options) {
     type: String,
     url: {type: String, index: {unique: true}},
     domain: String,
+    link: String,
     title: String,
     subscriptions: Number,
     items_added: Date,
@@ -211,7 +212,7 @@ exports.attach = function(options) {
         console.log('Expired channels found: ' + (channels ? channels.length : 0));
 
         _.each(channels, function(channel) {
-          channel.crawl(false, function() {
+          channel.crawl(function() {
             app.lastUpdate = new Date().getTime();
           });
         })

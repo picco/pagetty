@@ -1,6 +1,8 @@
 exports.attach = function (options) {
   var app = this;
-
+  var fs = require("fs");
+  var im = require("imagemagick");
+  
   app.middleware = {
     /**
      * Redirect to HTTPS if the request comes via HTTP.

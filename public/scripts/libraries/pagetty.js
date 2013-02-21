@@ -87,6 +87,7 @@ define([
 
           window.scrollTo(0, 0);
           self.updateTitle();
+          self.loadImages();
         }
       );
     },
@@ -102,6 +103,7 @@ define([
               $('.items').append(items);
               $('.items article abbr').timeago();
 
+              self.loadImages();
               self.list_loading = false;
               self.page++;
             }
@@ -117,7 +119,7 @@ define([
       }
     },
     loadImages: function() {
-      var articles = $("article").toArray();
+      var articles = $("article.load").toArray();
 
       for (var i in articles) {
         var a = $(articles[i]);
@@ -129,7 +131,7 @@ define([
     loadImage: function(id, ih) {
       if (ih) {
         $('<img src="/imagecache/' + id + '-' + ih + '.jpg" />').load(function() {
-          $("." + id + " .image").append($(this)).show();
+          $("." + id + " .image").html($(this)).parents("article").removeClass("load");
         });
       }
     },
@@ -188,12 +190,17 @@ define([
     success: function(text, container) {
       var selector = "." + (container ? container : "messages");
 
+      this.hideProgress();
+
       $(selector).animate({opacity: 0}, 100, function() {
         $(selector).css('opacity', 1).html("<div class=\"alert alert-success\">" + _.escape(text) + "</div>");
       });
+
     },
     error: function(text, container) {
       var selector = "." + (container ? container : "messages");
+
+      this.hideProgress();
 
       $(selector).animate({opacity: 0}, 100, function() {
         $(selector).css('opacity', 1).html("<div class=\"alert alert-error\">" + _.escape(text) + "</div>");

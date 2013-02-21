@@ -164,7 +164,7 @@ article .meta {
   overflow: hidden;
 }
 article .image {
-  display: none;
+  display: block;
   margin-top: 10px;
 }
 article .action {
@@ -186,7 +186,7 @@ article abbr {
   border: none !important;
 }
 .app-wide article .image {
-  display: none;
+  display: block;
   height: 200px;
   line-height: 200px;
   text-align: center;
@@ -274,7 +274,7 @@ article .inner {
 }
 @media (max-width: 999px) {
   .app article .image {
-    display: none;
+    display: block;
     height: inherit;
     line-height: inherit;
     text-align: inherit;

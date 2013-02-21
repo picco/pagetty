@@ -1,17 +1,11 @@
 require([
   "pagetty",
-  "text!templates/rule.html",
-  "icanhaz",
   "/highlight/highlight.pack.js",
-], function(pagetty, ruleTemplate) {
+], function(pagetty) {
 
 Controller = {
   init: function() {
     var self = this;
-
-    ich.addTemplate("rule", ruleTemplate);
-
-    if (window.location.href.match(/empty/)) $('#emptyModal').modal({show: true});
 
     $(".btn-save-list").click(self.saveList);
 
@@ -33,24 +27,20 @@ Controller = {
     });
 
     $(".btn-save-rules").click(function() {
-      $.ajax("/rules", {
+      pagetty.showProgress();
+
+      $.ajax("/rule", {
         type: "POST",
         data: self.getRulesData(),
         success: function(data, status) {
-          pagetty.success('Changes saved.', 'rules-messages');
+          pagetty.success("Rules are saved and the feed has been updated.");
         },
         error: function(xhr, status, error) {
-          pagetty.error(xhr.responseText, 'rules-messages');
+          pagetty.error(xhr.responseText);
         },
       });
-    });
 
-    $('.btn-add-rule').click(function() {
-      $('#rules').append(ich.rule());
-    });
-
-    $('.btn-remove-rule').live('click', function(e) {
-      $(this).parent().parent().remove();
+      return false;
     });
 
     $('.btn-fetch-sample').live("click", function() {
@@ -62,52 +52,10 @@ Controller = {
         rule.find(".sample pre code").each(function(i, e) {hljs.highlightBlock(e)});
       });
     });
-
-    $('.btn-add-to-channel').live("click", function() {
-      var data = {
-        channel_id: channel_id,
-        rule: {
-          item: $(this).data('item-selector'),
-          target: {selector: $(this).data('target-selector'), attribute: $(this).data('target-attribute')},
-          title: {selector: $(this).data('title-selector'), attribute: $(this).data('title-attribute')},
-          image: {selector: $(this).data('image-selector'), attribute: $(this).data('image-attribute')},
-          comments: {selector: $(this).data('comments-selector'), attribute: $(this).data('comments-attribute')},
-          score: {selector: $(this).data('score-selector'), attribute: $(this).data('score-attribute')},
-        },
-      };
-
-      $.ajax({
-        type: 'POST',
-        url: '/rule/create',
-        data: data,
-        success: function() {
-          window.location = '/channel/' + channel_id + '/configure';
-        },
-        error: function() {
-          alert('Error occurred.')
-        },
-      });
-
-      return false;
-    });
-
-    $('.btn-remove-from-channel').live("click", function() {
-      $.ajax({
-        type: 'POST',
-        url: '/rule/delete',
-        data: {channel_id: channel_id, rule_id: $(this).data('rule')},
-        success: function() {
-          window.location = '/channel/' + channel_id + '/configure';
-        },
-        error: function() {
-          alert('Error occurred.')
-        },
-      });
-
-      return false;
-    });
   },
   saveList: function() {
+    pagetty.showProgress();
+
     $.ajax("/list", {
       type: "POST",
       data: {list_id: list_id, name: $("#list .name").val()},
@@ -120,40 +68,34 @@ Controller = {
     });
   },
   getRulesData: function() {
-    var attrs = {
+    var data = {
       channel_id: channel_id,
-      rules: []
-    };
-
-    var rules = $("#rules .rule").get();
-
-    for (var i in rules) {
-      attrs.rules.push({
-        item: $("input.item", rules[i]).val(),
+      rule: {
+        item: $("input.item").val(),
         target: {
-          selector: $("input.target-selector", rules[i]).val(),
-          attribute: $("input.target-attribute", rules[i]).val(),
+          selector: $("input.target-selector").val(),
+          attribute: $("input.target-attribute").val(),
         },
         title: {
-          selector: $("input.title-selector", rules[i]).val(),
-          attribute: $("input.title-attribute", rules[i]).val(),
+          selector: $("input.title-selector").val(),
+          attribute: $("input.title-attribute").val(),
         },
         image: {
-          selector: $(".image-selector", rules[i]).val(),
-          attribute: $(".image-attribute", rules[i]).val()
+          selector: $(".image-selector").val(),
+          attribute: $(".image-attribute").val(),
         },
         score: {
-          selector: $(".score-selector", rules[i]).val(),
-          attribute: $(".score-attribute", rules[i]).val(),
+          selector: $(".score-selector").val(),
+          attribute: $(".score-attribute").val(),
         },
         comments: {
-          selector: $(".comments-selector", rules[i]).val(),
-          attribute: $(".comments-attribute", rules[i]).val(),
+          selector: $(".comments-selector").val(),
+          attribute: $(".comments-attribute").val(),
         },
-      });
-    }
+      }
+    };
 
-    return attrs;
+    return data;
   },
 };
 

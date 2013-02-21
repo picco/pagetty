@@ -10,7 +10,6 @@ exports.attach = function (options) {
   var fs = require('fs');
   var gzippo = require('gzippo');
   var hbs = require("hbs");
-  var im = require('imagemagick');
   var mongoStore = require('connect-mongo')(express);
   var mongoose = require('mongoose');
 
@@ -38,6 +37,17 @@ exports.attach = function (options) {
 
   hbs.registerHelper("eq", function(v1, v2, options) {
     return (v1 == v2) ? options.fn(this) : options.inverse(this);
+  });
+
+  hbs.registerHelper("neq", function(v1, options) {
+    //return (v1 != v2) ? options.fn(this) : options.inverse(this);
+    return "asd";
+  });
+
+  hbs.registerHelper("select", function(value, options) {
+    var $el = $('<select />').html(options.fn(this));
+    $el.find('[value=' + value + ']').attr({'selected':'selected'});
+    return $el.html();
   });
 
   // Set up server middleware and configuration.
@@ -164,6 +174,22 @@ exports.attach = function (options) {
   /**
    * API: Load items from client-side.
    */
+  app.server.get("/api/items/:list/:variant/:page", app.middleware.restricted, function(req, res) {
+    app.list.findById(req.params.list, function(err, list) {
+      if (err || !list) {
+        res.send(500);
+      }
+      else {
+        app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
+          res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+        });
+      }
+    });
+  });
+
+  /**
+   * API: Load items from client-side.
+   */
   app.server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
     if (req.params.list == "all") {
       list = app.list.all();
@@ -278,60 +304,86 @@ exports.attach = function (options) {
    */
   app.server.post("/unsubscribe", app.middleware.restricted, function(req, res) {
     req.session.user.unsubscribe(req.body.channel_id, function(err) {
-      err ? res.send(err, 400) : res.send(200);
+      err ? res.send(400, err) : res.send(200);
     });
   });
 
   /**
-   * Save channel configuration.
+   * Save a rule.
    */
-  app.server.post("/rules", app.middleware.restricted, function(req, res) {
+  app.server.post("/rule", app.middleware.restricted, function(req, res) {
     var validator = app.getValidator();
-    var old_rules = [];
-
-    for (var i in req.body.rules) {
-      validator.check(req.body.rules[i].item, 'Item selector is always required.').notEmpty();
-      validator.check(req.body.rules[i].target.selector, 'Target selector is always required.').notEmpty();
-      validator.check(req.body.rules[i].title.selector, 'Title selector is always required.').notEmpty();
-    }
-
-    if (validator.hasErrors()) {
-      res.send(validator.getErrors()[0], 400);
-    }
+    var valid_modes = ["page", "rss"];
 
     async.waterfall([
       // Load channel.
       function(next) {
         app.channel.findById(req.body.channel_id, function(err, channel) {
+          channel ? next(err, channel) : next("Channel not found.");
+        });
+      },
+      // Validaate rule data.
+      function(channel, next) {
+        if (channel.type == "rss") {
+          //validator.check(req.body.rule.image.mode, 'Invalid image mode.').notEmpty().isIn(valid_modes);
+          //validator.check(req.body.rule.score.mode, 'Invalid score mode.').notEmpty().isIn(valid_modes);
+          //validator.check(req.body.rule.comments.mode, 'Invalid comments mode.').notEmpty().isIn(valid_modes);
+        }
+        else {
+          validator.check(req.body.rule.item, 'Item selector is always required.').notEmpty();
+          validator.check(req.body.rule.target.selector, 'Target selector is always required.').notEmpty();
+          validator.check(req.body.rule.title.selector, 'Title selector is always required.').notEmpty();
+        }
+
+        validator.hasErrors() ? next(validator.getErrors()[0]) : next(null, channel);
+      },
+      // Save the rule.
+      function(channel, next) {
+        var rule = {type: channel.type, domain: channel.domain};
+
+        if (channel.type == "rss") {
+          rule.image = {
+            selector: req.body.rule.image.selector,
+            attribute: req.body.rule.image.attribute,
+          };
+          rule.score = {
+            selector: req.body.rule.score.selector,
+            attribute: req.body.rule.score.attribute,
+          };
+          rule.comments = {
+            selector: req.body.rule.comments.selector,
+            attribute: req.body.rule.comments.attribute,
+          };
+        }
+        else {
+          rule.item = req.body.rule.item;
+          rule.target = {
+            selector: req.body.rule.target.selector,
+            attribute: req.body.rule.target.attribute,
+          };
+          rule.title = {
+            selector: req.body.rule.title.selector,
+            attribute: req.body.rule.title.attribute,
+          };
+          rule.image = {
+            selector: req.body.rule.image.selector,
+            attribute: req.body.rule.image.attribute,
+          };
+          rule.score = {
+            selector: req.body.rule.score.selector,
+            attribute: req.body.rule.score.attribute,
+          };
+          rule.comments = {
+            selector: req.body.rule.comments.selector,
+            attribute: req.body.rule.comments.attribute,
+          };
+        }
+
+        console.dir(rule);
+
+        app.rule.findOneAndUpdate({type: rule.type, domain: rule.domain}, rule, {upsert: true}, function(err) {
           next(err, channel);
         });
-      },
-      // Extract existing rules for logging.
-      function(channel, next) {
-        app.rule.find({domain: channel.domain}, function(err, rules) {
-          for (var i in rules) {
-            // Objects contain functions an other shit.
-            old_rules.push(JSON.parse(JSON.stringify(rules[i])));
-          }
-
-          next(null, channel);
-        });
-      },
-      // Delete existing rules for the domain.
-      function(channel, next) {
-        app.rule.find({domain: channel.domain}).remove();
-        next(null, channel);
-      },
-      // Recreate rules.
-      function(channel, next) {
-        for (var i in req.body.rules) {
-          req.body.rules[i].domain = channel.domain;
-          req.body.rules[i].url = channel.url;
-          app.rule.create(req.body.rules[i], function(err) {
-            if (err) throw err;
-          });
-        }
-        next(null, channel);
       },
       // Update channel items.
       function(channel, next) {
@@ -339,73 +391,15 @@ exports.attach = function (options) {
           next(err, channel);
         });
       },
+      /*
+      // Notify about the change.
       function(channel, next) {
         app.notify.onRulesChange(req.session.user, channel, old_rules, req.body.rules);
         next();
       }
+      */
     ], function(err) {
-      err ? res.json(err, 400) : res.send(200);
-    });
-  });
-
-  /**
-   * Create a rule from a profiler configuration.
-   */
-  app.server.post("/rule/create", app.middleware.restricted, function(req, res) {
-    async.waterfall([
-      // Load channel.
-      function(next) {
-        app.channel.findById(req.body.channel_id, function(err, channel) {
-          next(err, channel);
-        });
-      },
-      // Create new rule.
-      function(channel, next) {
-        var rule = req.body.rule;
-
-        rule.domain = channel.domain;
-        rule.url = channel.url;
-
-        app.rule.create(rule, function(err) {
-          next(err, channel);
-        });
-      },
-      // Update channel items.
-      function(channel, next) {
-        channel.crawl(function(err) {
-          next();
-        });
-      },
-    ], function(err) {
-      err ? res.json(err, 400) : res.send(200);
-    });
-  });
-
-  /**
-  * Create a rule from a profiler configuration.
-  */
-  app.server.post("/rule/delete", app.middleware.restricted, function(req, res) {
-    async.waterfall([
-      // Load channel.
-      function(next) {
-        app.channel.findById(req.body.channel_id, function(err, channel) {
-          next(err, channel);
-        });
-      },
-      // Delete rule.
-      function(channel, next) {
-        app.rule.findByIdAndRemove(req.body.rule_id, function(err) {
-          next(err, channel);
-        });
-      },
-      // Update channel items.
-      function(channel, next) {
-        channel.crawl(function(err) {
-          next();
-        });
-      },
-    ], function(err) {
-      err ? res.json(err, 400) : res.send(200);
+      err ? res.json(400, err) : res.send(200);
     });
   });
 
@@ -448,7 +442,7 @@ exports.attach = function (options) {
       },
       // Load rule.
       function(next) {
-        app.rule.findOne({domain: params.channel.domain}, function(err, rule) {
+        app.rule.findOne({type: params.channel.type, domain: params.channel.domain}, function(err, rule) {
           params.rule = rule;
           next();
         });
@@ -464,6 +458,7 @@ exports.attach = function (options) {
           list: params.list,
           channel: params.channel,
           rule: params.rule,
+          rule_source_options: [{value: "page", label: "Target page"}, {value: "rss", label: "RSS Item description"}],
         });
       }
     });

@@ -6,6 +6,8 @@ exports.attach = function(options) {
     user_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     channel_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     type: {type: String, index: true},
+    domain: String,
+    link: String,
     name: String,
     weight: Number,
   });
@@ -64,8 +66,8 @@ exports.attach = function(options) {
   /**
    * Create necessary lists upon user signup.
    */
-  listSchema.statics.createFromChannel = function(user_id, channel_id, name, callback) {
-    app.list.create({user_id: user_id, channel_id: channel_id, type: "channel", name: name, weight: 0}, function(err) {
+  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
+    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err) {
       if (err) console.log(err);
       callback(err);
     });

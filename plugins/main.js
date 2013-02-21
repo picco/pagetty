@@ -221,12 +221,15 @@ exports.attach = function (options) {
   /**
    * Extract the linked RSS feeds from HTML.
    */
-  app.discoverFeeds = function(html, callback) {
+  app.discoverFeeds = function(feed, callback) {
     var feeds = {};
-    var items = $(html).find("link[type*=rss], link[type*=atom]").toArray();
+    var items = $(feed.content).find("link[type*=rss], link[type*=atom]").toArray();
 
     for (var i in items) {
-      feeds[$(items[i]).attr("href")] = {url: $(items[i]).attr("href"), title: $(items[i]).attr("title") || $(items[i]).attr("href")};
+      var url = $(items[i]).attr("href");
+
+      if (url.indexOf('http') !== 0) url = uri.resolve(feed.url, url);
+      feeds[url] = {url: url, title: $(items[i]).attr("title") || url};
     }
 
     callback(_.toArray(feeds));
@@ -264,12 +267,14 @@ exports.attach = function (options) {
         if (feed.type == "rss") {
           feedparser.parseString(feed.content, function(err, meta, articles) {
             feed.domain = uri.parse(meta.link).hostname;
+            feed.link = meta.link;
             feed.title = meta.title;
             next();
           });
         }
         else {
-          feed.domain = uri.parse(url).hostname;
+          feed.domain = uri.parse(feed.url).hostname;
+          feed.link = feed.url;
           feed.title = $(feed.content).find("title").text() || feed.url;
           next();
         }
@@ -277,7 +282,7 @@ exports.attach = function (options) {
       // Search for available RSS feeds in HTML feeds.
       function(next) {
         if (feed.type == "html") {
-          app.discoverFeeds(feed.content, function(feeds) {
+          app.discoverFeeds(feed, function(feeds) {
             feed.feeds = feeds;
             next();
           });

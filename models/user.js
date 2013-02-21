@@ -51,7 +51,7 @@ exports.attach = function(options) {
             next();
           }
           else {
-            channel = new app.channel({type: feed.type, url: feed.url, domain: feed.domain});
+            channel = new app.channel({type: feed.type, url: feed.url, domain: feed.domain, link: feed.link});
             channel.save(function(err) {
               next(err);
             });
@@ -66,7 +66,7 @@ exports.attach = function(options) {
       },
       // Create a list (subscription) for the user.
       function(next) {
-        app.list.createFromChannel(self._id, channel._id, feed.title, function(err) {
+        app.list.createFromChannel(self._id, channel, feed.title, function(err) {
           err ? next("Could not update user subscription.") : next();
         });
       },
@@ -76,50 +76,6 @@ exports.attach = function(options) {
           err ? next("Could not increment subscribers.") : next();
         });
       },
-    ], function(err) {
-      app.notify.onSubscribe(self, channel);
-      callback(err, channel);
-    });
-  }
-
-  /**
-   * Subscribe user to a given channel.
-   */
-  userSchema.methods.subscribeToChannel = function(channel_id, callback) {
-    var self = this;
-    var channel = false;
-
-    async.series([
-      // Load channel.
-      function(next) {
-        app.channel.findById(channel_id, function(err, ch) {
-          channel = ch;
-          next(err);
-        });
-      },
-      // Check that the user is not yet subscribed.
-      function(next) {
-        app.list.count({user_id: self._id, channel_id: channel_id}, function(err, count) {
-          if (count) {
-            next("You are already subscribed to this site.");
-          }
-          else {
-            next();
-          }
-        });
-      },
-      // Create a list for this subscription.
-      function(next) {
-        app.list.create({type: "channel", name: channel.title, user_id: self._id, channel_id: channel_id, weight: null}, function(err) {
-          err ? next("Could not subscribe to this site.") : next();
-        });
-      },
-      // Increment channel's subscribers counter.
-      function(next) {
-        channel.updateSubscriberCount(function(err) {
-          err ? next("Could not increment subscribers.") : next();
-        });
-      }
     ], function(err) {
       app.notify.onSubscribe(self, channel);
       callback(err, channel);

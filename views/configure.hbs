@@ -4,17 +4,17 @@
       <div class="row">
         <div class="span12">
           <a class="logo" href="/">Pagetty</a>
-          <h1><a href="{{channel.url}}" target="_blank">{{subscription.name}}</a></h1>
+          <h1>{{list.name}}</h1>
         </div>
       </div>
     </div>
   </header>
   <div class="body container">
     <div class="row">
-      <div class="span12">
-        <div id="list" style="margin-bottom: 3em">
+      <div class="span16">
+        <div class="messages"></div>
+        <div id="list" class="well">
           <h2>My subscription</h2>
-          <div class="messages"></div>
           <div class="form-element">
             <label>Feed URL:</label>
             <strong><a href="{{channel.url}}" target="_blank">{{channel.url_short}}</a></strong>
@@ -25,15 +25,7 @@
           </div>
           <a class="btn btn-primary btn-save-list">Save</a>
           <a class="btn btn-danger btn-unsubscribe btn-action">Unsubscribe</a>
-        </div>
-      </div>
-      <div class="span4">
-        <h2>&nbsp;</h2>
-        <div style="text-align: center">
-          <a href="/list/{{list._id}}" class="btn btn-large">View stories &raquo;</a>
-          <p style="margin: 1em 0">
-            <a href="{{channel.url}}" target="_blank">Open target website &raquo;</a>
-          </p>
+          <a class="btn" href="/list/{{list._id}}">View stories</a>
         </div>
       </div>
     </div>
@@ -46,25 +38,6 @@
             {{> rss_rule}}
           {{/eq}}
         </div>
-        <div class="form-actions">
-          <a class="btn btn-primary btn-save-rules" href="#">Save</a>
-          <a class="btn btn-success btn-add-rule">Add rule</a>
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- ASSETS -->
-  <div class="assets">
-    <div class="modal hide" id="emptyModal" tabindex="-1" role="dialog" aria-labelledby="Empty dialog" aria-hidden="true">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-        <h2 id="subscribeModalLabel">The channel does not yet have any content</h2>
-      </div>
-      <div class="modal-body">
-        <p>Use the Content wizard or the Rules interface to set up some content aggregation rules.</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn" data-dismiss="modal" aria-hidden="true">M'kay</button>
       </div>
     </div>
   </div>

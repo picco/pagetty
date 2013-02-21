@@ -1,15 +1,15 @@
 {{#items}}
-  <article class="{{new}} {{_id}}" data-id="{{_id}}" data-image="{{image_hash}}">
+  <article class="{{new}} {{_id}} load" data-id="{{_id}}" data-image="{{image_hash}}">
     <div class="new"></div>
     <div class="inner">
       <div class="title">
         <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
         <div class="meta clearfix">
-          {{#score}}<a class="action" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/score}}
+          {{#if score}}<a class="action" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/if}}
           <a class="channel" href="{{channel_url}}" target="_blank">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
         </div>
       </div>
-      <a class="image" target="_blank" href="{{target}}"></a>
+      <a class="image" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
     </div>
   </article>
 {{/items}}
