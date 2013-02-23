@@ -1,15 +1,19 @@
-{{#items}}
-  <article class="{{new}} {{_id}} load" data-id="{{_id}}" data-image="{{image_hash}}">
-    <div class="new"></div>
-    <div class="inner">
-      <div class="title">
-        <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
-        <div class="meta clearfix">
-          {{#if score}}<a class="action" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/if}}
-          <a class="channel" href="/list/{{list_id}}">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
+{{#if items}}
+  {{#items}}
+    <article class="{{new}} {{_id}} load" data-id="{{_id}}" data-image="{{image_hash}}">
+      <div class="new"></div>
+      <div class="inner">
+        <div class="title">
+          <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
+          <div class="meta clearfix">
+            {{#if score}}<a class="action" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/if}}
+            <a class="channel" href="/list/{{list_id}}">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
+          </div>
         </div>
+        <a class="image disabled" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
       </div>
-      <a class="image disabled" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
-    </div>
-  </article>
-{{/items}}
+    </article>
+  {{/items}}
+{{else}}
+  <div class="no-items">No stories in this feed.</div>
+{{/if}}

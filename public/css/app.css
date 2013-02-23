@@ -12,6 +12,12 @@
 .app img.u {
   display: none;
 }
+#ascrail2000 {
+  display: none;
+}
+
+/* APP WIDE ------------------------------------------------------------------ */
+
 .app-wide .wrapper {
   max-width: inherit;
 }
@@ -108,6 +114,10 @@ nav li.active a {
   font-weight: bold;
   line-height: 46px;
 }
+.no-items {
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
 .variants .mini {
   border-radius: 5px;
   padding: 3px 6px;
@@ -128,7 +138,7 @@ nav li.active a {
 
 article h2 {
   position: relative;
-  margin-bottom: 8px;
+  padding-bottom: 4px;
 }
 article .inner {
   padding: 20px 19px 20px 20px;
@@ -155,7 +165,8 @@ article.new .new {
   display: block;
 }
 article .title {
-  margin-bottom: 10px;
+  background: #fff;
+  padding-bottom: 10px;
 }
 article .meta {
   height: 24px;
@@ -191,9 +202,17 @@ article .channel {
 article abbr {
   border: none !important;
 }
+.app-wide article .inner {
+  position: relative;
+}
+.app-wide article .title {
+  position: absolute;
+  padding-right: 20px;
+}
 .app-wide article .image {
   display: block;
   height: 200px;
+  margin-top: 90px;
   line-height: 200px;
   text-align: center;
   vertical-align: middle;
@@ -211,7 +230,7 @@ article abbr {
   width: 40px;
 }
 .controls .inner {
-  position: fixed;
+  position: absolute;
 }
 .controls a {
   display: block;
@@ -291,13 +310,6 @@ article .inner {
 @media (min-width: 1000px) {
   .app-wide article {
     width: 50%;
-  }
-  .app-wide article h2 {
-    max-height: 54px;
-    overflow: hidden;
-  }
-  .app-wide article .title {
-    height: 90px;
   }
   .app-wide article .inner {
     border-right: 1px solid #eee;

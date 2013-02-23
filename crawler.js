@@ -4,6 +4,16 @@ var app = new broadway.App();
 // Load root plugin.
 app.use(require('./plugins/main.js'));
 
+function crawlBatch(updates) {
+  if (updates) {
+    app.channel.crawlBatch(crawlBatch);
+  }
+  else {
+    console.log("Waiting...");
+    setInterval(function() {crawlBatch()}, 10000);
+  }
+}
+
 // Launcher
 app.init(function (err) {
   if (err) {
@@ -28,10 +38,7 @@ app.init(function (err) {
       })
     }
     else {
-      app.lastUpdate = new Date().getTime();
-      app.channel.crawlBatch(true);
-      // Poll every 10 seconds, the actual limits are enforced by the method itself.
-      setInterval(function() {app.channel.crawlBatch()}, 10000);
+      crawlBatch(true);
     }
   }
 });

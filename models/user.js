@@ -29,6 +29,7 @@ exports.attach = function(options) {
     var self = this;
     var channel = null;
     var feed = null;
+    var list = null;
 
     async.series([
       // Parse the feed contents.
@@ -66,7 +67,8 @@ exports.attach = function(options) {
       },
       // Create a list (subscription) for the user.
       function(next) {
-        app.list.createFromChannel(self._id, channel, feed.title, function(err) {
+        app.list.createFromChannel(self._id, channel, feed.title, function(err, doc) {
+          list = doc;
           err ? next("Could not update user subscription.") : next();
         });
       },
@@ -76,9 +78,15 @@ exports.attach = function(options) {
           err ? next("Could not increment subscribers.") : next();
         });
       },
+      // Update user's read state.
+      function(next) {
+        self.updateReadState(function(err) {
+          err ? next("Could not update read state.") : next();
+        });
+      },
     ], function(err) {
       app.notify.onSubscribe(self, channel);
-      callback(err, channel);
+      callback(err, list);
     });
   }
 
@@ -164,6 +172,17 @@ exports.attach = function(options) {
 
     this.save(function(err) {
       app.notify.onActivate(self);
+      callback(err);
+    });
+  }
+
+  /**
+   * Update user read state pointers.
+   */
+  userSchema.methods.updateReadState = function(callback) {
+    this.low = this.high;
+    this.high = new Date();
+    this.save(function(err) {
       callback(err);
     });
   }

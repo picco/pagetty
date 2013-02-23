@@ -7,6 +7,10 @@ require([
 	Controller = {
 		init: function() {
 			$(".subscribe-form").bind("submit", Controller.subscribe);
+
+			$(document).ready(function() {
+				$('.url').focus();
+			});
 		},
 		subscribe: function() {
 			$.ajax("/subscribe/options", {
@@ -18,7 +22,7 @@ require([
 						Controller.displayOptions(res);
 					}
 					else if (res.status == "subscribed") {
-						window.location = "/";
+						window.location = "/list/" + res.list_id;
 					}
 					else {
 						pagetty.error("Unknown error.");
@@ -36,6 +40,8 @@ require([
 		displayOptions: function(res) {
 			var option = Handlebars.compile(optionTemplate);
 
+			pagetty.clearMessages();
+
 			if (res.options.length) {
 				$(".options tbody").html("");
 
@@ -43,8 +49,12 @@ require([
 					$(".options tbody").append(option(res.options[i]));
 				}
 			}
+			else {
+				$(".options tbody").html('<tr><td colspan="3">No RSS feeds found.</td></tr>');
+			}
 
 			$(".btn-subscribe-custom").attr("href", "/subscribe?url=" + res.url);
+			$(".options").show();
 		}
 	};
 

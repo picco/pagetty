@@ -21,10 +21,9 @@
       <a class="user tt" href="/account" data-placement="left" title="My account ({{user.mail}})"><i class="icon-user"></i></a>
       <a class="tt" data-placement="left" onmouseover="UE.Popin.preload();" title="Give feeedback" href="#" onclick="UE.Popin.show(); return false;"><i class="icon-question-sign"></i></a>
       <a class="content-width tt" href="#" data-placement="left" title="Change layout"><i class="icon-resize-horizontal"></i></a>
-      <a class="up tt" href="#" data-placement="left" title="Scroll up"><i class="icon-arrow-up"></i></a>
     </div>
   </div>
-  <div class="content">{{> list this}}</div>
+  <div class="content">{{> list}}</div>
   <!-- CONTROLLER -->
   <script type="text/javascript">
     require(["/scripts/libraries/pagetty.js?b=" + build, "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty) {

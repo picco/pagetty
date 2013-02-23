@@ -41,31 +41,6 @@ exports.attach = function(options) {
   }
 
   /**
-   * Update items.
-   */
-  channelSchema.methods.crawl = function(callback) {
-    var self = this;
-    var date = new Date();
-
-    async.waterfall([
-      function(next) {
-        self.fetchItems(date, function(err, title, items) {
-          self.title = title;
-          next(err, items);
-        });
-      },
-      function(items, next) {
-        self.syncItems(date, items, function(err) {
-          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + items.length);
-          next(err);
-        });
-      },
-    ], function(err) {
-      callback(err);
-    });
-  }
-
-  /**
    * Fetch fresh items for the given channel.
    */
   channelSchema.methods.fetchItems = function(date, callback) {
@@ -126,27 +101,21 @@ exports.attach = function(options) {
   }
 
   /**
-   * Update all items for a given channel.
+   * Sync old and new data for given items.
    */
   channelSchema.methods.syncItems = function(date, items, callback) {
     var self = this;
 
-    // Set the pos attribute to zero so that we can identify current items.
-    // The pos attribute will be reset for each
-    app.item.update({chanel_id: self._id}, {$set: {pos: 0}}, function(err) {
+    async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
       if (err) console.log(err);
 
-      async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
+      // Update the items_updated attribute.
+      self.items_updated = date;
+
+      // Save the items_added, items_updated attributes.
+      self.save(function(err) {
         if (err) console.log(err);
-
-        // Update the items_updated attribute.
-        self.items_updated = date;
-
-        // Save the items_added, items_updated attributes.
-        self.save(function(err) {
-          if (err) console.log(err);
-          callback();
-        });
+        callback();
       });
     });
   }
@@ -169,8 +138,6 @@ exports.attach = function(options) {
         current_item.comments = new_item.comments;
         current_item.score = new_item.score;
         current_item.relative_score = new_item.relative_score;
-        current_item.rule = new_item.rule;
-        current_item.pos = new_item.pos;
 
         current_item.save(function(err) {
           if (err) console.log(err);
@@ -195,33 +162,96 @@ exports.attach = function(options) {
   }
 
   /**
+   * Update items.
+   */
+  channelSchema.methods.crawl = function(callback) {
+    var self = this;
+    var date = new Date();
+
+    async.waterfall([
+      function(next) {
+        self.fetchItems(date, function(err, title, items) {
+          self.title = title;
+          next(err, items);
+        });
+      },
+      function(items, next) {
+        self.syncItems(date, items, function(err) {
+          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + items.length);
+          next(err);
+        });
+      },
+      function(next) {
+        self.recalculateRelativeScores(function(err) {
+          next();
+        });
+      },
+    ], function(err) {
+      callback(err);
+    });
+  }
+
+  /**
+   * Recalculate relative scores for all items.
+   */
+  channelSchema.methods.recalculateRelativeScores = function(callback) {
+    var self = this;
+    var min = 0;
+    var max = 0;
+    var rel = 0;
+
+    async.waterfall([
+      // Find max score
+      function(next) {
+        app.item.find({channel_id: self._id}).sort({score: -1}).limit(1).execFind(function(err, items) {
+          max = items[0] ? parseFloat(items[0].score) : 0;
+          next();
+        });
+      },
+      // Recalculate scores
+      function(next) {
+        app.item.find({channel_id: self._id}, function(err, items) {
+          async.forEach(items, function(item, cb) {
+            rel = new Number((item.score - min) / (max - min)).toPrecision(4);
+            item.relative_score = (rel == "NaN" || rel == "Infinity") ? 0 : rel;
+            item.save(function(err) {
+              if (err) console.log(err);
+              cb();
+            });
+          }, function() {
+            next();
+          });
+        });
+      },
+    ], function(err) {
+      callback();
+    });
+  }
+
+  /**
    * TODO
    */
-  channelSchema.statics.crawlBatch = function update(forceStart) {
+  channelSchema.statics.crawlBatch = function update(done) {
     var self = this;
     var now = new Date().getTime();
     var batchSize = app.conf.crawler.batchSize; // max number of channels updated during single run.
-    var min_interval = 60 * 1000; // Do not start new loop if last update was less than this, in seconds.
-    var max_lifetime = 10; // Channel will be updated if time from the last update exceeds this, in minutes.
-    var check = new Date(now - (max_lifetime * 60 * 1000));
+    var channel_lifetime = app.conf.crawler.channelLifetime; // Channel will be updated if time from the last update exceeds this, in minutes.
+    var check = new Date(now - (channel_lifetime * 60 * 1000));
+    var updated_channels = 0;
 
-    if (forceStart || now - app.lastUpdate >= min_interval) {
-      console.log('Starting update batch. Last update was ' + parseInt((now - app.lastUpdate) / 1000) + 'sec ago.');
+    console.log('Starting new update batch.');
 
-      app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batchSize).execFind(function(err, channels) {
-        console.log('Expired channels found: ' + (channels ? channels.length : 0));
-
-        _.each(channels, function(channel) {
-          channel.crawl(function() {
-            app.lastUpdate = new Date().getTime();
-          });
-        })
+    app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batchSize).execFind(function(err, channels) {
+      async.mapSeries(channels, function(channel, next) {
+        channel.crawl(function() {
+          updated_channels++;
+          next();
+        });
+      }, function(err) {
+        console.log('Batch completed,', updated_channels, 'channels updated.');
+        done(updated_channels);
       });
-
-    }
-    else {
-      console.log("Waiting, only " + parseInt((now - app.lastUpdate) / 1000) + "sec has passed from last update...");
-    }
+    });
   }
 
   this.channel = app.db.model('Channel', channelSchema, 'channels');

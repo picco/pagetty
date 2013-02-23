@@ -1,7 +1,11 @@
 <section class="list clearfix">
   <header>
     <div class="inner">
-      <h1><a href="{{list.link}}" target="_blank">{{list.name}}</a></h1>
+      {{#eq list._id "all"}}
+        <h1><a href="/">{{list.name}}</a></h1>
+      {{else}}
+        <h1><a href="{{list.link}}" target="_blank">{{list.name}}</a></h1>
+      {{/eq}}
       <div class="variants clearfix">
         <div class="dropdown">
           <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-filter"></i> {{list.variant_name}} <b class="caret"></b> </a>
@@ -15,7 +19,9 @@
             <li><a class="variant {{list.active_all}}" data-list="{{list._id}}" data-variant="all" href="/list/{{list._id}}/all">Most popular of all time</a></li>
           </ul>
         </div>
-        <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
+        {{#neq list._id "all"}}
+          <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
+        {{/neq}}
       </div>
     </div>
   </header>

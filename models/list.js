@@ -67,9 +67,9 @@ exports.attach = function(options) {
    * Create necessary lists upon user signup.
    */
   listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
-    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err) {
+    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
       if (err) console.log(err);
-      callback(err);
+      callback(err, list);
     });
   }
 

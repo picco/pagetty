@@ -75,6 +75,8 @@ define([
     loadList: function(list_id, variant) {
       var self = this;
 
+      $("section.list").css("opacity", .4);
+
       $.get('/api/list/' + list_id + '/' + variant)
         .success(function(content) {
           self.list = self.lists[list_id];

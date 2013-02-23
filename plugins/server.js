@@ -39,9 +39,8 @@ exports.attach = function (options) {
     return (v1 == v2) ? options.fn(this) : options.inverse(this);
   });
 
-  hbs.registerHelper("neq", function(v1, options) {
-    //return (v1 != v2) ? options.fn(this) : options.inverse(this);
-    return "asd";
+  hbs.registerHelper("neq", function(v1, v2, options) {
+    return (v1 != v2) ? options.fn(this) : options.inverse(this);
   });
 
   hbs.registerHelper("select", function(value, options) {
@@ -121,7 +120,6 @@ exports.attach = function (options) {
           });
         },
       ], function(err, callback) {
-        console.dir(list);
         render.app_style = req.session.user.narrow ? "app" : "app app-wide";
         render.list = list;
         render.list_json = JSON.stringify(list);
@@ -175,7 +173,7 @@ exports.attach = function (options) {
 
     function render(list) {
       app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
-        res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+        items.length ? res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false}) : res.send(404);
       });
     }
 
@@ -233,17 +231,8 @@ exports.attach = function (options) {
    * API: Update item pointers - high, low.
    */
   app.server.get("/api/update", app.middleware.restricted, function(req, res) {
-    req.session.user.low = req.session.user.high;
-    req.session.user.high = new Date();
-
-    req.session.user.save(function(err) {
-      if (err) {
-        console.log(err);
-        res.send(400);
-      }
-      else {
-        res.send(200);
-      }
+    req.session.user.updateReadState(function(err) {
+      err ? res.send(400) : res.send(200);
     });
   });
 
@@ -264,8 +253,8 @@ exports.attach = function (options) {
       }
       else {
         if (feed.type == "rss") {
-          req.session.user.subscribe(feed.url, function(err) {
-            err ? res.send(err, 400) : res.json({status: "subscribed"}, 200);
+          req.session.user.subscribe(feed.url, function(err, list) {
+            err ? res.send(err, 400) : res.json({status: "subscribed", list_id: list._id}, 200);
           });
         }
         else {
@@ -279,8 +268,8 @@ exports.attach = function (options) {
    * Subscribe user to a feed.
    */
   app.server.get("/subscribe", app.middleware.restricted, function(req, res) {
-    req.session.user.subscribe(req.query.url, function(err, feed, channel) {
-      res.redirect("/");
+    req.session.user.subscribe(req.query.url, function(err, list) {
+      res.redirect("/list/" + list._id);
     });
   });
 
@@ -381,8 +370,6 @@ exports.attach = function (options) {
           };
         }
 
-        console.dir(rule);
-
         app.rule.findOneAndUpdate({type: rule.type, domain: rule.domain}, rule, {upsert: true}, function(err) {
           next(err, channel);
         });
@@ -460,7 +447,6 @@ exports.attach = function (options) {
           list: params.list,
           channel: params.channel,
           rule: params.rule,
-          rule_source_options: [{value: "page", label: "Target page"}, {value: "rss", label: "RSS Item description"}],
         });
       }
     });

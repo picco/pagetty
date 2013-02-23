@@ -68,28 +68,23 @@ exports.attach = function(options) {
       var now = new Date();
       var range = new Date();
 
+      sort = list.type == "all" ? {relative_score: "desc", date: "desc"} : {score: "desc", date: "desc"};
+
       switch (variant) {
         case "time":
-          sort = {date: 'desc'};
+          sort = {date: "desc", relative_score: "desc"};
           break;
         case "day":
-          sort = {score: 'desc'};
           query.date = {$gte: range.setDate(now.getDate() - 1)};
           break;
         case "week":
-          sort = {score: 'desc'};
           query.date = {$gte: range.setDate(now.getDate() - 7)};
           break;
         case "month":
-          sort = {score: 'desc'};
           query.date = {$gte: range.setDate(now.getDate() - 30)};
           break;
         case "year":
-          sort = {score: 'desc'};
           query.date = {$gte: range.setDate(now.getDate() - 365)};
-          break;
-        case "all":
-          sort = {score: 'desc'};
           break;
       }
 
@@ -113,14 +108,11 @@ exports.attach = function(options) {
       });
     }], function(err) {
       async.forEach(items, function(item, cb) {
-        app.channel.findById(item.channel_id, function(err, channel) {
-          item.channel_url = channel.url;
-          item.list_name = names[item.channel_id].substr(0, 22);
-          item.list_id = links[item.channel_id];
-          item.stamp = item.date.toISOString();
-          item.new = item.created > user.low ? "new" : "";
-          cb();
-        });
+        item.list_name = names[item.channel_id].substr(0, 22);
+        item.list_id = links[item.channel_id];
+        item.stamp = item.date.toISOString();
+        item.new = item.created > user.low ? "new" : "";
+        cb();
       }, function(err) {
         callback(null, items);
       });

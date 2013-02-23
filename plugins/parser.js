@@ -14,7 +14,6 @@ exports.attach = function (options) {
   Parser.processHTML = function(date, channel, html, rules, callback) {
     var self = this;
     var items = [];
-    var pos = 1;
 
     for (i in rules) {
       var rawItems = $(html).find(rules[i].item).toArray();
@@ -27,7 +26,6 @@ exports.attach = function (options) {
           date: date,
         });
 
-        item.pos = pos++;
         item.created = date;
 
         if (self.itemIsValid(item, items)) {
@@ -47,7 +45,6 @@ exports.attach = function (options) {
     var self = this;
     var items = [];
     var page = "";
-    var pos = 1;
 
     async.forEach(articles, function(article, next_article) {
       async.waterfall([
@@ -62,12 +59,16 @@ exports.attach = function (options) {
           baseURL: baseURL,
           rssItem: article,
           rule: rule,
+          date: date,
           page: page
         });
 
-        item.pos = pos++;
         item.created = date;
-        items.push(item);
+
+        if (self.itemIsValid(item, items)) {
+          items.push(item);
+        }
+
         next_article();
       });
     }, function() {
@@ -86,7 +87,6 @@ exports.attach = function (options) {
         image: self.processURL(options.baseURL, self.processElement(options.htmlItem, options.rule.image.selector, options.rule.image.attribute)),
         comments: self.processURL(options.baseURL, self.processElement(options.htmlItem, options.rule.comments.selector, options.rule.comments.attribute)),
         score: self.processScore(self.processElement(options.htmlItem, options.rule.score.selector, options.rule.score.attribute)),
-        rule: options.rule._id,
         date: options.date,
       }
     }
@@ -95,11 +95,13 @@ exports.attach = function (options) {
         title: self.processTitle(options.rssItem.title),
         target: self.processURL(options.baseURL, options.rssItem.link),
         comments: self.processURL(options.baseURL, options.rssItem.comments),
-        date: options.rssItem.date,
+        date: options.rssItem.pubdate,
         image: null,
         score: null,
-        rule: null,
       }
+
+      // There is a chance that RSS parser failed to find the pubDate. Use the currents timestamp instead.
+      if (!item.date) item.date = options.date;
 
       // 1st priority - OG tag
 
@@ -247,8 +249,15 @@ exports.attach = function (options) {
    * Converts any text string to a numeric score.
    */
   Parser.processScore = function(string) {
+    var result = 0;
+
     if (string) {
-      return string.replace(/[^0-9.]/g, '');
+      result = string.replace(/[^0-9.]/g, '');
+
+      // Parse scores in the form "1.7k".
+      if (string.match(/.*k$/)) result *= 1000;
+
+      return result;
     }
     else {
       return 0;
@@ -282,35 +291,6 @@ exports.attach = function (options) {
     else {
       return null;
     }
-  }
-
-  /**
-   * Calculate the relative scores of all items on a channel.
-   */
-  Parser.calculateRelativeScore = function(items) {
-    var min = null, max = 0, score = 0;
-
-    for (i in items) {
-      score = parseFloat(items[i].score);
-      if (score >= max) max = score;
-
-      if (min == null) {
-        if (score > 0) min = score;
-      }
-      else {
-        if (score < min) min = score;
-      }
-    }
-
-    if (min == null) min = 0;
-
-    for (i in items) {
-      score = parseFloat(items[i].score);
-      score = new Number((score - min) / (max - min)).toPrecision(4);
-      items[i].relative_score = (score == "NaN") ? 0 : score;
-    }
-
-    return items;
   }
 
   app.parser = Parser;

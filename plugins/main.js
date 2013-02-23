@@ -30,10 +30,6 @@ exports.attach = function (options) {
   this.use(require('../models/rule.js'));
   this.use(require('../models/user.js'));
 
-  this.templates = {
-    list: hogan.compile(fs.readFileSync("views/list.hbs", "utf8")),
-  };
-
   /**
    * Decodes an URL-encoded string.
    * Ref: http://stackoverflow.com/questions/4292914/javascript-url-decode-function
@@ -87,7 +83,7 @@ exports.attach = function (options) {
         }
       ], function(err, buffer) {
         if (err) {
-          callback(err);
+          callback(err.toString());
         }
         else if (buffer && buffer.toString().length) {
           callback(err, buffer);

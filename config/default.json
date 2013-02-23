@@ -11,10 +11,14 @@
       "from": "ivo@pagetty.com",
       "logs": "logs@pagetty.com"
     },
+    "crawler": {
+      "batchSize": 10,
+      "channelLifetime": 1
+    },
     "facebook": {
       "clientId": "441989802494598",
       "clientSecret": "6e239f366205b1f622efe10a5f4640b0"
     },
-    "load_items": 20
+    "load_items": 40
   }
 }

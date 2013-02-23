@@ -192,10 +192,6 @@ h1, h2, h3 {
 
 /* PAGE: FRONT -------------------------------------------------------------- */
 
-.btn-demo {
-  color: #666;
-  margin-left: .5em
-}
 .btn-sign-up, .btn-demo {
   font-size: 22px;
   font-family: GraublauWeb, Helvetica, Arial;
@@ -247,25 +243,10 @@ h1, h2, h3 {
   text-align: center;
 }
 
-/* PAGE: SUBSCRIBE ---------------------------------------------------------- */
+/* PAGE: ADD ---------------------------------------------------------- */
 
 .add-site {
   margin-bottom: 2em;
-}
-.col-subscription {
-  min-width: 120px;
-}
-.browse-channels {
-  margin-bottom: 2em;
-}
-.browse-channels .pagination {
-  margin: 12px 0;
-}
-.status-subscribed .btn-channel-subscribe {
-  display: none;
-}
-.status-not-subscribed .btn-channel-unsubscribe {
-  display: none;
 }
 
 /* PAGE: CONFIGURE ---------------------------------------------------------- */
@@ -275,6 +256,9 @@ input.generate {
 }
 input.item {
   width: 469px;
+}
+.options {
+  display: none;
 }
 
 /* RESPONSIVE --------------------------------------------------------------- */

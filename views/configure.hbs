@@ -19,6 +19,12 @@
             <label>Feed URL:</label>
             <strong><a href="{{channel.url}}" target="_blank">{{channel.url_short}}</a></strong>
           </div>
+          {{#eq channel.type "rss"}}
+            <div class="form-element">
+              <label>Site URL:</label>
+              <strong><a href="{{channel.link}}" target="_blank">{{channel.link}}</a></strong>
+            </div>
+          {{/eq}}
           <div class="form-element">
             <label>Name: *</label>
             <input class="name input-xxlarge form-text" type="text" name="list:name" value="{{list.name}}" />
@@ -32,7 +38,7 @@
     <div class="row">
       <div class="span16">
         <div id="rules">
-          {{#eq channel.type html}}
+          {{#eq channel.type "html"}}
             {{> html_rule}}
           {{else}}
             {{> rss_rule}}

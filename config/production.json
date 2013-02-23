@@ -2,9 +2,6 @@
   "server": {
     "domain": "dev.pagetty.com",
     "env": "DEV",
-    "crawler": {
-      "batchSize": 3
-    },
     "google": {
       "clientId": "1042288061895-3gq5j0n1add03mli5h04n66hf01l358s.apps.googleusercontent.com",
       "clientSecret": "PaJKxVWxGToWYgYXKaEGTA00"
