@@ -97,10 +97,6 @@ exports.attach = function (options) {
           app.list.find({user_id: req.session.user._id}).sort({name: "asc"}).execFind(function(err, lists) {
             if (err) console.log(err);
 
-            lists.sort(function(a, b) {
-              return b.name < a.name;
-            });
-
             async.forEach(lists, function(item, iterate) {
               item.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + item.domain;
               item.active = (req.params.list_id == item._id) ? ' active' : '';
@@ -125,6 +121,7 @@ exports.attach = function (options) {
           });
         },
       ], function(err, callback) {
+        console.dir(list);
         render.app_style = req.session.user.narrow ? "app" : "app app-wide";
         render.list = list;
         render.list_json = JSON.stringify(list);
@@ -175,16 +172,21 @@ exports.attach = function (options) {
    * API: Load items from client-side.
    */
   app.server.get("/api/items/:list/:variant/:page", app.middleware.restricted, function(req, res) {
-    app.list.findById(req.params.list, function(err, list) {
-      if (err || !list) {
-        res.send(500);
-      }
-      else {
-        app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
-          res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
-        });
-      }
-    });
+
+    function render(list) {
+      app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
+        res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+      });
+    }
+
+    if (req.params.list == "all") {
+      render(app.list.all());
+    }
+    else {
+      app.list.findById(req.params.list, function(err, list) {
+        (err || !list) ? res.send(500) : render(list);
+      });
+    }
   });
 
   /**

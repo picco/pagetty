@@ -53,6 +53,7 @@ exports.attach = function (options) {
       async.waterfall([
         function(next) {
           app.fetch({url: self.processURL(baseURL, article.link)}, function(err, buffer) {
+            if (err) console.log(err);
             buffer ? next(null, buffer.toString()) : next(null, "");
           });
         },
@@ -100,17 +101,25 @@ exports.attach = function (options) {
         rule: null,
       }
 
+      // 1st priority - OG tag
+
       if (!item.image) {
         item.image = self.processURL(options.baseURL, self.processElement(options.page, "meta[property='og:image']", "content"));
       }
 
+      // 2nd priority - Scraper rule (only verified image URL's will do)
+
       if (!item.image && options.rule && options.rule.image.selector) {
-        item.image = self.processURL(options.baseURL, self.processElement(options.page, options.rule.image.selector, options.rule.image.attribute));
+        item.image = self.checkImageURL(self.processURL(options.baseURL, self.processElement(options.page, options.rule.image.selector, options.rule.image.attribute)));
       }
+
+      // 3rd priority - RSS item image
 
       if (!item.image && options.rssItem.image.url) {
         item.image = self.processURL(options.baseURL, options.rssItem.image.url);
       }
+
+      // 4th priority - RSS item enclosure
 
       if (!item.image && options.rssItem.enclosures && options.rssItem.enclosures[0] && options.rssItem.enclosures[0].type == 'image/jpeg') {
         item.image = self.processURL(options.baseURL, options.rssItem.enclosures[0].url);
@@ -126,22 +135,10 @@ exports.attach = function (options) {
     }
 
     // If the target is an image, set it also to image url and we can get an instant preview.
-    if (item.target && item.target.match(/\.(jpg|png|gif)$/gi)) item.image = item.target;
 
-    // Preview imgur images automatically.
     if (item.target) {
-      var matches = item.target.match(/^http:\/\/imgur\.com\/([\w\d]+)\/?$/);
-      if (matches) {
-        item.image = "http://i.imgur.com/" + matches[1] + ".jpg";
-      }
-    }
-
-    // Create thumbails for YouTube
-    if (item.target) {
-      var matches = item.target.match(/^http:\/\/www.youtube\.com\/watch\?v=([\w\d\-]+)/);
-      if (matches) {
-        item.image = "http://img.youtube.com/vi/" + matches[1] + "/1.jpg";
-      }
+      var imageURL = self.checkImageURL(item.target);
+      if (imageURL) item.image = imageURL;
     }
 
     // Image hash is set in syncItems.
@@ -157,6 +154,29 @@ exports.attach = function (options) {
   }
 
   /**
+   * Verify that an URL can be converted to an image.
+   */
+  Parser.checkImageURL = function(url) {
+    var test = new String(url);
+
+    if (test.match(/\.(jpg|jpeg|png|gif)$/gi)) return url;
+
+    var matches = test.match(/^http:\/\/imgur\.com\/([\w\d]+)\/?$/);
+
+    if (matches) {
+      return "http://i.imgur.com/" + matches[1] + ".jpg";
+    }
+
+    var matches = test.match(/^http:\/\/www.youtube\.com\/watch\?v=([\w\d\-]+)/);
+
+    if (matches) {
+      return "http://img.youtube.com/vi/" + matches[1] + "/1.jpg";
+    }
+
+    return false;
+  }
+
+  /**
    * TODO
    */
   Parser.processTitle = function(title) {
@@ -168,7 +188,12 @@ exports.attach = function (options) {
    */
   Parser.processURL = function(baseURL, url) {
     if (url != null) {
-      return uri.resolve(baseURL, url);
+      if (url.indexOf('http://') == 0 || url.indexOf('https://') == 0) {
+        return url;
+      }
+      else {
+        return uri.resolve(baseURL, url);
+      }
     }
     else {
       return null;

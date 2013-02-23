@@ -128,6 +128,7 @@ nav li.active a {
 
 article h2 {
   position: relative;
+  margin-bottom: 8px;
 }
 article .inner {
   padding: 20px 19px 20px 20px;
@@ -153,8 +154,10 @@ article .new {
 article.new .new {
   display: block;
 }
+article .title {
+  margin-bottom: 10px;
+}
 article .meta {
-  margin-top: 8px;
   height: 24px;
   line-height: 24px;
   vertical-align: middle;
@@ -165,7 +168,10 @@ article .meta {
 }
 article .image {
   display: block;
-  margin-top: 10px;
+}
+article .disabled {
+  pointer-events: none;
+  cursor: default;
 }
 article .action {
   margin-right: 6px;

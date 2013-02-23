@@ -6,10 +6,10 @@
         <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
         <div class="meta clearfix">
           {{#if score}}<a class="action" target="_blank" href="{{comments}}"><i class="icon-fire"></i> {{score}}</a>{{/if}}
-          <a class="channel" href="{{channel_url}}" target="_blank">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
+          <a class="channel" href="/list/{{list_id}}">{{list_name}}</a> &dash; <abbr class="timeago" title="{{stamp}}"></abbr>
         </div>
       </div>
-      <a class="image" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
+      <a class="image disabled" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
     </div>
   </article>
 {{/items}}

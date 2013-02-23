@@ -55,7 +55,7 @@ exports.attach = function (options) {
         // Download content.
         function(next) {
           // When encoding is null the content is returned as a Buffer.
-          var r = request.defaults({timeout: 10000, encoding: null});
+          var r = request.defaults({timeout: 30000, encoding: null});
 
           r.get(options, function(err, response, buffer) {
             if (err) {
@@ -86,7 +86,10 @@ exports.attach = function (options) {
           });
         }
       ], function(err, buffer) {
-        if (buffer && buffer.toString().length) {
+        if (err) {
+          callback(err);
+        }
+        else if (buffer && buffer.toString().length) {
           callback(err, buffer);
         }
         else {

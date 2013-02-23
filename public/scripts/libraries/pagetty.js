@@ -131,8 +131,11 @@ define([
     loadImage: function(id, ih) {
       if (ih) {
         $('<img src="/imagecache/' + id + '-' + ih + '.jpg" />').load(function() {
-          $("." + id + " .image").html($(this)).parents("article").removeClass("load");
+          $("." + id + " .image").html($(this)).removeClass("disabled").parents("article").removeClass("load");
         });
+      }
+      else {
+        $("." + id + " .image").parents("article").removeClass("load");
       }
     },
     listUrl: function(list_id, variant) {

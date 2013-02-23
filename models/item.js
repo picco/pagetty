@@ -13,8 +13,6 @@ exports.attach = function(options) {
     comments: String,
     score: Number,
     relative_score: {type: Number, index: true},
-    rule: {type: mongoose.Schema.Types.ObjectId, index: true},
-    pos: {type: Number, index: true},
     created: {type: Date, index: true},
     date: {type: Date, index: true},
   });
@@ -53,7 +51,8 @@ exports.attach = function(options) {
     var sort = {};
     var items = [];
     var names = {};
-    
+    var links = {};
+
     async.series([function(next) {
       if (list.type == "all") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
@@ -97,6 +96,17 @@ exports.attach = function(options) {
       next();
 
     }, function(next) {
+      app.list.find({user_id: user._id}, function(err, lists) {
+        async.forEach(lists, function(item, cb) {
+          names[item.channel_id] = item.name;
+          links[item.channel_id] = item._id;
+          cb();
+        },
+        function() {
+          next();
+        });
+      });
+    }, function(next) {
       self.find(query).skip(page * app.conf.load_items).limit(app.conf.load_items).sort(sort).execFind(function(err, results) {
         items = results;
         next();
@@ -105,7 +115,8 @@ exports.attach = function(options) {
       async.forEach(items, function(item, cb) {
         app.channel.findById(item.channel_id, function(err, channel) {
           item.channel_url = channel.url;
-          item.list_name = list ? "All stories" : list.name;
+          item.list_name = names[item.channel_id].substr(0, 22);
+          item.list_id = links[item.channel_id];
           item.stamp = item.date.toISOString();
           item.new = item.created > user.low ? "new" : "";
           cb();
