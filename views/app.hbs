@@ -9,7 +9,7 @@
       <nav>
         <ul>
           {{#lists}}
-            <li class="list-{{_id}}{{active}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: url({{icon}})">{{name}}</a></li>
+            <li class="list-{{_id}}{{#if active}} active{{/if}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: url({{#icon domain}}{{/icon}})">{{name}}</a></li>
           {{/lists}}
         </ul>
       </nav>

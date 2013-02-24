@@ -8,15 +8,15 @@
       {{/eq}}
       <div class="variants clearfix">
         <div class="dropdown">
-          <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-filter"></i> {{list.variant_name}} <b class="caret"></b> </a>
+          <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-filter"></i> {{#property variants variant}}{{/property}} <b class="caret"></b> </a>
           <ul class="dropdown-menu" role="menu">
             <li><a class="variant {{list.active_time}}" data-list="{{list._id}}" data-variant="time" href="/list/{{list._id}}/time">Most recent</a></li>
             <li class="divider"></li>
-            <li><a class="variant {{list.active_day}}" data-list="{{list._id}}" data-variant="day" href="/list/{{list._id}}/day">Popular today</a></li>
-            <li><a class="variant {{list.active_week}}" data-list="{{list._id}}" data-variant="week" href="/list/{{list._id}}/week">Popular last week</a></li>
-            <li><a class="variant {{list.active_month}}" data-list="{{list._id}}" data-variant="month" href="/list/{{list._id}}/month">Popular last month</a></li>
-            <li><a class="variant {{list.active_year}}" data-list="{{list._id}}" data-variant="year" href="/list/{{list._id}}/year">Popular last year</a></li>
-            <li><a class="variant {{list.active_all}}" data-list="{{list._id}}" data-variant="all" href="/list/{{list._id}}/all">Most popular of all time</a></li>
+            <li><a class="variant" data-list="{{list._id}}" data-variant="day" href="/list/{{list._id}}/day">Popular today</a></li>
+            <li><a class="variant" data-list="{{list._id}}" data-variant="week" href="/list/{{list._id}}/week">Popular last week</a></li>
+            <li><a class="variant" data-list="{{list._id}}" data-variant="month" href="/list/{{list._id}}/month">Popular last month</a></li>
+            <li><a class="variant" data-list="{{list._id}}" data-variant="year" href="/list/{{list._id}}/year">Popular last year</a></li>
+            <li><a class="variant" data-list="{{list._id}}" data-variant="all" href="/list/{{list._id}}/all">Most popular of all time</a></li>
           </ul>
         </div>
         {{#neq list._id "all"}}

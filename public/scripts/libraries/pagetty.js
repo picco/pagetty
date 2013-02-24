@@ -17,7 +17,6 @@ define([
       this.page = 1;
       this.new_count = new_count;
 
-      self.updateTitle();
       self.showUpdateNotification();
       self.loadImages();
 
@@ -26,9 +25,7 @@ define([
 
       $("nav ul a").on("click", function(e) {
         e.preventDefault();
-        History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, null, self.listUrl($(this).data("list"), "time"));
-        $("nav ul li").removeClass("active");
-        $(this).parent().addClass("active");
+        History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, "Pagetty Reader", self.listUrl($(this).data("list"), "time"));
       });
 
       $(".notification a").on("click", function(e) {
@@ -47,7 +44,7 @@ define([
 
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();
-        History.pushState({page: "list", list: $(this).data("list"), variant: $(this).data("variant")}, null, self.listUrl($(this).data("list"), $(this).data("variant")));
+        History.pushState({page: "list", list: $(this).data("list"), variant: $(this).data("variant")}, "Pagetty Reader", self.listUrl($(this).data("list"), $(this).data("variant")));
       });
 
       $(window).scroll(function() {
@@ -75,6 +72,8 @@ define([
     loadList: function(list_id, variant) {
       var self = this;
 
+      $("nav ul li").removeClass("active");
+      $("nav ul li.list-" + list_id).addClass("active");
       $("section.list").css("opacity", .4);
 
       $.get('/api/list/' + list_id + '/' + variant)
@@ -190,7 +189,7 @@ define([
       this.updateTitle();
     },
     updateTitle: function() {
-      document.title = (this.new_count ? ("(" + this.new_count + ") ") : "") + this.list.name + " - Pagetty";
+      document.title = "Pagetty Reader" + (this.new_count ? (" (" + this.new_count + ")") : "");
     },
     success: function(text, container) {
       var selector = "." + (container ? container : "messages");

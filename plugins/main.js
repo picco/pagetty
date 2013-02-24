@@ -3,14 +3,13 @@ exports.attach = function (options) {
   var _ = require("underscore");
   var $ = require("cheerio");
   var async = require('async');
-  var exec = require('child_process').exec;
   var feedparser = require("feedparser");
   var fs = require('fs');
-  var hbs = require('hbs');
-  var hogan = require('hogan.js');
+  var hash = require("mhash").hash;
+  var hbs = require("hbs");
   var mongoose = require('mongoose');
   var nodemailer = require('nodemailer');
-  var request = require('request');
+  var request = require("request");
   var spawn = require('child_process').spawn;
   var uri = require("url");
   var zlib = require('zlib');
@@ -18,7 +17,6 @@ exports.attach = function (options) {
   // App root directory.
   app.dir = fs.realpathSync(__dirname + '/..');
 
-  app.hash = require('mhash').hash;
   app.conf = require('config').server;
   app.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
@@ -29,14 +27,6 @@ exports.attach = function (options) {
   this.use(require('../models/list.js'));
   this.use(require('../models/rule.js'));
   this.use(require('../models/user.js'));
-
-  /**
-   * Decodes an URL-encoded string.
-   * Ref: http://stackoverflow.com/questions/4292914/javascript-url-decode-function
-   */
-  this.decodeUrl = function(url) {
-     return decodeURIComponent((url + '').replace(/\+/g, '%20'));
-  }
 
   /**
    * Downloads the data from a given URL in real-time.
@@ -118,98 +108,6 @@ exports.attach = function (options) {
   }
 
   /**
-   * TODO
-   */
-  this.timer = function(start) {
-    var end = new Date().getTime();
-    return Math.floor(end - start);
-  }
-
-  /**
-   * Convert anything into an valid ObjectID.
-   */
-  app.objectId = function(id) {
-    return (typeof id == "object") ? id : new mongoose.Types.ObjectId(id);
-  }
-
-  /**
-   * Create an unique ObjectID from current timestamp.
-   */
-  app.createObjectID = function() {
-    return new mongoose.Types.ObjectId(new Date().getTime() / 1000);
-  }
-
-  /**
-   * Send an email using a template.
-   */
-  app.mail = function(mail, template, templateData) {
-    mail.transport = nodemailer.createTransport("SMTP");
-    mail.from = app.conf.mail.from;
-
-    async.waterfall([
-      function(next) {
-        if (template) {
-          fs.readFile('./templates/mail/' + template + '.hulk', function (err, data) {
-            if (err) {
-              next(err);
-            }
-            else {
-              templateData.conf = app.conf;
-              mail.text = hogan.compile(data.toString()).render(templateData);
-              next(null);
-            }
-          });
-        }
-        else {
-          next(null);
-        }
-      },
-      function(next) {
-        nodemailer.sendMail(mail, function(err) {
-          next(err);
-        });
-      }
-    ], function() {
-      mail.transport.close();
-    });
-  }
-
-  /**
-   * TODO
-   */
-  app.tidy = function(html, callback) {
-    var buffer = '', err = '';
-
-    var tidy = spawn('tidy',
-      [
-          '-indent',
-          '--quiet', 'y',
-          '--markup', 'y',
-          '--output-xml', 'y',
-          '--input-xml', 'y',
-          '--show-warnings', 'n',
-          '--quote-nbsp', 'y',
-          '--preserve-entities', 'y',
-          '--wrap', '0'
-      ]);
-
-    tidy.stdout.on('data', function (data) {
-      buffer += data;
-    });
-
-    tidy.stderr.on('data', function (data) {
-      err += data;
-    });
-
-    tidy.on('exit', function (code) {
-      callback(err, buffer);
-    });
-
-    tidy.stdin.write(html);
-    tidy.stdin.end();
-  }
-
-  /**
    * Detect if content is an RSS feed or an HTML page.
    */
   app.detectFeedType = function(content) {
@@ -232,6 +130,42 @@ exports.attach = function (options) {
     }
 
     callback(_.toArray(feeds));
+  }
+
+  /**
+   * Send an email using a template.
+   */
+  app.mail = function(mail, template, templateData) {
+    mail.transport = nodemailer.createTransport("SMTP");
+    mail.from = app.conf.mail.from;
+
+    async.waterfall([
+      function(next) {
+        if (template) {
+          fs.readFile('./templates/mail/' + template + '.hbs', function (err, data) {
+            if (err) {
+              next(err);
+            }
+            else {
+              templateData.conf = app.conf;
+              mail.text = hbs.compile(data.toString())(templateData);
+              next(null);
+            }
+          });
+        }
+        else {
+          next(null);
+        }
+      },
+      function(next) {
+        nodemailer.sendMail(mail, function(err) {
+          next(err);
+        });
+      }
+    ], function(err) {
+      if (err) console.log(err.toString());
+      mail.transport.close();
+    });
   }
 
   /**
@@ -293,5 +227,48 @@ exports.attach = function (options) {
     ], function(err) {
       callback(err, feed);
     });
+  }
+
+  /**
+   * Return tidy html.
+   */
+  app.tidy = function(html, callback) {
+    var buffer = '', err = '';
+
+    var tidy = spawn('tidy',
+      [
+          '-indent',
+          '--quiet', 'y',
+          '--markup', 'y',
+          '--output-xml', 'y',
+          '--input-xml', 'y',
+          '--show-warnings', 'n',
+          '--quote-nbsp', 'y',
+          '--preserve-entities', 'y',
+          '--wrap', '0'
+      ]);
+
+    tidy.stdout.on('data', function (data) {
+      buffer += data;
+    });
+
+    tidy.stderr.on('data', function (data) {
+      err += data;
+    });
+
+    tidy.on('exit', function (code) {
+      callback(err, buffer);
+    });
+
+    tidy.stdin.write(html);
+    tidy.stdin.end();
+  }
+
+  /**
+   * Return time past since start.
+   */
+  this.timer = function(start) {
+    var end = new Date().getTime();
+    return Math.floor(end - start);
   }
 }

@@ -8,8 +8,9 @@ exports.attach = function (options) {
     /**
      * Send notification on signin.
      */
-    onSignin: function(user) {
+    onSignin: function(user, source) {
       var msg = 'signin account:' + user.mail;
+      if (source) msg += (" source:" + source);
       console.log('notify: ' + msg), this.mail(msg);
     },
 
@@ -72,16 +73,9 @@ exports.attach = function (options) {
     /**
      * Send notification on account activation.
      */
-    onRulesChange: function(user, channel, old_rules, new_rules) {
-      var msg = 'rulesChange account:' + user.mail + ' domain:' + channel.domain + ' url:' + channel.url;
-      var body = '';
-
-      body += "Old rules:\n" + JSON.stringify(old_rules, null, 2) + "\n\n";
-      body += "New rules:\n" + JSON.stringify(new_rules, null, 2) + "\n\n";
-      body += "Rules diff\n" + JSON.stringify(diff.diff(old_rules, new_rules), null, 2) + "\n\n";
-      body += "Channel after change:\n" + JSON.stringify(channel, null, 2);
-
-      console.log(msg), this.mail(msg, body);
+    onRulesChange: function(user, channel, rule) {
+      var msg = 'rulesChange account:' + user.mail + ' domain:' + channel.domain + ' url:' + channel.link;
+      console.log("notify:", msg), this.mail(msg, JSON.stringify(rule, null, 2));
     },
 
     /**

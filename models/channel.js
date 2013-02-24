@@ -1,12 +1,8 @@
 exports.attach = function(options) {
   var app = this;
-  var _ = require('underscore');
-  var $ = require('cheerio');
   var async = require('async');
   var feedparser = require('feedparser');
-  var fs = require('fs');
   var hash = require('mhash').hash;
-  var im = require('imagemagick');
   var mongoose = require('mongoose');
 
   var channelSchema = mongoose.Schema({
@@ -21,22 +17,58 @@ exports.attach = function(options) {
   });
 
   /**
-   * Update the subscriber count of the channel.
+   * Crawl the site and update stories.
    */
-  channelSchema.methods.updateSubscriberCount = function(callback) {
+  channelSchema.methods.crawl = function(callback) {
     var self = this;
+    var date = new Date();
 
-    app.list.count({type: "channel", channel_id: this._id}, function(err, count) {
-      if (err) {
-        console.log(err);
-        callback(err);
-      }
-      else {
-        self.subscriptions = count;
-        self.save(function(err) {
-          callback(err);
+    async.waterfall([
+      function(next) {
+        self.fetchItems(date, function(err, title, items) {
+          self.title = title;
+          next(err, items);
         });
-      }
+      },
+      function(items, next) {
+        self.syncItems(date, items, function(err) {
+          console.log('Updated:', self.url, 'items:', items.length);
+          next(err);
+        });
+      },
+      function(next) {
+        self.recalculateRelativeScores(function(err) {
+          next();
+        });
+      },
+    ], function(err) {
+      callback(err);
+    });
+  }
+
+  /**
+   * Find all feeds that need to be update and crawl through them.
+   */
+  channelSchema.statics.crawlBatch = function update(done) {
+    var self = this;
+    var now = new Date().getTime();
+    var batch_size = app.conf.crawler.batchSize;
+    var channel_lifetime = app.conf.crawler.channelLifetime;
+    var check = new Date(now - (channel_lifetime * 60 * 1000));
+    var updated_channels = 0;
+
+    console.log('Starting new update batch.');
+
+    app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batch_size).execFind(function(err, channels) {
+      async.mapSeries(channels, function(channel, next) {
+        channel.crawl(function() {
+          updated_channels++;
+          next();
+        });
+      }, function(err) {
+        console.log('Batch completed,', updated_channels, 'channels updated.');
+        done(updated_channels);
+      });
     });
   }
 
@@ -44,12 +76,7 @@ exports.attach = function(options) {
    * Fetch fresh items for the given channel.
    */
   channelSchema.methods.fetchItems = function(date, callback) {
-    if (this.type == 'rss') {
-      this.fetchRssItems(date, callback)
-    }
-    else {
-      this.fetchHtmlItems(date, callback)
-    }
+    this.type == 'rss' ? this.fetchRssItems(date, callback) : this.fetchHtmlItems(date, callback);
   }
 
   /**
@@ -162,32 +189,22 @@ exports.attach = function(options) {
   }
 
   /**
-   * Update items.
+   * Update the subscriber count of the channel.
    */
-  channelSchema.methods.crawl = function(callback) {
+  channelSchema.methods.updateSubscriberCount = function(callback) {
     var self = this;
-    var date = new Date();
 
-    async.waterfall([
-      function(next) {
-        self.fetchItems(date, function(err, title, items) {
-          self.title = title;
-          next(err, items);
+    app.list.count({type: "channel", channel_id: this._id}, function(err, count) {
+      if (err) {
+        console.log(err);
+        callback(err);
+      }
+      else {
+        self.subscriptions = count;
+        self.save(function(err) {
+          callback(err);
         });
-      },
-      function(items, next) {
-        self.syncItems(date, items, function(err) {
-          console.log('Updated: ' + self.url + ' title: ' + self.title + ', items: ' + items.length);
-          next(err);
-        });
-      },
-      function(next) {
-        self.recalculateRelativeScores(function(err) {
-          next();
-        });
-      },
-    ], function(err) {
-      callback(err);
+      }
     });
   }
 
@@ -225,32 +242,6 @@ exports.attach = function(options) {
       },
     ], function(err) {
       callback();
-    });
-  }
-
-  /**
-   * TODO
-   */
-  channelSchema.statics.crawlBatch = function update(done) {
-    var self = this;
-    var now = new Date().getTime();
-    var batchSize = app.conf.crawler.batchSize; // max number of channels updated during single run.
-    var channel_lifetime = app.conf.crawler.channelLifetime; // Channel will be updated if time from the last update exceeds this, in minutes.
-    var check = new Date(now - (channel_lifetime * 60 * 1000));
-    var updated_channels = 0;
-
-    console.log('Starting new update batch.');
-
-    app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batchSize).execFind(function(err, channels) {
-      async.mapSeries(channels, function(channel, next) {
-        channel.crawl(function() {
-          updated_channels++;
-          next();
-        });
-      }, function(err) {
-        console.log('Batch completed,', updated_channels, 'channels updated.');
-        done(updated_channels);
-      });
     });
   }
 

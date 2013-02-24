@@ -9,6 +9,7 @@ exports.attach = function (options) {
   var express = require('express');
   var fs = require('fs');
   var gzippo = require('gzippo');
+  var hash = require("mhash").hash;
   var hbs = require("hbs");
   var mongoStore = require('connect-mongo')(express);
   var mongoose = require('mongoose');
@@ -43,10 +44,18 @@ exports.attach = function (options) {
     return (v1 != v2) ? options.fn(this) : options.inverse(this);
   });
 
+  hbs.registerHelper("property", function(obj, key, options) {
+    return obj[key];
+  });
+
   hbs.registerHelper("select", function(value, options) {
     var $el = $('<select />').html(options.fn(this));
     $el.find('[value=' + value + ']').attr({'selected':'selected'});
     return $el.html();
+  });
+
+  hbs.registerHelper("icon", function(domain, options) {
+    return "https://s2.googleusercontent.com/s2/favicons?domain=" + (domain || "pagetty.com");
   });
 
   // Set up server middleware and configuration.
@@ -63,8 +72,6 @@ exports.attach = function (options) {
   app.server.set('view cache', false);
   app.server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   app.server.use(gzippo.compress());
-  //app.server.use(app.server.router);
-  app.server.use(app.everyauth.middleware());
   app.server.use(app.middleware.locals);
 
   /**
@@ -83,11 +90,11 @@ exports.attach = function (options) {
         function(next) {
           app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, doc) {
             if (doc) {
-              list = app.list.prepare(doc, variant);
+              list = doc;
             }
             else {
-              list = app.list.prepare(app.list.all(), variant);
-              user_lists.all.active = " active";
+              list = app.list.all()
+              user_lists.all.active = true;
             }
             next();
           });
@@ -97,14 +104,12 @@ exports.attach = function (options) {
             if (err) console.log(err);
 
             async.forEach(lists, function(item, iterate) {
-              item.icon = 'https://s2.googleusercontent.com/s2/favicons?domain=' + item.domain;
-              item.active = (req.params.list_id == item._id) ? ' active' : '';
+              item.active = (req.params.list_id == item._id);
               user_lists[item._id] = item;
               iterate();
             }, function() {
               next();
             });
-
           });
         },
         function(next) {
@@ -114,7 +119,7 @@ exports.attach = function (options) {
           });
         },
         function(next) {
-          app.item.newCount(req.session.user, function(count) {
+          app.item.getNewCount(req.session.user, function(count) {
             render.new_count = count;
             next();
           });
@@ -173,7 +178,7 @@ exports.attach = function (options) {
 
     function render(list) {
       app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
-        items.length ? res.render("items", {items: items, list: app.list.prepare(list, req.params.variant), layout: false}) : res.send(404);
+        items.length ? res.render("items", {items: items, list: list, variant: req.params.variant, layout: false}) : res.send(404);
       });
     }
 
@@ -195,7 +200,7 @@ exports.attach = function (options) {
       list = app.list.all();
 
       app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-        res.render("list", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+        res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
       });
     }
     else {
@@ -207,7 +212,7 @@ exports.attach = function (options) {
           if (list) {
             console.dir(list);
             app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-              res.render("list", {items: items, list: app.list.prepare(list, req.params.variant), layout: false});
+              res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
             });
           }
           else {
@@ -222,7 +227,7 @@ exports.attach = function (options) {
    * API: Get number of new stories.
    */
   app.server.get("/api/items/new", app.middleware.restricted, function(req, res) {
-    app.item.newCount(req.session.user, function(count) {
+    app.item.getNewCount(req.session.user, function(count) {
       res.json({count: count});
     });
   });
@@ -380,13 +385,10 @@ exports.attach = function (options) {
           next(err, channel);
         });
       },
-      /*
-      // Notify about the change.
       function(channel, next) {
-        app.notify.onRulesChange(req.session.user, channel, old_rules, req.body.rules);
+        app.notify.onRulesChange(req.session.user, channel, req.body.rule);
         next();
       }
-      */
     ], function(err) {
       err ? res.json(400, err) : res.send(200);
     });
@@ -574,7 +576,7 @@ exports.attach = function (options) {
       if (err) throw err;
 
       if (user) {
-        var new_pass = app.hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
+        var new_pass = hash('adler32', 'efiwn.ue@WEOJ32' + new Date().getTime());
         user.pass = app.user.hashPassword(user._id, new_pass);
         user.save(function(err) {
           app.mail({to: user.mail, subject: 'A new password has been created'}, 'password', {password: new_pass});

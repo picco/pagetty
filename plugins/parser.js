@@ -93,7 +93,7 @@ exports.attach = function (options) {
     else {
       var item = {
         title: self.processTitle(options.rssItem.title),
-        target: self.processURL(options.baseURL, options.rssItem.link),
+        target: self.processURL(options.baseURL, options.rssItem.origlink || options.rssItem.link),
         comments: self.processURL(options.baseURL, options.rssItem.comments),
         date: options.rssItem.pubdate,
         image: null,

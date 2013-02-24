@@ -1,14 +1,14 @@
 exports.attach = function(options) {
   var app = this;
-  var mongoose = require('mongoose');
+  var mongoose = require("mongoose");
 
   var listSchema = mongoose.Schema({
     user_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     channel_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     type: {type: String, index: true},
+    name: String,
     domain: String,
     link: String,
-    name: String,
     weight: Number,
   });
 
@@ -17,15 +17,8 @@ exports.attach = function(options) {
    */
   listSchema.pre("save", function(next) {
     var validator = app.getValidator();
-
     validator.check(this.name, "Name must start with a character.").is(/\w+.*/);
-
-    if (validator.hasErrors()) {
-      next(new Error(validator.getErrors()[0]));
-    }
-    else {
-      next();
-    }
+    validator.hasErrors() ? next(new Error(validator.getErrors()[0])) : next();
   });
 
   /**
@@ -39,7 +32,26 @@ exports.attach = function(options) {
    * Prepare list for output.
    */
   listSchema.statics.prepare = function(list, variant) {
-    var variants = {
+    list["variant_name"] = variants[variant];
+    list["active_" + variant] = "active";
+    return list;
+  }
+
+  /**
+   * Create a subscription list.
+   */
+  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
+    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
+      if (err) console.log(err);
+      callback(err, list);
+    });
+  }
+
+  /**
+   * Return the list of all possible variants.
+   */
+  listSchema.statics.variants = function() {
+    return {
       time: "Most recent",
       day: "Popular today",
       week: "Popular last week",
@@ -47,30 +59,6 @@ exports.attach = function(options) {
       year: "Popular last year",
       all: "Most popular of all time",
     };
-
-    list["variant_name"] = variants[variant];
-    list["active_" + variant] = "active";
-    return list;
-  }
-
-  /**
-   * Create necessary lists upon user signup.
-   */
-  listSchema.statics.createUserDefaults = function(user, callback) {
-    app.list.create({user_id: user._id, type: "all", name: "All stories", weight: 0}, function(err) {
-      if (err) console.log(err);
-      callback(err);
-    });
-  }
-
-  /**
-   * Create necessary lists upon user signup.
-   */
-  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
-    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
-      if (err) console.log(err);
-      callback(err, list);
-    });
   }
 
   this.list = app.db.model('List', listSchema, 'lists');

@@ -18,31 +18,6 @@ exports.attach = function(options) {
   });
 
   /**
-   * Get the new items count for a given user.
-   */
-  itemSchema.statics.newCount = function(user, callback) {
-    app.list.find({user_id: user._id, type: "channel"}, "channel_id", function(err, channels) {
-      if (err) {
-        console.log(err);
-        callback(0);
-      }
-      else {
-        var query = {channel_id: {$in: _.pluck(channels, "channel_id")}, created: {$gt: user.high}};
-
-        app.item.count(query, function(err, count) {
-          if (err) {
-            console.log(err);
-            callback(0);
-          }
-          else {
-            callback(count);
-          }
-        });
-      }
-    });
-  }
-
-  /**
    * Get list items.
    */
   itemSchema.statics.getListItems = function(list, user, variant, page, callback) {
@@ -119,5 +94,30 @@ exports.attach = function(options) {
     });
   }
 
+  /**
+   * Get the new items count for a given user.
+   */
+  itemSchema.statics.getNewCount = function(user, callback) {
+    app.list.find({user_id: user._id, type: "channel"}, "channel_id", function(err, channels) {
+      if (err) {
+        console.log(err);
+        callback(0);
+      }
+      else {
+        var query = {channel_id: {$in: _.pluck(channels, "channel_id")}, created: {$gt: user.high}};
+
+        app.item.count(query, function(err, count) {
+          if (err) {
+            console.log(err);
+            callback(0);
+          }
+          else {
+            callback(count);
+          }
+        });
+      }
+    });
+  }
+  
   this.item = app.db.model('Item', itemSchema, 'items');
 }

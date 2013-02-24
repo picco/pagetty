@@ -1,8 +1,9 @@
 exports.attach = function (options) {
   var app = this;
   var fs = require("fs");
+  var hash = require("mhash").hash;
   var im = require("imagemagick");
-  
+
   app.middleware = {
     /**
      * Redirect to HTTPS if the request comes via HTTP.
@@ -15,7 +16,8 @@ exports.attach = function (options) {
      * Add common variables to views.
      */
     locals: function(req, res, next) {
-      res.locals.build = app.hash('adler32', process.env.BUILD);
+      res.locals.build = hash('adler32', process.env.BUILD);
+      res.locals.variants = app.list.variants();
       next();
     },
 
@@ -158,6 +160,7 @@ exports.init = function(done) {
         }
         else {
           session.user = user;
+          app.notify.onSignin(user, "Google");
           promise.fulfill(user);
         }
       });
@@ -181,6 +184,7 @@ exports.init = function(done) {
         }
         else {
           session.user = user;
+          app.notify.onSignin(user, "Facebook");
           promise.fulfill(user);
         }
       });
@@ -197,6 +201,8 @@ exports.init = function(done) {
   app.everyauth.everymodule.findUserById(function (user_id, callback) {
     app.user.findById(user_id, callback);
   });
+
+  app.server.use(app.everyauth.middleware());
 
   done();
 }

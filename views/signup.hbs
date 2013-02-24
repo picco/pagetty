@@ -1,44 +1,40 @@
-<header>
+<div class="page">
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="span16">
+          <a class="logo" href="/">Pagetty</a>
+          <h1>Sign up</h1>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="container">
     <div class="row">
-      <div class="span16">
-        <a class="logo" href="/">Pagetty</a>
-        <h1>Create a free account</h1>
+      <div class="span10">
+        <div class="messages"></div>
+        <form class="signup-form" action="/signup" method="post">
+          <label>E-mail: *</label>
+          <input class="input-mail mail input-xlarge" type="text" name="mail" />
+          <label>Password: *</label>
+          <input class="pass input-xlarge" type="password" name="pass" value="" />
+          <label>Repeat password: *</label>
+          <input class="pass2 input-xlarge" type="password" name="pass2" value="" />
+          <div style="margin-top: .5em">
+            <button class="btn btn-success btn-signup" href="#">Sign up</button>
+          </div>
+        </form>
+      </div>
+      <div class="span6">
+        <h2>We respect your privacy</h2>
+        <p>We only ask for your e-mail address.</p>
+        <p>We do not disclose any of our user information to third parties.</p>
+        <p>We do not spam you but we will send you occasional messages concerning your subscription and important information related to our service.</p>
+        <p>You may delete your account and all your data at any time.</p>
       </div>
     </div>
   </div>
-</header>
-<div class="page container">
-  <div class="row">
-    <div class="span10">
-      <h2>Connect with your existing account</h2>
-      <div style="margin-bottom: 2em">
-        <a class='zocial facebook' href="/auth/facebook">Facebook</a>
-        <a class='zocial google' href="/auth/google">Google</a>
-      </div>
-      <h2>Create a new account</h2>
-      <div class="messages"></div>
-      <form class="signup-form" action="/signup" method="post">
-        <label>E-mail: *</label>
-        <input class="input-mail mail input-xlarge" type="text" name="mail" />
-        <label>Password: *</label>
-        <input class="pass input-xlarge" type="password" name="pass" value="" />
-        <label>Repeat password: *</label>
-        <input class="pass2 input-xlarge" type="password" name="pass2" value="" />
-        <div style="margin-top: .5em">
-          <button class="btn btn-success btn-signup" href="#">Sign up</button>
-        </div>
-      </form>
-    </div>
-    <div class="span6">
-      <h2>We respect your privacy</h2>
-      <p>We only ask for your e-mail address.</p>
-      <p>We do not disclose any of our user information to third parties.</p>
-      <p>We do not spam you but we will send you occasional messages concerning your subscription and important information related to our service.</p>
-      <p>You may delete your account and all your data at any time.</p>
-    </div>
-  </div>
+  <script type="text/javascript">
+    require(['/scripts/controllers/signup.js?b=' + build]);
+  </script>
 </div>
-<script type="text/javascript">
-  require(['/scripts/controllers/signup.js?b=' + build]);
-</script>
