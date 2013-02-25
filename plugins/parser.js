@@ -103,16 +103,16 @@ exports.attach = function (options) {
       // There is a chance that RSS parser failed to find the pubDate. Use the currents timestamp instead.
       if (!item.date) item.date = options.date;
 
-      // 1st priority - OG tag
-
-      if (!item.image) {
-        item.image = self.processURL(options.baseURL, self.processElement(options.page, "meta[property='og:image']", "content"));
-      }
-
-      // 2nd priority - Scraper rule (only verified image URL's will do)
+      // 1st priority - Scraper rule (only verified image URL's will do)
 
       if (!item.image && options.rule && options.rule.image.selector) {
         item.image = self.checkImageURL(self.processURL(options.baseURL, self.processElement(options.page, options.rule.image.selector, options.rule.image.attribute)));
+      }
+
+      // 2nd priority - OG tag
+
+      if (!item.image) {
+        item.image = self.processURL(options.baseURL, self.processElement(options.page, "meta[property='og:image']", "content"));
       }
 
       // 3rd priority - RSS item image

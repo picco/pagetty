@@ -6,15 +6,15 @@ app.use(require('./plugins/main.js'));
 
 function crawlBatch(updates) {
   if (updates) {
-    app.channel.crawlBatch(crawlBatch);
+    app.channel.crawlBatch(function(updates) {crawlBatch(updates)});
   }
   else {
     console.log("Waiting...");
-    setInterval(function() {crawlBatch()}, 10000);
+    setTimeout(function() {crawlBatch(true)}, 30000);
   }
 }
 
-// Launcher
+// Crawl launcher
 app.init(function (err) {
   if (err) {
     console.log(err);

@@ -47,7 +47,7 @@ exports.attach = function(options) {
 
       switch (variant) {
         case "time":
-          sort = {date: "desc", relative_score: "desc"};
+          sort = (list.type == "all") ? {created: "desc", date: "desc", relative_score: "desc"} : {date: "desc", relative_score: "desc"};
           break;
         case "day":
           query.date = {$gte: range.setDate(now.getDate() - 1)};
@@ -118,6 +118,6 @@ exports.attach = function(options) {
       }
     });
   }
-  
+
   this.item = app.db.model('Item', itemSchema, 'items');
 }
