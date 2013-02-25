@@ -193,10 +193,6 @@ exports.init = function(done) {
     })
     .redirectPath('/');
 
-  app.server.use(function(req, res, next) {
-    req.connection.encrypted ? next() : res.redirect("https://" + app.conf.domain + req.url);
-  });
-
   app.everyauth.everymodule.userPkey('_id');
   app.everyauth.everymodule.findUserById(function (user_id, callback) {
     app.user.findById(user_id, callback);

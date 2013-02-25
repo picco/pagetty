@@ -10,6 +10,10 @@
       "batchSize": 10,
       "channelLifetime": 1
     },
+    "facebook": {
+      "clientId": "526577117383370",
+      "clientSecret": "9123a77f349637f81a9e980aa7b04ac3"
+    },
     "google": {
       "clientId": "1042288061895.apps.googleusercontent.com",
       "clientSecret": "HXLgAqhqHxUQ_dn0R3ucb7F3"
