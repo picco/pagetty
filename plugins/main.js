@@ -14,10 +14,15 @@ exports.attach = function (options) {
   var uri = require("url");
   var zlib = require('zlib');
 
-  // App root directory.
   app.dir = fs.realpathSync(__dirname + '/..');
+  app.env = process.env["NODE_ENV"] = process.argv[2];
 
-  app.conf = require('config').server;
+  if (!(app.env == "development" || app.env == "production")) {
+    console.log("Environment unspecified, exiting.");
+    process.exit();
+  }
+
+  app.conf = require("config").server;
   app.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
 
   this.use(require('./notify.js'));

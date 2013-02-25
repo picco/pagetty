@@ -594,7 +594,7 @@ exports.attach = function (options) {
 
 exports.init = function(done) {
   var app = this;
-  app.http.createServer(app.server).listen(8080);
-  app.https.createServer(app.ssl_options, app.server).listen(8443);
+  app.http.createServer(app.server).listen(app.conf.http_port);
+  app.https.createServer(app.ssl_options, app.server).listen(app.conf.https_port);
   done();
 }

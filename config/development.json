@@ -1,7 +1,15 @@
 {
   "server": {
-    "domain": "pagetty.com",
-    "env": "PROD",
+    "env": "development",
+    "host": "pagetty.com:1443",
+    "db_name": "pagetty_dev",
+    "db_url": "mongodb://localhost/pagetty_dev",
+    "http_port": 1080,
+    "https_port": 1443,
+    "crawler": {
+      "batchSize": 10,
+      "channelLifetime": 1
+    },
     "google": {
       "clientId": "1042288061895.apps.googleusercontent.com",
       "clientSecret": "HXLgAqhqHxUQ_dn0R3ucb7F3"

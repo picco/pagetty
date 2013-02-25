@@ -1,10 +1,7 @@
 exports.attach = function (options) {
   var app = this;
 
-  // Load required libraries.
-  var diff = require('jsondiffpatch');
-
-  this.notify = {
+  app.notify = {
     /**
      * Send notification on signin.
      */

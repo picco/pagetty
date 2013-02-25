@@ -9,7 +9,7 @@ exports.attach = function (options) {
      * Redirect to HTTPS if the request comes via HTTP.
      */
     forceHTTPS: function(req, res, next) {
-      req.connection.encrypted ? next() : res.redirect("https://" + app.conf.domain + req.url);
+      req.connection.encrypted ? next() : res.redirect("https://" + app.conf.host + req.url);
     },
 
     /**
