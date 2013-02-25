@@ -20,8 +20,8 @@ app.init(function (err) {
     console.log(err);
   }
   else {
-    if (process.argv[2]) {
-      app.channel.findById(process.argv[2], function(err, channel) {
+    if (process.argv[3]) {
+      app.channel.findById(process.argv[3], function(err, channel) {
         if (err) {
           throw err;
         }
