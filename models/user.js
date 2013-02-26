@@ -1,7 +1,8 @@
 exports.attach = function(options) {
   var app = this;
-  var async = require('async');
-  var mongoose = require('mongoose');
+  var _ = require("underscore");
+  var async = require("async");
+  var mongoose = require("mongoose");
 
   var userSchema = mongoose.Schema({
     mail: {type: String, index: {unique: true}},
@@ -37,6 +38,32 @@ exports.attach = function(options) {
     this.save(function(err) {
       app.notify.onActivate(self);
       callback(err);
+    });
+  }
+
+  /**
+   * Activate the user account and set the username, password.
+   */
+  userSchema.methods.getFreshCounts = function(callback) {
+    var self = this;
+    var counts = {total: 0};
+
+    app.list.find({user_id: this._id, type: "channel"}, "channel_id", function(err, lists) {
+      if (err) {
+        console.log(err);
+        callback(err);
+      }
+      else {
+        async.each(lists, function(list, next) {
+          app.item.count({channel_id: list.channel_id, $and: [{created: {$gt: self.low}}, {created: {$lte: self.high}}]}, function(err, count) {
+            counts[list._id] = count || 0
+            counts.total += counts[list._id];
+            next();
+          });
+        }, function(err) {
+          err ? callback(err) : callback(null, counts);
+        });
+      }
     });
   }
 

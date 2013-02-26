@@ -80,6 +80,13 @@ nav li.active a {
   background-color: #00aeef !important;
   color: white !important;
 }
+nav span {
+  float: right;
+  font-size: 9px;
+  line-height: 10px;
+  color: #333;
+  padding: 4px;
+}
 
 /* CONTENT ------------------------------------------------------------------ */
 

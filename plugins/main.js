@@ -15,12 +15,6 @@ exports.attach = function (options) {
   var zlib = require('zlib');
 
   app.dir = fs.realpathSync(__dirname + '/..');
-  app.env = process.env["NODE_ENV"] = process.argv[2];
-
-  if (!(app.env == "development" || app.env == "production")) {
-    console.log("Environment unspecified, exiting.");
-    process.exit();
-  }
 
   app.conf = require("config").server;
   app.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
@@ -117,7 +111,12 @@ exports.attach = function (options) {
    */
   app.detectFeedType = function(content) {
     var xml_tag_pos = content.indexOf("<?xml");
-    return (xml_tag_pos >= 0 && xml_tag_pos < 10) ? "rss" : "html";
+    if (xml_tag_pos >= 0 && xml_tag_pos < 10) return "rss";
+
+    var rss_tag_pos = content.indexOf("<rss");
+    if (rss_tag_pos >= 0 && rss_tag_pos < 10) return "rss";
+
+    return "html";
   }
 
   /**

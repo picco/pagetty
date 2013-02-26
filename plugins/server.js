@@ -81,6 +81,7 @@ exports.attach = function (options) {
     var self = this;
     var list = null;
     var user_lists = {all: app.list.all()};
+    var fresh_counts = {};
     var render = {};
 
     if (req.session.user) {
@@ -100,11 +101,19 @@ exports.attach = function (options) {
           });
         },
         function(next) {
+          req.session.user.getFreshCounts(function(err, counts) {
+            fresh_counts = counts;
+            user_lists.all.fresh_count = fresh_counts["total"] ? ("+" + fresh_counts["total"]) : "";
+            next();
+          });
+        },
+        function(next) {
           app.list.find({user_id: req.session.user._id}).sort({name: "asc"}).execFind(function(err, lists) {
             if (err) console.log(err);
 
             async.forEach(lists, function(item, iterate) {
               item.active = (req.params.list_id == item._id);
+              item.fresh_count = fresh_counts[item._id] ? ("+" + fresh_counts[item._id]) : "";
               user_lists[item._id] = item;
               iterate();
             }, function() {
@@ -237,7 +246,14 @@ exports.attach = function (options) {
    */
   app.server.get("/api/update", app.middleware.restricted, function(req, res) {
     req.session.user.updateReadState(function(err) {
-      err ? res.send(400) : res.send(200);
+      if (err) {
+        res.send(400);
+      }
+      else {
+        req.session.user.getFreshCounts(function(err, counts) {
+          err ? res.send(400) : res.send(counts, 200);
+        });
+      }
     });
   });
 
@@ -594,6 +610,7 @@ exports.attach = function (options) {
 
 exports.init = function(done) {
   var app = this;
+  console.log("Starting server on ports:", app.conf.http_port, app.conf.https_port);
   app.http.createServer(app.server).listen(app.conf.http_port);
   app.https.createServer(app.ssl_options, app.server).listen(app.conf.https_port);
   done();

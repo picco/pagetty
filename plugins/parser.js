@@ -79,6 +79,8 @@ exports.attach = function (options) {
 
   Parser.processItem = function(options) {
     var self = this;
+    var image_selector = "article p img, .post p img, .content p img, article img, figure img, p img";
+    var image_attribute = "src";
 
     if (options.htmlItem) {
       var item = {
@@ -125,6 +127,12 @@ exports.attach = function (options) {
 
       if (!item.image && options.rssItem.enclosures && options.rssItem.enclosures[0] && options.rssItem.enclosures[0].type == 'image/jpeg') {
         item.image = self.processURL(options.baseURL, options.rssItem.enclosures[0].url);
+      }
+
+      // 5th priority - Scraper with a default rule.
+
+      if (!item.image) {
+        item.image = self.checkImageURL(self.processURL(options.baseURL, self.processElement(options.page, image_selector, image_attribute)));
       }
 
       if (options.rule && options.page) {

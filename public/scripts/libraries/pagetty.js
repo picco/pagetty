@@ -131,9 +131,11 @@ define([
     },
     loadImage: function(id, ih) {
       if (ih) {
-        $('<img src="/imagecache/' + id + '-' + ih + '.jpg" />').load(function() {
-          $("." + id + " .image").html($(this)).removeClass("disabled").parents("article").removeClass("load");
-        });
+        var img = new Image();
+        img.src = "/imagecache/" + id + "-" + ih + ".jpg";
+        img.onload = function() {
+          $("." + id + " .image").html($(img)).removeClass("disabled").parents("article").removeClass("load");
+        }
       }
       else {
         $("." + id + " .image").parents("article").removeClass("load");
@@ -170,11 +172,23 @@ define([
       $("nav ul li").removeClass("active");
       $("nav ul li.list-all").addClass("active");
 
-      $.get('/api/update').success(function(data) {
+      $.getJSON('/api/update').success(function(data) {
         self.new_count = 0;
         self.loadList("all", "time");
         self.hideUpdateNotification();
+        self.updateFreshCounts(data);
       });
+    },
+    updateFreshCounts: function(counts) {
+      var self = this;
+      _.each(this.lists, function(list) { $("nav li.list-" + list._id + " span").text(self.formatFreshCount(counts[list._id])); });
+      $("nav li.list-all span").text(self.formatFreshCount(counts["total"]));
+    },
+    formatFreshCount: function(number) {
+      return number ? ("+" + number) : "";
+    },
+    updateTitle: function() {
+      document.title = "Pagetty Reader" + (this.new_count ? (" (" + this.new_count + ")") : "");
     },
     showUpdateNotification: function() {
       if (this.new_count) {
@@ -187,9 +201,6 @@ define([
     hideUpdateNotification: function() {
       $(".notification").hide();
       this.updateTitle();
-    },
-    updateTitle: function() {
-      document.title = "Pagetty Reader" + (this.new_count ? (" (" + this.new_count + ")") : "");
     },
     success: function(text, container) {
       var selector = "." + (container ? container : "messages");

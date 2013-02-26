@@ -1,11 +1,8 @@
 {
   "server": {
     "env": "production",
+    "domain": "pagetty.com",
     "host": "pagetty.com",
-    "db_name": "pagetty",
-    "db_url": "mongodb://localhost/pagetty",
-    "http_port": 8080,
-    "https_port": 8443,
     "crawler": {
       "batchSize": 10,
       "channelLifetime": 15
@@ -15,8 +12,8 @@
       "clientSecret": "6e239f366205b1f622efe10a5f4640b0"
     },
     "google": {
-      "clientId": "1042288061895-3gq5j0n1add03mli5h04n66hf01l358s.apps.googleusercontent.com",
-      "clientSecret": "PaJKxVWxGToWYgYXKaEGTA00"
+      "clientId": "1042288061895.apps.googleusercontent.com",
+      "clientSecret": "HXLgAqhqHxUQ_dn0R3ucb7F3"
     }
   }
 }
