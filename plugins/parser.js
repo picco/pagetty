@@ -190,7 +190,14 @@ exports.attach = function (options) {
    * TODO
    */
   Parser.processTitle = function(title) {
-    return title == null ? null : title.replace(/ +/, ' ');
+    if (title == null) {
+      return null;
+    }
+    else {
+      // Decode HTML entities as described in:
+      // http://stackoverflow.com/questions/1147359/how-to-decode-html-entities-using-jquery
+      return $("<div/>").html(title.replace(/ +/, ' ')).text();
+    }
   }
 
   /**
