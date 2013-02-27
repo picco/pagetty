@@ -32,6 +32,7 @@ exports.attach = function (options) {
 
   // Define partials used by Handlebars.
   hbs.registerPartial('list', fs.readFileSync(app.dir + '/views/list.hbs', 'utf8'));
+  hbs.registerPartial('search', fs.readFileSync(app.dir + '/views/search.hbs', 'utf8'));
   hbs.registerPartial('items', fs.readFileSync(app.dir + '/views/items.hbs', 'utf8'));
   hbs.registerPartial('html_rule', fs.readFileSync(app.dir + '/views/html_rule.hbs', 'utf8'));
   hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
@@ -89,16 +90,26 @@ exports.attach = function (options) {
 
       async.series([
         function(next) {
-          app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, doc) {
-            if (doc) {
-              list = doc;
-            }
-            else {
-              list = app.list.all()
-              user_lists.all.active = true;
-            }
+          if (!req.params.list_id || req.params.list_id == "all") {
+            list = app.list.all()
+            user_lists.all.active = true;
             next();
-          });
+          }
+          else if (req.params.list_id == "search") {
+            list = app.list.search(variant);
+            next();
+          }
+          else {
+            app.list.findOne({user_id: req.session.user._id, _id: req.params.list_id}, function(err, doc) {
+              if (doc) {
+                list = doc;
+                next();
+              }
+              else {
+               next("List not found.");
+              }
+            });
+          }
         },
         function(next) {
           req.session.user.getFreshCounts(function(err, counts) {
@@ -136,7 +147,6 @@ exports.attach = function (options) {
       ], function(err, callback) {
         render.app_style = req.session.user.narrow ? "app" : "app app-wide";
         render.list = list;
-        render.list_json = JSON.stringify(list);
         render.lists = _.toArray(user_lists);
         render.lists_json = JSON.stringify(user_lists);
         render.user = req.session.user;
@@ -184,52 +194,32 @@ exports.attach = function (options) {
    * API: Load items from client-side.
    */
   app.server.get("/api/items/:list/:variant/:page", app.middleware.restricted, function(req, res) {
-
-    function render(list) {
-      app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
-        items.length ? res.render("items", {items: items, list: list, variant: req.params.variant, layout: false}) : res.send(404);
-      });
-    }
-
-    if (req.params.list == "all") {
-      render(app.list.all());
-    }
-    else {
-      app.list.findById(req.params.list, function(err, list) {
-        (err || !list) ? res.send(500) : render(list);
-      });
-    }
+    app.list.getById(req.params.list, req.params.variant, function(err, list) {
+      if (err) {
+        res.send(500);
+      }
+      else {
+        app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
+          items.length ? res.render("items", {items: items, list: list, variant: req.params.variant, layout: false}) : res.send(404);
+        });
+      }
+    });
   });
 
   /**
    * API: Load items from client-side.
    */
   app.server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
-    if (req.params.list == "all") {
-      list = app.list.all();
-
-      app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-        res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
-      });
-    }
-    else {
-      app.list.findById(req.params.list, function(err, list) {
-        if (err) {
-          res.send(500);
-        }
-        else {
-          if (list) {
-            console.dir(list);
-            app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-              res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
-            });
-          }
-          else {
-            res.send(500);
-          }
-        }
-      });
-    }
+    app.list.getById(req.params.list, req.params.variant, function(err, list) {
+      if (err || !list) {
+        res.send(500);
+      }
+      else {
+        app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+          res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
+        });
+      }
+    });
   });
 
   /**

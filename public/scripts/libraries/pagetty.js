@@ -6,16 +6,17 @@ define([
 ],function() {
 
   var Pagetty = {
-    init: function(list, lists, variant, new_count) {
+    init: function(list_id, lists, variant, new_count) {
       var self = this;
 
-      this.list = list;
+      this.list_id = list_id;
       this.lists = lists;
       this.list_loading = false;
       this.list_exhausted = false;
       this.variant = variant;
       this.page = 1;
       this.new_count = new_count;
+      this.title = "Pagetty Reader";
 
       self.showUpdateNotification();
       self.loadImages();
@@ -25,7 +26,7 @@ define([
 
       $("nav ul a").on("click", function(e) {
         e.preventDefault();
-        History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, "Pagetty Reader", self.listUrl($(this).data("list"), "time"));
+        History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, self.title, self.listUrl($(this).data("list"), "time"));
       });
 
       $(".notification a").on("click", function(e) {
@@ -35,8 +36,7 @@ define([
 
       $(".content-width").on("click", function(e) {
         e.preventDefault();
-        $(".app").toggleClass("app-wide");
-        $.get("/api/app/style/" + ($(".app").hasClass("app-wide") ? 0 : 1));
+        self.toggleStyle();
         window.scrollTo(0, 0);
       });
 
@@ -44,17 +44,25 @@ define([
 
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();
-        History.pushState({page: "list", list: $(this).data("list"), variant: $(this).data("variant")}, "Pagetty Reader", self.listUrl($(this).data("list"), $(this).data("variant")));
+        History.pushState({page: "list", list: $(this).data("list"), variant: $(this).data("variant")}, self.title, self.listUrl($(this).data("list"), $(this).data("variant")));
+      });
+
+      $("form.search").on("submit", function(e) {
+        var query = $("form.search input").val();
+        e.preventDefault();
+        if (query) History.pushState({page: "list", list: "search", variant: query}, self.title, self.listUrl("search", query));
+      });
+
+      $(document).on("contextmenu", "article", function(e) {
+        e.preventDefault();
+        self.toggleStyle();
+        $('html, body').scrollTop($(this).offset().top);
       });
 
       $(window).scroll(function() {
         if ($(window).scrollTop() + $(window).height() >= $(document).height() - 300) {
           self.loadItems();
         }
-      });
-
-      $(window).resize(function() {
-        window.scrollTo(0, 0);
       });
 
       window.setInterval(function() {
@@ -76,9 +84,12 @@ define([
       $("nav ul li.list-" + list_id).addClass("active");
       $("section.list").css("opacity", .4);
 
+      $("form.search input").val(list_id == "search" ? variant : "");
+
       $.get('/api/list/' + list_id + '/' + variant)
         .success(function(content) {
-          self.list = self.lists[list_id];
+          self.list_id = list_id;
+          self.variant = variant;
           self.list_loading = false;
           self.list_exhausted = false;
           self.page = 1;
@@ -98,7 +109,7 @@ define([
       if (!this.list_exhausted && !this.list_loading) {
         this.list_loading = true;
 
-        $.get('/api/items/' + this.list._id + '/' + this.variant + '/' + this.page)
+        $.get('/api/items/' + this.list_id + '/' + this.variant + '/' + this.page)
           .success(function(items) {
             if (items) {
               $('.items').append(items);
@@ -142,8 +153,6 @@ define([
       }
     },
     listUrl: function(list_id, variant) {
-      var list = this.lists[list_id];
-
       if (list_id == "all") {
         if (!variant || variant == "time") {
           return "/"
@@ -193,10 +202,14 @@ define([
     showUpdateNotification: function() {
       if (this.new_count) {
         $('.notification .count').text(this.new_count);
-        $('.notification .text').text(this.new_count == 1 ? 'new story' : 'new stories');
+        $('.notification .text').text(this.new_count == 1 ? 'new article' : 'new articles');
         $('.notification').show();
         this.updateTitle();
       }
+    },
+    toggleStyle: function() {
+      $(".app").toggleClass("app-wide");
+      $.get("/api/app/style/" + ($(".app").hasClass("app-wide") ? 0 : 1));
     },
     hideUpdateNotification: function() {
       $(".notification").hide();

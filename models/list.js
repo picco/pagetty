@@ -25,7 +25,33 @@ exports.attach = function(options) {
    * Generate the special "all" list definition.
    */
   listSchema.statics.all = function() {
-    return {_id: "all", type: "all", name: "All stories", icon: 'https://s2.googleusercontent.com/s2/favicons?domain=pagetty.com'};
+    return {_id: "all", type: "all", name: "All articles", icon: 'https://s2.googleusercontent.com/s2/favicons?domain=pagetty.com'};
+  }
+
+  /**
+   * Generate the special "search" list definition.
+   */
+  listSchema.statics.search = function(query) {
+    return {_id: "search", type: "search", name: "Search for " + query};
+  }
+
+  listSchema.statics.getById = function(list_id, variant, callback) {
+    if (list_id == "all") {
+      callback(null, this.all());
+    }
+    else if (list_id == "search") {
+      callback(null, this.search(variant));
+    }
+    else {
+      app.list.findById(list_id, function(err, list) {
+        if (err) {
+          callback(err);
+        }
+        else {
+          list ? callback(null, list) : callback("List not found");
+        }
+      });
+    }
   }
 
   /**

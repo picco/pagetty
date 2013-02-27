@@ -6,6 +6,9 @@
         <a href="/add" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
       </div>
       <div class="notification"><a href="#"><i class="icon-refresh icon-white"></i> <span class="count">0</span> <span class="text">new stories</span>. Click here to update.</a></div>
+      <form class="search" method="get">
+        <input type="text" name="q" class="input-block-level" placeholder="Search for articles..." value="{{#eq list.type "search"}}{{variant}}{{/eq}}">
+      </form>
       <nav>
         <ul>
           {{#lists}}
@@ -23,11 +26,13 @@
       <a class="content-width tt" href="#" data-placement="left" title="Change layout"><i class="icon-resize-horizontal"></i></a>
     </div>
   </div>
-  <div class="content">{{> list}}</div>
+  <div class="content">
+    {{> list}}    
+  </div>
   <!-- CONTROLLER -->
   <script type="text/javascript">
     require(["/scripts/libraries/pagetty.js?b=" + build, "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build], function(pagetty) {
-      pagetty.init({{{list_json}}}, {{{lists_json}}}, "{{{variant}}}", {{{new_count}}});
+      pagetty.init("{{list._id}}", {{{lists_json}}}, "{{{variant}}}", {{{new_count}}});
     });
   </script>
 </div>

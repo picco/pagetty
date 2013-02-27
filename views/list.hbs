@@ -1,28 +1,31 @@
 <section class="list clearfix">
   <header>
     <div class="inner">
-      {{#eq list._id "all"}}
-        <h1><a href="/">{{list.name}}</a></h1>
-      {{else}}
+      {{#if list.link}}
         <h1><a href="{{list.link}}" target="_blank">{{list.name}}</a></h1>
-      {{/eq}}
-      <div class="variants clearfix">
-        <div class="dropdown">
-          <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-filter"></i> {{#property variants variant}}{{/property}} <b class="caret"></b> </a>
-          <ul class="dropdown-menu" role="menu">
-            <li><a class="variant {{list.active_time}}" data-list="{{list._id}}" data-variant="time" href="/list/{{list._id}}/time">Most recent</a></li>
-            <li class="divider"></li>
-            <li><a class="variant" data-list="{{list._id}}" data-variant="day" href="/list/{{list._id}}/day">Popular today</a></li>
-            <li><a class="variant" data-list="{{list._id}}" data-variant="week" href="/list/{{list._id}}/week">Popular last week</a></li>
-            <li><a class="variant" data-list="{{list._id}}" data-variant="month" href="/list/{{list._id}}/month">Popular last month</a></li>
-            <li><a class="variant" data-list="{{list._id}}" data-variant="year" href="/list/{{list._id}}/year">Popular last year</a></li>
-            <li><a class="variant" data-list="{{list._id}}" data-variant="all" href="/list/{{list._id}}/all">Most popular of all time</a></li>
-          </ul>
+      {{else}}
+        <h1>{{list.name}}</h1>
+      {{/if}}
+
+      {{#neq list.type "search"}}
+        <div class="variants clearfix">
+          <div class="dropdown">
+            <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-filter"></i> {{#property variants variant}}{{/property}} <b class="caret"></b> </a>
+            <ul class="dropdown-menu" role="menu">
+              <li><a class="variant {{list.active_time}}" data-list="{{list._id}}" data-variant="time" href="/list/{{list._id}}/time">Most recent</a></li>
+              <li class="divider"></li>
+              <li><a class="variant" data-list="{{list._id}}" data-variant="day" href="/list/{{list._id}}/day">Popular today</a></li>
+              <li><a class="variant" data-list="{{list._id}}" data-variant="week" href="/list/{{list._id}}/week">Popular last week</a></li>
+              <li><a class="variant" data-list="{{list._id}}" data-variant="month" href="/list/{{list._id}}/month">Popular last month</a></li>
+              <li><a class="variant" data-list="{{list._id}}" data-variant="year" href="/list/{{list._id}}/year">Popular last year</a></li>
+              <li><a class="variant" data-list="{{list._id}}" data-variant="all" href="/list/{{list._id}}/all">Most popular of all time</a></li>
+            </ul>
+          </div>
+          {{#eq list.type "channel"}}
+            <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
+          {{/eq}}
         </div>
-        {{#neq list._id "all"}}
-          <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
-        {{/neq}}
-      </div>
+      {{/neq}}
     </div>
   </header>
   <div class="items">

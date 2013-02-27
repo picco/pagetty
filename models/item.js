@@ -25,72 +25,97 @@ exports.attach = function(options) {
     var query = {};
     var sort = {};
     var items = [];
-    var names = {};
-    var links = {};
 
     async.series([function(next) {
       if (list.type == "all") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
+          sort = {relative_score: "desc", date: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}};
-          async.forEach(lists, function(list, cb) { names[list.channel_id] = list.name; cb(); }, function(err) { next() })
+          next();
         });
       }
+      else if (list.type == "search") {
+        app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
+          sort = {created: "desc", date: "desc", relative_score: "desc"};
+          query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
+          next();
+        });        
+      }
       else {
+        sort = {score: "desc", date: "desc"};
         query = {channel_id: list.channel_id, created: {$lte: user.high}};
         next();
       }
     }, function(next) {
-      var now = new Date();
-      var range = new Date();
+      if (list.type != "search") {
+        var now = new Date();
+        var range = new Date();
 
-      sort = list.type == "all" ? {relative_score: "desc", date: "desc"} : {score: "desc", date: "desc"};
-
-      switch (variant) {
-        case "time":
-          sort = (list.type == "all") ? {created: "desc", date: "desc", relative_score: "desc"} : {date: "desc", relative_score: "desc"};
-          break;
-        case "day":
-          query.date = {$gte: range.setDate(now.getDate() - 1)};
-          break;
-        case "week":
-          query.date = {$gte: range.setDate(now.getDate() - 7)};
-          break;
-        case "month":
-          query.date = {$gte: range.setDate(now.getDate() - 30)};
-          break;
-        case "year":
-          query.date = {$gte: range.setDate(now.getDate() - 365)};
-          break;
+        switch (variant) {
+          case "time":
+            sort = (list.type == "all") ? {created: "desc", date: "desc", relative_score: "desc"} : {date: "desc", relative_score: "desc"};
+            break;
+          case "day":
+            query.date = {$gte: range.setDate(now.getDate() - 1)};
+            break;
+          case "week":
+            query.date = {$gte: range.setDate(now.getDate() - 7)};
+            break;
+          case "month":
+            query.date = {$gte: range.setDate(now.getDate() - 30)};
+            break;
+          case "year":
+            query.date = {$gte: range.setDate(now.getDate() - 365)};
+            break;
+        }
       }
 
       next();
 
-    }, function(next) {
-      app.list.find({user_id: user._id}, function(err, lists) {
-        async.forEach(lists, function(item, cb) {
-          names[item.channel_id] = item.name;
-          links[item.channel_id] = item._id;
-          cb();
-        },
-        function() {
-          next();
-        });
-      });
     }, function(next) {
       self.find(query).skip(page * app.conf.load_items).limit(app.conf.load_items).sort(sort).execFind(function(err, results) {
         items = results;
         next();
       });
     }], function(err) {
-      async.forEach(items, function(item, cb) {
-        item.list_name = names[item.channel_id].substr(0, 22);
-        item.list_id = links[item.channel_id];
-        item.stamp = item.date.toISOString();
-        item.new = item.created > user.low ? "new" : "";
-        cb();
-      }, function(err) {
+      self.prepare(items, user, function(items) {
         callback(null, items);
       });
+    });
+  }
+
+  /**
+   * Prepare items for rendering.
+   */
+  itemSchema.statics.prepare = function(items, user, callback) {
+    var names = {};
+    var links = {};
+
+    async.series([
+      function(next) {
+        app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
+          async.forEach(lists, function(list, cb) {
+            names[list.channel_id] = list.name;
+            links[list.channel_id] = list._id;
+            cb();
+          },
+          function() {
+            next();
+          });
+        });
+      }, function(next) {
+        async.forEach(items, function(item, cb) {
+          item.list_name = names[item.channel_id].substr(0, 22);
+          item.list_id = links[item.channel_id];
+          item.stamp = item.date.toISOString();
+          item.new = item.created > user.low ? "new" : "";
+          cb();
+        }, function(err) {
+          next();
+        });
+      }
+    ], function(err) {
+      callback(items);
     });
   }
 
