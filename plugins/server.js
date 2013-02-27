@@ -32,7 +32,6 @@ exports.attach = function (options) {
 
   // Define partials used by Handlebars.
   hbs.registerPartial('list', fs.readFileSync(app.dir + '/views/list.hbs', 'utf8'));
-  hbs.registerPartial('search', fs.readFileSync(app.dir + '/views/search.hbs', 'utf8'));
   hbs.registerPartial('items', fs.readFileSync(app.dir + '/views/items.hbs', 'utf8'));
   hbs.registerPartial('html_rule', fs.readFileSync(app.dir + '/views/html_rule.hbs', 'utf8'));
   hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
