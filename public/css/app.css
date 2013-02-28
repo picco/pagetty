@@ -40,6 +40,7 @@
 .sidebar .inner {
   position: fixed;
   width: 280px;
+  height: 100%;
 }
 .sidebar .header {
   margin: 15px;
@@ -244,7 +245,7 @@ article abbr {
   width: 40px;
 }
 .controls .inner {
-  position: fixed;
+  position: absolute;
 }
 .controls a {
   display: block;
