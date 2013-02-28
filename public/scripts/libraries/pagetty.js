@@ -20,6 +20,7 @@ define([
 
       self.showUpdateNotification();
       self.loadImages();
+      self.setHeight();
 
       $('.items article abbr').timeago();
       $(".sidebar .inner").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
@@ -65,6 +66,10 @@ define([
         }
       });
 
+      $(window).resize(function() {
+        self.setHeight();
+      });
+
       window.setInterval(function() {
         self.checkUpdates();
       }, 60000);
@@ -100,6 +105,7 @@ define([
           window.scrollTo(0, 0);
           self.updateTitle();
           self.loadImages();
+          self.setHeight();
         }
       );
     },
@@ -206,6 +212,9 @@ define([
         $('.notification').show();
         this.updateTitle();
       }
+    },
+    setHeight: function() {
+      $("section.list").css("min-height", $(window).height());
     },
     toggleStyle: function() {
       $(".app").toggleClass("app-wide");

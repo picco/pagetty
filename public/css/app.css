@@ -8,7 +8,7 @@
   background: #fafafa;
 }
 .app .wrapper {
-  height: 100%;
+  min-width: 700px;
   max-width: 900px;
   margin: 0 auto;
 }
@@ -22,7 +22,9 @@
 /* APP WIDE ------------------------------------------------------------------ */
 
 .app-wide .wrapper {
+  min-width: 700px;
   max-width: inherit;
+  margin: 0;
 }
 .app-wide img.u {
   display: inline;
@@ -31,14 +33,13 @@
 /* SIDEBAR ------------------------------------------------------------------ */
 
 .sidebar {
-  display: none;
+  display: block;
   float: left;
   width: 280px;
 }
 .sidebar .inner {
   position: fixed;
-  width: 281px;
-  height: 100%;
+  width: 280px;
 }
 .sidebar .header {
   margin: 15px;
@@ -97,8 +98,7 @@ nav span {
 /* CONTENT ------------------------------------------------------------------ */
 
 .content {
-  margin: 0 80px 0 0;
-  height: 100%;
+  margin: 0 80px 0 280px;
 }
 
 /* LIST --------------------------------------------------------------------- */
@@ -109,7 +109,6 @@ nav span {
   border-left: 1px solid #eee;
   border-right: 1px solid #eee;
   box-shadow: 0 0 10px #eee;
-  min-height: 100%;
 }
 .list header {
   border-bottom: 1px solid #eee;
@@ -231,6 +230,8 @@ article abbr {
   vertical-align: middle;
 }
 .app-wide article .image img {
+  width: auto;
+  height: auto;
   max-width: 100%;
   max-height: 100%;
 }
@@ -243,7 +244,7 @@ article abbr {
   width: 40px;
 }
 .controls .inner {
-  position: absolute;
+  position: fixed;
 }
 .controls a {
   display: block;
@@ -302,15 +303,10 @@ article .inner {
 
 /* RESPONSIVE */
 
-@media (min-width: 720px) {
-  .sidebar {
-    display: block;
+@media (max-width: 961px) {
+  .app-wide .wrapper {
+    max-width: 902px;
   }
-  .content {
-    margin-left: 280px;
-  }
-}
-@media (max-width: 999px) {
   .app article .image {
     display: block;
     height: inherit;
@@ -320,9 +316,12 @@ article .inner {
   }
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 962px) {
   .app-wide article {
-    width: 50%;
+    width: 300px;
+  }
+  .app-wide .wrapper {
+    max-width: 962px;
   }
   .app-wide article .inner {
     border-right: 1px solid #eee;
@@ -331,9 +330,9 @@ article .inner {
     border-right: none;
   }
 }
-@media (min-width: 1320px) {
-  .app-wide article {
-    width: 33.33%;
+@media (min-width: 1262px) {
+  .app-wide .wrapper {
+    max-width: 1262px;
   }
   .app-wide article:nth-child(2n) .inner {
     border-right: 1px solid #eee;
@@ -342,9 +341,9 @@ article .inner {
     border-right: none;
   }
 }
-@media (min-width: 1630px) {
-  .app-wide article {
-    width: 25%;
+@media (min-width: 1562px) {
+  .app-wide .wrapper {
+    max-width: 1562px;
   }
   .app-wide article:nth-child(2n) .inner {
     border-right: 1px solid #eee;
@@ -356,9 +355,9 @@ article .inner {
     border-right: none;
   }
 }
-@media (min-width: 1900px) {
-  .app-wide article {
-    width: 20%;
+@media (min-width: 1862px) {
+  .app-wide .wrapper {
+    max-width: 1862px;
   }
   .app-wide article:nth-child(2n) .inner {
     border-right: 1px solid #eee;
