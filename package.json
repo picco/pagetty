@@ -21,6 +21,7 @@
     "nodemailer": "*",
     "request": "*",
     "underscore": "*",
-    "validator": "*"
+    "validator": "*",
+    "winston": "*"
   }
 }

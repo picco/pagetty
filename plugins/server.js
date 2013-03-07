@@ -37,7 +37,9 @@ exports.attach = function (options) {
   hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
 
   hbs.registerHelper("eq", function(v1, v2, options) {
-    return (v1 == v2) ? options.fn(this) : options.inverse(this);
+    var a = new String(v1);
+    var b = new String(v2);
+    return (a.toString() == b.toString()) ? options.fn(this) : options.inverse(this);
   });
 
   hbs.registerHelper("neq", function(v1, v2, options) {
@@ -54,11 +56,29 @@ exports.attach = function (options) {
     return $el.html();
   });
 
-  hbs.registerHelper("icon", function(domain, options) {
-    return "https://s2.googleusercontent.com/s2/favicons?domain=" + (domain || "pagetty.com");
+  hbs.registerHelper("icon", function(options) {
+    if (this.type == "channel") {
+      return "url(https://s2.googleusercontent.com/s2/favicons?domain=" + this.domain + ")";
+    }
+    else {
+      return "none";
+    }
+  });
+
+  hbs.registerHelper("fresh_count", function(fc, options) {
+    if (fc && fc[this._id]) {
+      return "+" + fc[this._id];
+    }
+    else {
+      return "";
+    }
   });
 
   // Set up server middleware and configuration.
+  app.server.set('view engine', 'hbs');
+  app.server.set('view cache', false);
+  app.server.use(app.middleware.logger);
+  app.server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   app.server.use(app.middleware.forceHTTPS);
   app.server.use(app.middleware.imagecache);
   app.server.use(gzippo.staticGzip('./public', {contentTypeMatch: /text|javascript|json/}));
@@ -66,13 +86,9 @@ exports.attach = function (options) {
   app.server.use(express.cookieParser());
   app.server.use(express.session({secret: 'nõude', store: new mongoStore({db: app.conf.db_name})}));
   app.server.use(app.middleware.session);
-  app.server.set('view engine', 'hbs');
-  app.server.set('views', './views');
-  // View cache is enabled by default for production in express, but this messes things up.
-  app.server.set('view cache', false);
-  app.server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   app.server.use(gzippo.compress());
   app.server.use(app.middleware.locals);
+  app.server.use(app.server.router);
 
   /**
    * Render the main application.
@@ -113,19 +129,25 @@ exports.attach = function (options) {
         function(next) {
           req.session.user.getFreshCounts(function(err, counts) {
             fresh_counts = counts;
-            user_lists.all.fresh_count = fresh_counts["total"] ? ("+" + fresh_counts["total"]) : "";
             next();
           });
         },
         function(next) {
-          app.list.find({user_id: req.session.user._id}).sort({name: "asc"}).execFind(function(err, lists) {
+          app.list.find({user_id: req.session.user._id, directory_id: {$exists: false}}).sort({name: "asc"}).execFind(function(err, lists) {
             if (err) console.log(err);
 
             async.forEach(lists, function(item, iterate) {
-              item.active = (req.params.list_id == item._id);
-              item.fresh_count = fresh_counts[item._id] ? ("+" + fresh_counts[item._id]) : "";
-              user_lists[item._id] = item;
-              iterate();
+              if (item.type == "directory") {
+                app.list.find({user_id: req.session.user._id, directory_id: item._id}, function(err, docs) {
+                  item.sublists = app.list.sortNavigation(docs);
+                  user_lists[item._id] = item;
+                  iterate();
+                });
+              }
+              else {
+                user_lists[item._id] = item;
+                iterate();
+              }
             }, function() {
               next();
             });
@@ -138,6 +160,13 @@ exports.attach = function (options) {
           });
         },
         function(next) {
+          req.session.user.getDirectories(function(err, dirs) {
+            console.dir(dirs);
+            render.directories = dirs;
+            next();
+          });
+        },
+        function(next) {
           app.item.getNewCount(req.session.user, function(count) {
             render.new_count = count;
             next();
@@ -146,10 +175,11 @@ exports.attach = function (options) {
       ], function(err, callback) {
         render.app_style = req.session.user.narrow ? "app" : "app app-wide";
         render.list = list;
-        render.lists = _.toArray(user_lists);
+        render.lists = app.list.sortNavigation(_.toArray(user_lists));
         render.lists_json = JSON.stringify(user_lists);
         render.user = req.session.user;
         render.variant = variant;
+        render.fresh_counts = fresh_counts;
         res.render("app", render);
       });
     }
@@ -157,13 +187,6 @@ exports.attach = function (options) {
       res.render("index");
     }
   }
-
-  /**
-   * APP URL's.
-   */
-  app.server.get("/", this.renderApp);
-  app.server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
-  app.server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
 
   /**
    * API: send the whole source code of the channel.
@@ -214,8 +237,10 @@ exports.attach = function (options) {
         res.send(500);
       }
       else {
-        app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-          res.render("list", {items: items, list: list, variant: req.params.variant, layout: false});
+        req.session.user.getDirectories(function(err, directories) {
+          app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+            res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
+          });
         });
       }
     });
@@ -297,6 +322,117 @@ exports.attach = function (options) {
           err ? res.send(err, 400) : res.send(200);
         });
       }
+    });
+  });
+
+  /**
+   * Move a channel list to a directory list.
+   */
+  app.server.get("/list/move/:list/:directory/:name?", app.middleware.restricted, function(req, res) {
+    var list;
+    var directory;
+
+    async.waterfall([
+      function(next) {
+        app.list.findOne({_id: req.params.list, user_id: req.session.user._id, type: "channel"}, function(err, doc) {
+          if (err || !doc) {
+            next("Invalid source list.")
+          }
+          else {
+            list = doc;
+            next();
+          }
+        });
+      },
+      function(next) {
+        if (req.params.directory == "new") {
+          if (req.params.name) {
+            app.list.create({type: "directory", user_id: req.session.user._id, name: req.params.name}, function(err, doc) {
+              if (err) {
+                next("Error saving folder.");
+              }
+              else {
+                directory = doc;
+                next();
+              }
+            });
+          }
+          else {
+            next("Invalid folder name.");
+          }
+        }
+        else if (req.params.directory == "root") {
+          next();
+        }
+        else {
+          app.list.findOne({_id: req.params.directory, user_id: req.session.user._id, type: "directory"}, function(err, doc) {
+            if (err || !doc) {
+              next("Invalid target directory.")
+            }
+            else {
+              directory = doc;
+              next();
+            }
+          });
+        }
+      },
+      function(next) {
+        if (req.params.directory == "root") {
+          list.directory_id = undefined;
+        }
+        else {
+          list.directory_id = directory._id;
+        }
+
+        list.save(next);
+      },
+    ], function(err) {
+      err ? res.send(500, err) : res.redirect("/list/" + list._id);
+    });
+  });
+
+  /**
+   * Rename a list.
+   */
+  app.server.get("/list/rename/:list/:name", app.middleware.restricted, function(req, res) {
+    app.list.findOne({_id: req.params.list, user_id: req.session.user._id}, function(err, list) {
+      if (err || !list) {
+        res.send(400, "Invalid list.");
+      }
+      else {
+        list.name = req.params.name;
+        list.save(function(err) {
+          err ? res.send(500, err) : res.redirect("/list/" + list._id);
+        });
+      }
+    });
+  });
+
+  /**
+   * Remove a directory.
+   */
+  app.server.get("/list/remove/:list", app.middleware.restricted, function(req, res) {
+    app.list.findOne({_id: req.params.list, type: "directory"}, function(err, list) {
+      if (err) {
+        res.send(500, "Error removing folder.");
+      }
+      else if (list) {
+        list.remove(function(err) {
+          err ? res.send(500, "Error removing folder.") : res.redirect("/");
+        });
+      }
+      else {
+        res.send(500, "Error removing folder.");
+      }
+    });
+  });
+
+  /**
+   * Unsubscrbe user from a site.
+   */
+  app.server.get("/unsubscribe/:channel", app.middleware.restricted, function(req, res) {
+    req.session.user.unsubscribe(req.params.channel, function(err) {
+      err ? res.send(400, err) : res.redirect("/");
     });
   });
 
@@ -595,11 +731,19 @@ exports.attach = function (options) {
       }
     });
   });
+
+  /**
+   * APP URL's.
+   */
+  app.server.get("/", this.renderApp);
+  app.server.get("/list/:list_id", app.middleware.restricted, this.renderApp);
+  app.server.get("/list/:list_id/:variant", app.middleware.restricted, this.renderApp);
+
 }
 
 exports.init = function(done) {
   var app = this;
-  console.log("Starting server on ports:", app.conf.http_port, app.conf.https_port);
+  app.log("Starting server on ports:", app.conf.http_port, app.conf.https_port);
   app.http.createServer(app.server).listen(app.conf.http_port);
   app.https.createServer(app.ssl_options, app.server).listen(app.conf.https_port);
   done();

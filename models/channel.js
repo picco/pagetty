@@ -32,7 +32,7 @@ exports.attach = function(options) {
       },
       function(items, next) {
         self.syncItems(date, items, function(err) {
-          console.log('Updated:', self.url, 'items:', items.length);
+          app.log("crawl", "updated", self.url, "items:", items.length);
           next(err);
         });
       },
@@ -57,7 +57,7 @@ exports.attach = function(options) {
     var check = new Date(now - (channel_lifetime * 60 * 1000));
     var updated_channels = 0;
 
-    console.log('Starting new update batch.');
+    app.log("crawlBatch", "starting new batch");
 
     app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batch_size).execFind(function(err, channels) {
       async.mapSeries(channels, function(channel, next) {
@@ -66,7 +66,7 @@ exports.attach = function(options) {
           next();
         });
       }, function(err) {
-        console.log('Batch completed,', updated_channels, 'channels updated.');
+        app.log("crawlBatch", "batch completed", "updated channels:", updated_channels);
         done(updated_channels);
       });
     });
@@ -134,14 +134,14 @@ exports.attach = function(options) {
     var self = this;
 
     async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
-      if (err) console.log(err);
+      if (err) app.err("syncItems", err);
 
       // Update the items_updated attribute.
       self.items_updated = date;
 
       // Save the items_added, items_updated attributes.
       self.save(function(err) {
-        if (err) console.log(err);
+        if (err) app.err("syncItems", err);
         callback();
       });
     });
@@ -155,7 +155,7 @@ exports.attach = function(options) {
 
     app.item.findOne({channel_id: this._id, target: new_item.target}, function(err, current_item) {
       if (err) {
-        console.log('Error: syncItem() find item query failed.');
+        app.err("syncItem", "find item query failed");
       }
       else if (current_item) {
         current_item.title = new_item.title;
@@ -167,7 +167,7 @@ exports.attach = function(options) {
         current_item.relative_score = new_item.relative_score;
 
         current_item.save(function(err) {
-          if (err) console.log(err);
+          if (err) app.err("syncItem", err);
           callback();
         });
       }
@@ -177,7 +177,7 @@ exports.attach = function(options) {
         new_item.image_hash = new_item.image ? hash('adler32', new_item.image) : null;
 
         app.item.create(new_item, function(err) {
-          if (err) console.log(err);
+          if (err) app.err("syncItem", err);
 
           // When adding new items, the created stamp of this batch needs to be assigned to items_added attribute of the channel.
           self.items_added = new_item.created;
@@ -196,7 +196,7 @@ exports.attach = function(options) {
 
     app.list.count({type: "channel", channel_id: this._id}, function(err, count) {
       if (err) {
-        console.log(err);
+        app.err("updateSubscriberCount", err);
         callback(err);
       }
       else {
@@ -232,7 +232,7 @@ exports.attach = function(options) {
             rel = new Number((item.score - min) / (max - min)).toPrecision(4);
             item.relative_score = (rel == "NaN" || rel == "Infinity") ? 0 : rel;
             item.save(function(err) {
-              if (err) console.log(err);
+              if (err) app.err("recalculateRelativeScores", err);
               cb();
             });
           }, function() {

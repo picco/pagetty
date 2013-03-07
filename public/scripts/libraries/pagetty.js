@@ -18,6 +18,11 @@ define([
       this.new_count = new_count;
       this.title = "Pagetty Reader";
 
+      //var el = $("nav ul li.list-" + this.list_id);
+
+      //$(el).addClass("active");
+      //$(el).hasClass("directory") ? $(el).addClass("open") : $(el).parents("li.directory").addClass("open");
+
       self.showUpdateNotification();
       self.loadImages();
       self.setHeight();
@@ -28,6 +33,7 @@ define([
       $("nav ul a").on("click", function(e) {
         e.preventDefault();
         History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, self.title, self.listUrl($(this).data("list"), "time"));
+        window.scrollTo(0, 0);
       });
 
       $(".notification a").on("click", function(e) {
@@ -41,7 +47,7 @@ define([
         window.scrollTo(0, 0);
       });
 
-      $('.tt').tooltip();
+      //$('.tt').tooltip();
 
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();
@@ -52,6 +58,34 @@ define([
         var query = $("form.search input").val();
         e.preventDefault();
         if (query) History.pushState({page: "list", list: "search", variant: query}, self.title, self.listUrl("search", query));
+      });
+
+      $(document).on("click", ".action-move-new", function(e) {
+        e.preventDefault();
+
+        var name = prompt("Enter folder name");
+
+        if (name) {
+          window.location = "/list/move/" + self.list_id + "/new/" + name;
+        }
+      });
+
+      $(document).on("click", ".action-rename", function(e) {
+        e.preventDefault();
+
+        var name = prompt("Enter a new name");
+
+        if (name) {
+          window.location = "/list/rename/" + self.list_id + "/" + name;
+        }
+      });
+
+      $(document).on("click", ".action-delete", function(e) {
+        e.preventDefault();
+
+        if (confirm("Are you sure you want to delete this folder?\nAll feeds in this folder will be moved to the root level.")) {
+          window.location = "/list/remove/" + self.list_id;
+        }
       });
 
       $(document).on("contextmenu", "article", function(e) {
@@ -85,8 +119,16 @@ define([
     loadList: function(list_id, variant) {
       var self = this;
 
-      $("nav ul li").removeClass("active");
+      $("nav ul li").removeClass("active open");
       $("nav ul li.list-" + list_id).addClass("active");
+
+      if ($("nav ul li.list-" + list_id).hasClass("directory")) {
+        $("nav ul li.list-" + list_id).addClass("open");
+      }
+      else {
+        $("nav ul li.list-" + list_id).parents("li.directory").addClass("open");
+      }
+
       $("section.list").css("opacity", .4);
 
       $("form.search input").val(list_id == "search" ? variant : "");

@@ -9,17 +9,19 @@ function crawlBatch(updates) {
     app.channel.crawlBatch(function(updates) {crawlBatch(updates)});
   }
   else {
-    console.log("Waiting...");
+    app.log("crawler.js", "waiting...");
     setTimeout(function() {crawlBatch(true)}, 30000);
   }
 }
 
 // Crawl launcher
-app.init(function (err) {
+app.init(function(err) {
   if (err) {
-    console.log(err);
+    app.log(err);
   }
   else {
+    app.log("crawler.js", "started");
+
     if (process.argv[2]) {
       app.channel.findById(process.argv[2], function(err, channel) {
         if (err) {
@@ -27,12 +29,12 @@ app.init(function (err) {
         }
         else if (channel) {
           channel.crawl(function() {
-            console.log("Update done.");
+            app.log("crawler.js", "channel crawl complete");
             process.exit();
           });
         }
         else {
-          console.log("Channel not found.");
+          app.err("crawler.js", "channel not found");
           process.exit();
         }
       })

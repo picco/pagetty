@@ -16,8 +16,24 @@ exports.attach = function (options) {
      * Add common variables to views.
      */
     locals: function(req, res, next) {
-      res.locals.build = hash('adler32', process.env.BUILD);
+      res.locals.build = hash('adler32', app.build);
       res.locals.variants = app.list.variants();
+      next();
+    },
+
+    /**
+     * Request logging.
+     */
+    logger: function(req, res, next) {
+      req._startTime = new Date;
+
+      var end = res.end;
+      res.end = function(chunk, encoding){
+        res.end = end;
+        res.end(chunk, encoding);
+        app.logAccess(req.ip, req.method, res.statusCode, (new Date() - req._startTime) + "ms", req.url, "-", req.headers['user-agent']);
+      };
+
       next();
     },
 
@@ -26,11 +42,9 @@ exports.attach = function (options) {
      */
     restricted: function(req, res, next) {
       if (req.session.user) {
-        console.log(req.method + ': ' + req.url);
         next();
       }
       else {
-        console.log('Request to restricted URL [' + req.method + ']: ' + req.url);
         res.statusCode = 403;
         res.end("Access denied");
       }
@@ -77,40 +91,39 @@ exports.attach = function (options) {
                 if (err) throw err;
 
                 if (item == null) {
-                  console.log("Source item not found: " + item_id);
+                  app.err("imagecache", "source item not found", item_id);
                   res.writeHead(404);
-                  res.end("Source item not found: " + item_id);
+                  res.end();
                   return;
                 }
                 else {
                   app.fetch({url: item.image}, function(err, buffer) {
                     if (err) {
-                      console.log("Original unavailable: " + item.image + " " + cache_id);
+                      app.err("imagecache", "original unavailable", cache_id, item.image);
                       res.writeHead(404);
-                      res.end("Original unavailable: " + item.image + " " + cache_id);
+                      res.end();
                       return;
                     }
 
                     fs.writeFile(filename, buffer, function (err) {
                       if (err) throw err;
 
-                      var convertStart = new Date().getTime();
+                      var convert_start = new Date().getTime();
 
-                      //im.convert([filename, "-flatten", "-background", "white", "-resize", "538>", "-format", "jpg", filename], function(err, metadata){
-                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "500>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
+                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "540>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
                         if (err) {
                           fs.unlink(filename);
+                          app.err("imagecache", "error generating thumbnail", cache_id, item.image);
                           res.writeHead(500);
-                          res.end("Error generating thumbnail " + cache_id + " from: " + item.image);
-                          console.log("Error generating thumbnail " + cache_id + " from: " + item.image);
+                          res.end();
                           return;
                         }
                         else {
-                          console.log("Image at " + item.image + " conveted in: " + app.timer(convertStart) + "ms");
+                          app.log("imagecache", "image converted", app.timer(convert_start) + "ms", item.image);
 
                           fs.readFile(filename, function (err, created_file) {
                             if (err) throw err;
-                            console.log("Serving resized version: " + cache_id + " from: " + item.image);
+                            
                             res.writeHead(200, headers);
                             res.end(created_file);
                             return;
@@ -123,11 +136,12 @@ exports.attach = function (options) {
               });
             }
             else {
-              throw err;
+              app.err("imagecache", err.toString(), filename);
+              res.writeHead(500);
+              res.end();
             }
           }
           else {
-            console.log("Serving existing version: " + cache_id);
             res.writeHead(200, headers);
             res.end(existing_file);
             return;

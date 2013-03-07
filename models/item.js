@@ -34,12 +34,19 @@ exports.attach = function(options) {
           next();
         });
       }
+      else if (list.type == "directory") {
+        app.list.find({user_id: user._id, type: "channel", directory_id: list._id}, function(err, lists) {
+          sort = {relative_score: "desc", date: "desc"};
+          query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}};
+          next();
+        });
+      }
       else if (list.type == "search") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
           sort = {created: "desc", date: "desc", relative_score: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
           next();
-        });        
+        });
       }
       else {
         sort = {score: "desc", date: "desc"};
@@ -53,7 +60,7 @@ exports.attach = function(options) {
 
         switch (variant) {
           case "time":
-            sort = (list.type == "all") ? {created: "desc", date: "desc", relative_score: "desc"} : {date: "desc", relative_score: "desc"};
+            sort = {created: "desc", date: "desc", relative_score: "desc"};
             break;
           case "day":
             query.date = {$gte: range.setDate(now.getDate() - 1)};

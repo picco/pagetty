@@ -7,13 +7,16 @@ exports.attach = function (options) {
   var fs = require('fs');
   var hash = require("mhash").hash;
   var hbs = require("hbs");
+  var loggly = require("winston-loggly");
   var mongoose = require('mongoose');
   var nodemailer = require('nodemailer');
   var request = require("request");
   var spawn = require('child_process').spawn;
   var uri = require("url");
-  var zlib = require('zlib');
+  var winston = require("winston");
+  var zlib = require("zlib");
 
+  app.build = new Date().getTime();
   app.dir = fs.realpathSync(__dirname + '/..');
 
   app.conf = require("config").server;
@@ -30,8 +33,11 @@ exports.attach = function (options) {
   /**
    * Downloads the data from a given URL in real-time.
    */
-  this.fetch = function(options, callback) {
+  app.fetch = function(options, callback) {
+    var status = null;
+
     if (options.url == null || !options.url.match(/^(http|https):\/\//)) {
+      app.err("fetch", "Invalid URL", options.url);
       callback("Invalid URL: " + options.url);
       return;
     }
@@ -43,14 +49,16 @@ exports.attach = function (options) {
           var r = request.defaults({timeout: 30000, encoding: null});
 
           r.get(options, function(err, response, buffer) {
+            if (response) status = response.statusCode;
+
             if (err) {
               next(err);
             }
-            else if (response.statusCode == 403) {
-              next("HTTP 403: Access denied");
+            else if (response.statusCode == 403 || response.statusCode == 401) {
+              next("Access denied");
             }
             else if (response.statusCode == 404) {
-              next("HTTP 404: Not found");
+              next("Not found");
             }
             else {
               if (response.headers["content-encoding"] == "gzip") {
@@ -72,13 +80,16 @@ exports.attach = function (options) {
         }
       ], function(err, buffer) {
         if (err) {
+          app.err("fetch", err.toString(), status, options.url);
           callback(err.toString());
         }
-        else if (buffer && buffer.toString().length) {
+        else if (buffer && buffer.length) {
+          app.log("fetch", status, parseInt(buffer.length / 1024) + "kB", options.url);
           callback(err, buffer);
         }
         else {
-          callback('No content.');
+          app.err("fetch", "no content", status, options.url);
+          callback("No content.");
         }
       });
     }
@@ -87,7 +98,7 @@ exports.attach = function (options) {
   /**
    * Build a custom validator that does not throw exceptions.
    */
-  this.getValidator = function() {
+  app.getValidator = function() {
     var validator = require('validator').Validator;
     var v = new validator();
 
@@ -137,6 +148,17 @@ exports.attach = function (options) {
   }
 
   /**
+   * Initialize Winston logger.
+   */
+  app.logger = new (winston.Logger)({
+    transports: [
+      new (winston.transports.Console)({colorize: true}),
+    ],
+    levels: {info: 0, error: 1, access: 2},
+    colors: {info: "green", error: "red", access: "grey"},
+  });
+
+  /**
    * Send an email using a template.
    */
   app.mail = function(mail, template, templateData) {
@@ -167,7 +189,7 @@ exports.attach = function (options) {
         });
       }
     ], function(err) {
-      if (err) console.log(err.toString());
+      if (err) app.err(err.toString());
       mail.transport.close();
     });
   }
@@ -271,8 +293,35 @@ exports.attach = function (options) {
   /**
    * Return time past since start.
    */
-  this.timer = function(start) {
+  app.timer = function(start) {
     var end = new Date().getTime();
     return Math.floor(end - start);
   }
+}
+
+exports.init = function(callback) {
+  var app = this;
+
+  /**
+   * Wrapper for winston.log().
+   */
+  app.log = function() {
+    app.logger.info(Array.prototype.slice.call(arguments).join(" "));
+  }
+
+  /**
+   * Wrapper for custom log level.
+   */
+  app.logAccess = function() {
+    app.logger.log("access", Array.prototype.slice.call(arguments).join(" "));
+  }
+
+  /**
+   * Wrapper for winston.error().
+   */
+  app.err = function() {
+    app.logger.error(Array.prototype.slice.call(arguments).join(" "));
+  }
+
+  callback();
 }

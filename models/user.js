@@ -42,22 +42,44 @@ exports.attach = function(options) {
   }
 
   /**
+   * Get all user's directories.
+   */
+  userSchema.methods.getDirectories = function(callback) {
+    app.list.find({user_id: this._id, type: "directory"}, function(err, lists) {
+      if (err) {
+        callback(err);
+      }
+      else {
+        callback(null, lists.sort(function(a ,b) {
+          return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+        }));
+      }
+    });
+  }
+
+  /**
    * Activate the user account and set the username, password.
    */
   userSchema.methods.getFreshCounts = function(callback) {
     var self = this;
-    var counts = {total: 0};
+    var counts = {all: 0};
 
-    app.list.find({user_id: this._id, type: "channel"}, "channel_id", function(err, lists) {
+    app.list.find({user_id: this._id, type: "channel"}, function(err, lists) {
       if (err) {
-        console.log(err);
+        app.err("getFreshCounts", err);
         callback(err);
       }
       else {
         async.each(lists, function(list, next) {
           app.item.count({channel_id: list.channel_id, $and: [{created: {$gt: self.low}}, {created: {$lte: self.high}}]}, function(err, count) {
             counts[list._id] = count || 0
-            counts.total += counts[list._id];
+            counts.all += counts[list._id];
+
+            if (list.directory_id) {
+              if (!counts[list.directory_id]) counts[list.directory_id] = 0;
+              counts[list.directory_id] += (count || 0);
+            }
+
             next();
           });
         }, function(err) {

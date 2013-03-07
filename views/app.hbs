@@ -5,14 +5,26 @@
         <h3 class="pull-left">Pagetty Reader</h3>
         <a href="/add" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
       </div>
-      <div class="notification"><a href="#"><i class="icon-refresh icon-white"></i> <span class="count">0</span> <span class="text">new stories</span>. Click here to update.</a></div>
       <form class="search" method="get">
         <input type="text" name="q" class="input-block-level" placeholder="Search for articles..." value="{{#eq list.type "search"}}{{variant}}{{/eq}}">
       </form>
+      <div class="notification"><a href="#"><i class="icon-refresh icon-white"></i> <span class="count">0</span> <span class="text">new stories</span>. Click here to update.</a></div>
       <nav>
         <ul>
           {{#lists}}
-            <li class="list-{{_id}}{{#if active}} active{{/if}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: url({{#icon domain}}{{/icon}})">{{name}}<span>{{fresh_count}}</span></a></li>
+            <li class="list-{{_id}}{{#eq type "directory"}} directory{{/eq}}{{#eq _id ../list._id}} active open{{/eq}}{{#eq _id ../list.directory_id}} open{{/eq}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: {{#icon}}{{/icon}}">
+              {{#eq type "directory"}}<i class="fa-icon-folder-close"></i>{{/eq}}
+              {{#eq type "all"}}<i class="fa-icon-reorder"></i>{{/eq}}
+              <span>{{#fresh_count ../fresh_counts}}{{/fresh_count}}</span>{{name}}</a>
+              {{#if sublists}}
+                <ul>
+                  {{#sublists}}
+                    <li class="list-{{_id}}{{#eq _id ../../../list._id}} active{{/eq}}"><a href="/list/{{_id}}" data-list="{{_id}}" style="background-image: {{#icon}}{{/icon}}">
+                      <span>{{#fresh_count ../../../fresh_counts}}{{/fresh_count}}</span>{{name}}</a></li>
+                  {{/sublists}}
+                </ul>
+              {{/if}}
+            </li>
           {{/lists}}
         </ul>
       </nav>
@@ -27,7 +39,7 @@
     </div>
   </div>
   <div class="content">
-    {{> list}}    
+    {{> list}}
   </div>
   <!-- CONTROLLER -->
   <script type="text/javascript">

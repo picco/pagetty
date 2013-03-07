@@ -22,7 +22,40 @@
             </ul>
           </div>
           {{#eq list.type "channel"}}
+            <div class="dropdown">
+              <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-edit"></i> Actions <b class="caret"></b> </a>
+              <ul class="dropdown-menu" role="menu">
+                <li class="dropdown-submenu">
+                  <a href="#">Move to...</a>
+                  <ul class="dropdown-menu">
+                    {{#directories}}
+                      <li><a href="/list/move/{{../list._id}}/{{_id}}">{{name}}</a></li>
+                    {{/directories}}
+                    {{#if directories}}
+                      <li class="divider"></li>
+                    {{/if}}
+                    <li><a href="#" class="action-move-new">New folder...</a></li>
+                    {{#if list.directory_id}}
+                      <li class="divider"></li>
+                      <li><a href="/list/move/{{list._id}}/root">Root folder</a></li>
+                    {{/if}}
+                  </ul>
+                </li>
+                <li><a class="action-rename" href="#">Rename</a></li>
+                <li class="divider"></li>
+                <li><a href="/unsubscribe/{{list.channel_id}}">Unsubscribe</a></li>
+              </ul>
+            </div>
             <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
+          {{/eq}}
+          {{#eq list.type "directory"}}
+            <div class="dropdown">
+              <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-edit"></i> Actions <b class="caret"></b> </a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a class="action-rename" href="#">Rename</a></li>
+                <li><a class="action-delete" href="#">Delete</a></li>
+              </ul>
+            </div>
           {{/eq}}
         </div>
       {{/neq}}

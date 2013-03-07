@@ -5,6 +5,7 @@ exports.attach = function(options) {
   var listSchema = mongoose.Schema({
     user_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     channel_id: {type: mongoose.Schema.Types.ObjectId, index: true},
+    directory_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     type: {type: String, index: true},
     name: String,
     domain: String,
@@ -22,6 +23,24 @@ exports.attach = function(options) {
   });
 
   /**
+   * When a directory is removed, move all lists it contains to the root level.
+   */
+  listSchema.post("remove", function(list) {
+    if (list.type == "directory") {
+      app.list.find({directory_id: list._id}, function(err, lists) {
+        if (lists) {
+          lists.forEach(function(item) {
+            item.directory_id = undefined;
+            item.save(function(err) {
+              // noop.
+            });
+          });
+        }
+      });
+    }
+  });
+
+  /**
    * Generate the special "all" list definition.
    */
   listSchema.statics.all = function() {
@@ -29,10 +48,13 @@ exports.attach = function(options) {
   }
 
   /**
-   * Generate the special "search" list definition.
+   * Create a subscription list.
    */
-  listSchema.statics.search = function(query) {
-    return {_id: "search", type: "search", name: "Search for " + query};
+  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
+    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
+      if (err) console.log(err);
+      callback(err, list);
+    });
   }
 
   listSchema.statics.getById = function(list_id, variant, callback) {
@@ -55,22 +77,40 @@ exports.attach = function(options) {
   }
 
   /**
-   * Prepare list for output.
+   * Sort lists for display in navidation.
    */
-  listSchema.statics.prepare = function(list, variant) {
-    list["variant_name"] = variants[variant];
-    list["active_" + variant] = "active";
-    return list;
+  listSchema.statics.sortNavigation = function(lists) {
+    var all = [];
+    var directories = [];
+    var channels = [];
+
+    function sort(a, b) {
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    }
+
+    for (var i in lists) {
+      if (lists[i].type == "all") {
+        all.push(lists[i]);
+      }
+      else if (lists[i].type == "directory") {
+        directories.push(lists[i]);
+      }
+      else {
+        channels.push(lists[i]);
+      }
+    }
+
+    directories.sort(sort);
+    channels.sort(sort);
+
+    return all.concat(directories).concat(channels);
   }
 
   /**
-   * Create a subscription list.
+   * Generate the special "search" list definition.
    */
-  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
-    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
-      if (err) console.log(err);
-      callback(err, list);
-    });
+  listSchema.statics.search = function(query) {
+    return {_id: "search", type: "search", name: "Search for " + query};
   }
 
   /**
