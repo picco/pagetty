@@ -43,15 +43,34 @@
                 </li>
                 <li><a class="action-rename" href="#">Rename</a></li>
                 <li class="divider"></li>
+                <li class="dropdown-submenu">
+                  <a href="#">Default style</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="/style/{{list._id}}/list"><i class="icon-list"></i> List view</a></li>
+                    <li><a href="/style/{{list._id}}/grid"><i class="icon-th"></i> Grid view</a></li>
+                    <li><a href="/style/{{list._id}}/default"><i class="icon-user"></i> User default</a></li>
+                  </ul>
+                </li>
+                <li class="divider"></li>
+                <li><a href="/configure/{{list._id}}">Configure</a></li>
+                <li class="divider"></li>
                 <li><a href="/unsubscribe/{{list.channel_id}}">Unsubscribe</a></li>
               </ul>
             </div>
-            <a class="configure mini" href="/configure/{{list._id}}"><i class="icon-cog"></i> Configure</a>
           {{/eq}}
           {{#eq list.type "directory"}}
             <div class="dropdown">
               <a class="dropdown-toggle mini" data-toggle="dropdown" href="#"><i class="icon-edit"></i> Actions <b class="caret"></b> </a>
               <ul class="dropdown-menu" role="menu">
+                <li class="dropdown-submenu">
+                  <a href="#">Default style</a>
+                  <ul class="dropdown-menu">
+                    <li><a href="/style/{{list._id}}/list"><i class="icon-list"></i> List view</a></li>
+                    <li><a href="/style/{{list._id}}/grid"><i class="icon-th"></i> Grid view</a></li>
+                    <li><a href="/style/{{list._id}}/default"><i class="icon-user"></i> User default</a></li>
+                  </ul>
+                </li>
+                <li class="divider"></li>
                 <li><a class="action-rename" href="#">Rename</a></li>
                 <li><a class="action-delete" href="#">Delete</a></li>
               </ul>

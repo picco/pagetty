@@ -10,7 +10,7 @@ exports.attach = function(options) {
     created: Date,
     high: Date,
     low: Date,
-    narrow: Boolean,
+    style: String,
     verification: {type: String, index: true},
     verified: {type: Boolean, index: true},
   });
@@ -87,6 +87,23 @@ exports.attach = function(options) {
         });
       }
     });
+  }
+
+  /**
+   * Get the effective list display style.
+   */
+  userSchema.methods.getListStyle = function(list) {
+    var default_style = (this.style ? this.style : "grid");
+
+    if (list.type == "channel" || list.type == "directory") {
+      return list.style ? list.style : default_style;
+    }
+    else if (list.type == "search") {
+      return "grid";
+    }
+    else {
+      return default_style;
+    }
   }
 
   /**

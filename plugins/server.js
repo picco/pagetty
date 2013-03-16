@@ -173,7 +173,7 @@ exports.attach = function (options) {
           });
         },
       ], function(err, callback) {
-        render.app_style = req.session.user.narrow ? "app" : "app app-wide";
+        render.app_style = (req.session.user.getListStyle(list) == "list") ? "app app-style-list" : "app app-style-grid";
         render.list = list;
         render.lists = app.list.sortNavigation(_.toArray(user_lists));
         render.lists_json = JSON.stringify(user_lists);
@@ -203,12 +203,13 @@ exports.attach = function (options) {
   });
 
   /**
-   * API: Store the default app style.
+   * API: Store the default list style.
    */
-  app.server.get("/api/app/style/:narrow", app.middleware.restricted, function(req, res) {
-    req.session.user.narrow = req.params.narrow == 1 ? true : false;
-    req.session.user.save(function(err) {
-      res.send(200);
+  app.server.get("/style/:list/:style", app.middleware.restricted, function(req, res) {
+    var style = (req.params.style == "list" || req.params.style == "grid") ? req.params.style : null;
+
+    app.list.update({_id: req.params.list}, {$set: {style: style}}, function(err) {
+      res.redirect("/list/" + req.params.list);
     });
   });
 
@@ -239,6 +240,7 @@ exports.attach = function (options) {
       else {
         req.session.user.getDirectories(function(err, directories) {
           app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+            res.setHeader("X-Pagetty-Style", req.session.user.getListStyle(list));
             res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
           });
         });
@@ -699,6 +701,17 @@ exports.attach = function (options) {
     req.session.user.remove(function(err) {
       delete req.session.user;
       res.redirect('/');
+    });
+  });
+
+  /**
+   * Save user preferences.
+   */
+  app.server.post("/preferences", app.middleware.restricted, function(req, res) {
+    console.dir(req.body);
+    req.session.user.style = (req.body.style == "grid" || req.body.style == "list") ? req.body.style : null;
+    req.session.user.save(function(err) {
+      err ? res.send("Error saving preferences.", 400) : res.send(200);
     });
   });
 

@@ -19,6 +19,7 @@
     "mhash": "*",
     "mongoose": "*",
     "nodemailer": "*",
+    "resanitize": "*",
     "request": "*",
     "underscore": "*",
     "validator": "*",

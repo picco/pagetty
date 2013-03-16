@@ -1,10 +1,9 @@
 define([
   "underscore",
   "nicescroll",
-  "timeago",
   "history",
+  "moment",
 ],function() {
-
   var Pagetty = {
     init: function(list_id, lists, variant, new_count) {
       var self = this;
@@ -26,8 +25,8 @@ define([
       self.showUpdateNotification();
       self.loadImages();
       self.setHeight();
+      self.timeAgo();
 
-      $('.items article abbr').timeago();
       $(".sidebar .inner").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
 
       $("nav ul a").on("click", function(e) {
@@ -47,6 +46,16 @@ define([
         window.scrollTo(0, 0);
       });
 
+      $(".prev").on("click", function(e) {
+        e.preventDefault();
+        self.prevItem();
+      });
+
+      $(".next").on("click", function(e) {
+        e.preventDefault();
+        self.nextItem();
+      });
+      
       //$('.tt').tooltip();
 
       $(document).on("click", "a.variant", function(e) {
@@ -89,9 +98,26 @@ define([
       });
 
       $(document).on("contextmenu", "article", function(e) {
+        var el = this;
         e.preventDefault();
         self.toggleStyle();
-        $('html, body').scrollTop($(this).offset().top);
+
+        $("article").removeClass("highlighted");
+        $(this).addClass("highlighted");
+
+        var offset = $(this).offset().top - 20;
+        $('html, body').scrollTop(offset <= 86 ? 0 : offset);
+      });
+
+      $(window).on("keypress", function(e) {
+        if (e.target.nodeName.toLowerCase() != "input") {
+          if (e.keyCode == 106) {
+            self.nextItem();
+          }
+          else if (e.keyCode == 107) {
+            self.prevItem();
+          }
+        }
       });
 
       $(window).scroll(function() {
@@ -134,17 +160,19 @@ define([
       $("form.search input").val(list_id == "search" ? variant : "");
 
       $.get('/api/list/' + list_id + '/' + variant)
-        .success(function(content) {
+        .success(function(content, status, xhr) {
           self.list_id = list_id;
           self.variant = variant;
           self.list_loading = false;
           self.list_exhausted = false;
           self.page = 1;
+          self.toggleStyle(xhr.getResponseHeader("X-Pagetty-Style"));
 
           $(".content").html(content);
-          $('.items article abbr').timeago();
 
           window.scrollTo(0, 0);
+
+          self.timeAgo();
           self.updateTitle();
           self.loadImages();
           self.setHeight();
@@ -161,8 +189,7 @@ define([
           .success(function(items) {
             if (items) {
               $('.items').append(items);
-              $('.items article abbr').timeago();
-
+              self.timeAgo();
               self.loadImages();
               self.list_loading = false;
               self.page++;
@@ -189,16 +216,24 @@ define([
       }
     },
     loadImage: function(id, ih) {
+      var self = this;
+      var stamp = Math.round($("." + id).data("stamp") / 1000);
+      var el;
+
       if (ih) {
         var img = new Image();
         img.src = "/imagecache/" + id + "-" + ih + ".jpg";
         img.onload = function() {
-          $("." + id + " .image").html($(img)).removeClass("disabled").parents("article").removeClass("load");
+          $("." + id + " .image").html($(this)).removeClass("disabled").parents("article").removeClass("no-image");
         }
       }
-      else {
-        $("." + id + " .image").parents("article").removeClass("load");
-      }
+
+      $("." + id + " .image").parents("article").removeClass("load");
+    },
+    timeAgo: function() {
+      $('.items article .timeago').each(function() {
+        $(this).html(moment($(this).data("stamp")).fromNow());
+      });
     },
     listUrl: function(list_id, variant) {
       if (list_id == "all") {
@@ -258,9 +293,43 @@ define([
     setHeight: function() {
       $("section.list").css("min-height", $(window).height());
     },
-    toggleStyle: function() {
-      $(".app").toggleClass("app-wide");
-      $.get("/api/app/style/" + ($(".app").hasClass("app-wide") ? 0 : 1));
+    nextItem: function() {
+      var adjust = 20;
+      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
+
+      $("article").each(function() {
+          itemPos = $(this).offset().top;
+          if (itemPos > scrollPos && itemPos > 86) {
+            changePos = itemPos - adjust;
+            $(window).scrollTop(changePos);
+            return false;
+          }
+      });
+    },
+    prevItem: function() {
+      var adjust = 20;
+      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
+      var items = $("article").get();
+
+      for (var i in items) {
+        itemPos = $(items[i]).offset().top;
+          if (itemPos < scrollPos) {
+            changePos = itemPos - adjust;
+          }
+          else {
+            break;
+          }
+      }
+      $(window).scrollTop(changePos <= 86 ? 0 : changePos);
+    },
+    toggleStyle: function(style) {
+      if (style) {
+        $(".app").removeClass("app-style-grid app-style-list").addClass("app-style-" + style);
+      }
+      else {
+        $(".app").toggleClass("app-style-grid");
+        $(".app").toggleClass("app-style-list");
+      }
     },
     hideUpdateNotification: function() {
       $(".notification").hide();

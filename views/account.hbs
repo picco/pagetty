@@ -12,18 +12,35 @@
   <div class="body container space-bottom">
     <div class="row section">
       <div class="span16">
-        <h2>Account information</h2>
         <div class="messages"></div>
-        <dl class="dl-horizontal">
-          <dt>Account e-mail:</dt>
-          <dd>{{user.mail}}</dd>
-          <dt>Registered on:</dt>
-          <dd>{{user.created}}</dd>
-        </dl>
       </div>
     </div>
     <div class="row">
       <div class="span8">
+        <h3>Account e-mail:</h3>
+        {{user.mail}}
+        <h3>Registered on:</h3>
+        {{user.created}}
+        <br/><br/>
+        <h2>Preferences</h2>
+        <form class="preferences-form" action="/preferences" method="post">
+          <label>Default style:</label>
+          <select class="style" name="style">
+            {{#select user.style}}
+              <option value="grid">Grid</option>
+              <option value="list">List</option>
+            {{/select}}
+          </select>
+          <div style="margin-top: .5em">
+            <button class="btn btn-primary btn-save-preferences" href="#">Save preferences</button>
+          </div>
+        </form>
+      </div>
+      <div class="span8">
+        <h2>Delete my account</h2>
+        <p>When you delete your account, all data associated with it will be immediately and permanently deleted.</p>
+        <button class="btn btn-delete" href="#">Delete</button>
+        <br/><br/>
         <h2>Change password</h2>
         <form class="account-form" action="/account" method="post">
           <label>Existing password: *</label>
@@ -33,14 +50,9 @@
           <label>Repeat new password: *</label>
           <input class="pass2 input-xlarge" type="password" name="pass2" value="" />
           <div style="margin-top: .5em">
-            <button class="btn btn-success btn-save" href="#">Save</button>
+            <button class="btn btn-save" href="#">Save</button>
           </div>
         </form>
-      </div>
-      <div class="span8">
-        <h2>Delete my account</h2>
-        <p>When you delete your account, all data associated with it will be immediately and permanently deleted.</p>
-        <button class="btn btn-delete" href="#">Delete</button>
       </div>
     </div>
   </div>

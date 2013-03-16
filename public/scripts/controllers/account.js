@@ -5,6 +5,7 @@ require([
 Controller = {
   init: function() {
     $(".account-form").bind("submit", Controller.submit);
+    $(".preferences-form").bind("submit", Controller.savePreferences);
     $(".btn-delete").click(Controller.deleteAccount);
   },
   submit: function() {
@@ -17,6 +18,20 @@ Controller = {
     $.ajax('/account', {type: 'POST', data: data})
       .success(function() {
         pagetty.success('Password has been updated.');
+      })
+      .error(function(xhr, status, error) {
+        pagetty.error(xhr.responseText);
+      }
+    );
+
+    return false;
+  },
+  savePreferences: function() {
+    var data = {style: $(".style").val()};
+
+    $.ajax("/preferences", {type: "POST", data: data})
+      .success(function() {
+        pagetty.success('Preferences have been updated.');
       })
       .error(function(xhr, status, error) {
         pagetty.error(xhr.responseText);

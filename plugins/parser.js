@@ -3,6 +3,7 @@ exports.attach = function (options) {
   var _ = require('underscore');
   var $ = require('cheerio');
   var async = require('async');
+  var resanitize = require("resanitize");
   var sanitize = require('validator').sanitize;
   var uri = require('url');
 
@@ -79,7 +80,7 @@ exports.attach = function (options) {
 
   Parser.processItem = function(options) {
     var self = this;
-    var image_selector = "article p img, .post p img, .content p img, article img, figure img, p img";
+    var image_selector = "article p img, .post p img, .content p img, article img, figure img";
     var image_attribute = "src";
 
     if (options.htmlItem) {
@@ -95,6 +96,7 @@ exports.attach = function (options) {
     else {
       var item = {
         title: self.processTitle(options.rssItem.title),
+        description: options.rssItem.description,
         target: self.processURL(options.baseURL, options.rssItem.origlink || options.rssItem.link),
         comments: self.processURL(options.baseURL, options.rssItem.comments),
         date: options.rssItem.pubdate,
@@ -187,7 +189,7 @@ exports.attach = function (options) {
   }
 
   /**
-   * TODO
+   * Sanitize article Title.
    */
   Parser.processTitle = function(title) {
     if (title == null) {
@@ -267,7 +269,7 @@ exports.attach = function (options) {
     var result = 0;
 
     if (string) {
-      result = string.replace(/[^0-9.]/g, '');
+      result = string.replace(/[^0-9.]/g, '').trim();
 
       // Parse scores in the form "1.7k".
       if (string.match(/.*k$/)) result *= 1000;

@@ -110,24 +110,33 @@ exports.attach = function (options) {
 
                       var convert_start = new Date().getTime();
 
-                      im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "540>", "-gravity",  "Center", "-format", "jpg", filename], function(err, metadata){
-                        if (err) {
-                          fs.unlink(filename);
-                          app.err("imagecache", "error generating thumbnail", cache_id, item.image);
+                      im.identify(filename, function(err, features) {
+                        if (!err && features.width > 32 && features.height > 32) {
+                          im.convert([filename, "-flatten", "-strip", "-background", "white", "-resize", "260x260>^", "-gravity", "center", "-extent", "260x260", "-format", "jpg", filename], function(err, metadata){
+                            if (err) {
+                              fs.unlink(filename);
+                              app.err("imagecache", "error generating thumbnail", cache_id, item.image);
+                              res.writeHead(500);
+                              res.end();
+                              return;
+                            }
+                            else {
+                              app.log("imagecache", "image converted", app.timer(convert_start) + "ms", item.image);
+
+                              fs.readFile(filename, function (err, created_file) {
+                                if (err) throw err;
+
+                                res.writeHead(200, headers);
+                                res.end(created_file);
+                                return;
+                              });
+                            }
+                          });
+                        }
+                        else {
                           res.writeHead(500);
                           res.end();
                           return;
-                        }
-                        else {
-                          app.log("imagecache", "image converted", app.timer(convert_start) + "ms", item.image);
-
-                          fs.readFile(filename, function (err, created_file) {
-                            if (err) throw err;
-                            
-                            res.writeHead(200, headers);
-                            res.end(created_file);
-                            return;
-                          });
                         }
                       });
                     });

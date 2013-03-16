@@ -1,15 +1,15 @@
 
 /* APP ---------------------------------------------------------------------- */
 
-*:focus {
+*:focus, *:active {
   outline: none !important;
 }
 .app, .app body {
   background: #fafafa;
 }
 .app .wrapper {
-  min-width: 700px;
-  max-width: 900px;
+  min-width: 600px;
+  max-width: 1262px;
   margin: 0 auto;
 }
 .app img.u {
@@ -21,12 +21,12 @@
 
 /* APP WIDE ------------------------------------------------------------------ */
 
-.app-wide .wrapper {
+.app-style-grid .wrapper {
   min-width: 700px;
   max-width: inherit;
   margin: 0 auto;
 }
-.app-wide img.u {
+.app-style-grid img.u {
   display: inline;
 }
 
@@ -99,7 +99,7 @@ nav a {
   overflow: hidden;
   background-repeat: no-repeat;
   background-position: 15px center;
-  padding: 6px 40px 6px 40px;
+  padding: 6px 40px 6px 39px;
   color: #333;
 }
 nav a:active {
@@ -160,6 +160,7 @@ nav span {
   box-shadow: 0 0 10px #eee;
 }
 .list header {
+  background: #fff;
   border-bottom: 1px solid #eee;
 }
 .list header .inner {
@@ -188,8 +189,10 @@ nav span {
   font-size: 11px;
   white-space: nowrap;
 }
-.variants .mini:hover {
+.variants .mini:hover,
+.variants .mini:focus {
   background: #fafafa;
+  text-decoration: none;
 }
 .variants .dropdown {
   float: left;
@@ -201,7 +204,6 @@ nav span {
 
 article h2 {
   position: relative;
-  padding-bottom: 4px;
 }
 article .inner {
   padding: 20px 19px 20px 20px;
@@ -228,63 +230,154 @@ article.new .new {
   display: block;
 }
 article .title {
-  background: #fff;
   padding-bottom: 10px;
+  background: #fff;
 }
 article .meta {
   height: 24px;
   line-height: 24px;
-  vertical-align: middle;
   color: #999;
   font-size: 11px;
   text-transform: uppercase;
   overflow: hidden;
 }
 article .image {
+  display: none;
+}
+article .description {
+  display: none;
+  xmax-width: 600px;
+  font-size: 13px;
+  line-height: 20px;
+}
+article .description *:empty:not(img, hr, br) {
+  display: none;
+}
+article .description blockquote {
+  margin: 20px 0;
+}
+article .description img {
   display: block;
+  margin: 1em 0;
+}
+article .description img[align=left] {
+  margin-right: 20px;
+  margin-top: 0;
+}
+article .description img[align=right] {
+  margin-left: 20px;
+  margin-top: 0;
+}
+article .description ol {
+  margin: 20px;
+}
+article .description ul {
+  list-style: none;
+  margin: 20px;
+}
+article .description li {
+  line-height: inherit;
+  margin-bottom: 1em;
+}
+article .description h1,
+article .description h2,
+article .description h3,
+article .description h4,
+article .description h5,
+article .description h6 {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  margin: 1em 0;
+  height: inherit;
+}
+article .description h1 {
+  font-size: 21px;
+  line-height: 28px;
+}
+article .description h2 {
+  font-size: 19px;
+  line-height: 26px;
+}
+article .description h3 {
+  font-size: 17px;
+  line-height: 24px;
+}
+article .description h4 {
+  font-size: 15px;
+  line-height: 22px;
+}
+article .description h5,
+article .description h6 {
+  font-size: 13px;
+}
+article .description p {
+  margin-bottom: 13px;
 }
 article .disabled {
   pointer-events: none;
   cursor: default;
 }
 article .action {
-  margin-right: 6px;
-  border-radius: 3px;
-  background: #f1f1f1;
-  padding: 5px 8px;
-  color: black;
+  color: #ccc;
   font-size: 11px;
-  line-height: 11px;
-}
-article .action:hover {
-  background: #dadada;
-}
-article .channel {
   font-weight: bold;
+  margin-right: 4px;
+}
+article .action-primary {
+  border-radius: 3px;
+  padding: 4px 8px;
+  color: #333;
+  background: #f1f1f1;
+}
+article .action-primary:hover {
+  background: #ddd;
+}
+article .action-secondary:hover {
+  color: #333;
+}
+article .list-name {
+  font-size: 11px;
+  font-weight: bold;
+  height: 16px;
+  line-height: 16px;
+  text-transform: uppercase;
+  margin-right: 6px;
 }
 article abbr {
   border: none !important;
 }
-.app-wide article .inner {
+.app-style-list article .description {
+  display: block;
+}
+.app-style-grid article .inner {
   position: relative;
 }
-.app-wide article .title {
-  position: absolute;
-  padding-right: 20px;
+.app-style-grid article.highlighted {
+  box-shadow: inset 0 0 10px 0 #ccc;
 }
-.app-wide article .image {
+.app-style-grid article .title {
+  position: absolute;
+  margin-right: 19px;
+}
+.app-style-grid article .title a {
+  max-height: 81px;
+}
+.app-style-grid article.no-image .title a,
+.app-style-grid article:hover .title a {
+  max-height: inherit;
+}
+.app-style-grid article .image {
   display: block;
-  height: 200px;
-  margin-top: 90px;
-  line-height: 200px;
+  height: 260px;
+  margin-top: 120px;
+  line-height: 260px;
   text-align: center;
   vertical-align: middle;
+  overflow: hidden;
 }
-.app-wide article .image img {
+.app-style-grid article .image img {
   width: auto;
   height: auto;
-  max-width: 100%;
-  max-height: 100%;
 }
 
 /* CONTROLS ----------------------------------------------------------------- */
@@ -295,7 +388,7 @@ article abbr {
   width: 40px;
 }
 .controls .inner {
-  position: absolute;
+  position: fixed;
 }
 .controls a {
   display: block;
@@ -351,77 +444,61 @@ article h2 {
 article .inner {
   overflow: hidden;
 }
+.app-style-list article {
+  background: #fff;
+  border-bottom: none;
+}
+.app-style-list article h2 a {
+  font-size: 24px;
+  line-height: 30px;
+}
+.app-style-list .sep {
+  height: 4px;
+  margin: 0;
+  background: #ddd;
+  background: linear-gradient(to left, #ddd 0, #fff 100%);
+  background: -webkit-linear-gradient(left, #ddd 0, #fff 100%);
+  background: -moz-linear-gradient(left, #ddd 0, #fff 100%);
+}
+.app-style-list .circle {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  width: 22px;
+  height: 22px;
+  border-radius: 12px;
+  background: #eee;
+}
 
 /* RESPONSIVE */
 
 @media (max-width: 961px) {
-  .app-wide .wrapper {
+  .app-style-grid .wrapper {
     max-width: 902px;
   }
-  .app article .image {
-    display: block;
-    height: inherit;
-    line-height: inherit;
-    text-align: inherit;
-    vertical-align: inherit;
-  }
 }
-
 @media (min-width: 962px) {
-  .app-wide article {
+  .app-style-grid article {
     width: 300px;
   }
-  .app-wide .wrapper {
+  .app-style-grid .wrapper {
     max-width: 962px;
   }
-  .app-wide article .inner {
+  .app-style-grid article .inner {
     border-right: 1px solid #eee;
   }
-  .app-wide article:nth-child(2n) .inner {
+  .app-style-grid article:nth-child(2n) .inner {
     border-right: none;
   }
 }
 @media (min-width: 1262px) {
-  .app-wide .wrapper {
+  .app-style-grid .wrapper {
     max-width: 1262px;
   }
-  .app-wide article:nth-child(2n) .inner {
+  .app-style-grid article:nth-child(2n) .inner {
     border-right: 1px solid #eee;
   }
-  .app-wide article:nth-child(3n) .inner {
+  .app-style-grid article:nth-child(3n) .inner {
     border-right: none;
   }
 }
-/*
-@media (min-width: 1562px) {
-  .app-wide .wrapper {
-    max-width: 1562px;
-  }
-  .app-wide article:nth-child(2n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-wide article:nth-child(3n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-wide article:nth-child(4n) .inner {
-    border-right: none;
-  }
-}
-@media (min-width: 1862px) {
-  .app-wide .wrapper {
-    max-width: 1862px;
-  }
-  .app-wide article:nth-child(2n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-wide article:nth-child(3n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-wide article:nth-child(4n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-wide article:nth-child(5n) .inner {
-    border-right: none;
-  }
-}
-*/

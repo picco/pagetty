@@ -7,6 +7,7 @@ exports.attach = function(options) {
     channel_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     directory_id: {type: mongoose.Schema.Types.ObjectId, index: true},
     type: {type: String, index: true},
+    style: String,
     name: String,
     domain: String,
     link: String,
