@@ -36,7 +36,7 @@ exports.attach = function(options) {
     async.series([function(next) {
       if (list.type == "all") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
-          sort = {relative_score: "desc", created: "desc"};
+          sort = {relative_score: "desc", created: "desc", date: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}};
           fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}]};
           old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}};
@@ -45,7 +45,7 @@ exports.attach = function(options) {
       }
       else if (list.type == "directory") {
         app.list.find({user_id: user._id, type: "channel", directory_id: list._id}, function(err, lists) {
-          sort = {relative_score: "desc", created: "desc"};
+          sort = {relative_score: "desc", created: "desc", date: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}};
           fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}]};
           old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}};
@@ -54,7 +54,7 @@ exports.attach = function(options) {
       }
       else if (list.type == "search") {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
-          sort = {created: "desc", relative_score: "desc"};
+          sort = {created: "desc", date: "desc", relative_score: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
           fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}], title: {$regex: (".*" + variant + ".*"), $options: "i"}};
           old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
@@ -62,7 +62,7 @@ exports.attach = function(options) {
         });
       }
       else {
-        sort = {score: "desc", created: "desc"};
+        sort = {score: "desc", created: "desc", date: "desc"};
         query = {channel_id: list.channel_id, created: {$lte: user.high}};
         fresh_query = {channel_id: list.channel_id, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}]};
         old_query = {channel_id: list.channel_id, $and: [{created: {$lte: user.high}}, {created: {$lte: user.low}}]};
@@ -101,7 +101,7 @@ exports.attach = function(options) {
         }, function(next2) {
           // Query all results from fresh items.
           if (fresh_count && from < fresh_count) {
-            self.find(fresh_query).skip(from).limit(app.conf.load_items).sort({relative_score: "desc", created: "desc"}).execFind(function(err, results) {
+            self.find(fresh_query).skip(from).limit(app.conf.load_items).sort({relative_score: "desc", created: "desc", date: "desc"}).execFind(function(err, results) {
               items = results;
               next2();
             });
@@ -114,7 +114,7 @@ exports.attach = function(options) {
           if (items.length < app.conf.load_items) {
             var old_from = Math.max(0, from - items.length);
 
-            self.find(old_query).skip(old_from).limit(app.conf.load_items - items.length).sort({created: "desc", relative_score: "desc"}).execFind(function(err, results) {
+            self.find(old_query).skip(old_from).limit(app.conf.load_items - items.length).sort({created: "desc", date: "desc", relative_score: "desc"}).execFind(function(err, results) {
               for (var i in results) {
                 items.push(results[i]);
               }
@@ -237,6 +237,7 @@ exports.attach = function(options) {
       "p": [],
       "pre": [],
       "small": [],
+      "span": [],
       "strike": [],
       "strong": ["style"],
       "sub": [],

@@ -7,7 +7,7 @@ Controller = {
     $(".password-form").bind("submit", Controller.submit);
   },
   submit: function() {
-    $.ajax('/password', {type: 'POST', data: {mail: $('input.mail').val()}})
+    $.ajax('/password', {type: 'POST', data: {mail: $('input.mail').val(), _csrf: _csrf}})
       .success(function() {
         pagetty.success('Check your e-mail!');
       })

@@ -96,6 +96,22 @@ exports.attach = function (options) {
   }
 
   /**
+   * Convert buffer to string with encoding autodetection.
+   */
+  app.bufferToString = function(buffer) {
+    var charsetDetector = require("node-icu-charset-detector");
+    var charset = charsetDetector.detectCharset(buffer).toString();
+
+    try {
+      return buffer.toString(charset);
+    } catch (x) {
+      var Iconv = require("iconv").Iconv;
+      var charsetConverter = new Iconv(charset, "utf8");
+      return charsetConverter.convert(buffer).toString();
+    }
+  }
+
+  /**
    * Build a custom validator that does not throw exceptions.
    */
   app.getValidator = function() {
@@ -211,8 +227,8 @@ exports.attach = function (options) {
           if (err) {
             next(err);
           }
-          else if (buffer && buffer.toString().length) {
-            feed.content = buffer.toString();
+          else if (buffer) {
+            feed.content = app.bufferToString(buffer);
             feed.type = app.detectFeedType(feed.content);
             next();
           }
@@ -223,11 +239,26 @@ exports.attach = function (options) {
       },
       // Detect the domain and title attributes.
       function(next) {
+        var link = null;
+
         if (feed.type == "rss") {
           feedparser.parseString(feed.content, function(err, meta, articles) {
-            feed.domain = uri.parse(meta.link).hostname;
-            feed.link = meta.link;
-            feed.title = meta.title;
+            if (meta.link) {
+              link = meta.link;
+            }
+            else if (articles[0] && articles[0].origlink) {
+              // Meta link may be missing, try to detect the domain from an article.
+              var article_link = uri.parse(articles[0].origlink);
+              link = article_link.protocol + "//" + article_link.hostname;
+            }
+            else {
+              next("Unable detect domain.");
+              return;
+            }
+
+            feed.domain = uri.parse(link).hostname;
+            feed.link = link;
+            feed.title = meta.title || link;
             next();
           });
         }

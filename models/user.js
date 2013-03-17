@@ -109,16 +109,18 @@ exports.attach = function(options) {
   /**
    * Subscribe user to a given channel.
    */
-  userSchema.methods.subscribe = function(url, callback) {
+  userSchema.methods.subscribe = function(options, callback) {
     var self = this;
     var channel = null;
     var feed = null;
     var list = null;
 
+    options = _.extend({crawl: true}, options);
+
     async.series([
       // Parse the feed contents.
       function(next) {
-        app.parseFeed(url, function(err, parsed_feed) {
+        app.parseFeed(options.url, function(err, parsed_feed) {
           if (err) {
             next(err);
           }
@@ -143,15 +145,19 @@ exports.attach = function(options) {
           }
         });
       },
+      // Check that the user has not yet subscribed to the channel.
+      function(next) {
+        app.list.count({user_id: self._id, channel_id: channel.id}, function(err, count) {
+          count ? next("You are already subscribed.") : next();
+        });
+      },
       // Update the channel items.
       function(next) {
-        channel.crawl(function() {
-          next();
-        });
+        options.crawl ? channel.crawl(function() {next()}) : next();
       },
       // Create a list (subscription) for the user.
       function(next) {
-        app.list.createFromChannel(self._id, channel, feed.title, function(err, doc) {
+        app.list.createFromChannel(self._id, channel, feed.title, options.directory, function(err, doc) {
           list = doc;
           err ? next("Could not update user subscription.") : next();
         });
@@ -169,7 +175,7 @@ exports.attach = function(options) {
         });
       },
     ], function(err) {
-      app.notify.onSubscribe(self, channel);
+      err ? app.err("subscibe", err) : app.notify.onSubscribe(self, channel);
       callback(err, list);
     });
   }

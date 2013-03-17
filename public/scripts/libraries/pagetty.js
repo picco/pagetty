@@ -55,8 +55,15 @@ define([
         e.preventDefault();
         self.nextItem();
       });
-      
+
       //$('.tt').tooltip();
+
+      $(document).on("click", "article", function(e) {
+        if (e.target.nodeName.toLowerCase() != "a") {
+          e.preventDefault();
+          window.open($(this).find(".title a").attr("href"), "_blank");
+        }
+      });
 
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();

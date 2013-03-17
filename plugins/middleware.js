@@ -18,6 +18,7 @@ exports.attach = function (options) {
     locals: function(req, res, next) {
       res.locals.build = hash('adler32', app.build);
       res.locals.variants = app.list.variants();
+      res.locals._csrf = req.session._csrf;
       next();
     },
 
@@ -38,6 +39,18 @@ exports.attach = function (options) {
     },
 
     /**
+     * CSRF check for selected requests.
+     */
+    csrf: function(req, res, next) {
+      if ((req.body && req.body._csrf == req.session._csrf) || (req.query && req.query._csrf == req.session._csrf) || (req.headers['x-csrf-token'] == req.session._csrf)) {
+        next();
+      }
+      else {
+        next("Access denied.");
+      }
+    },
+
+    /**
      * Authentication middleware.
      */
     restricted: function(req, res, next) {
@@ -54,15 +67,30 @@ exports.attach = function (options) {
      * Session middleware.
      */
     session: function(req, res, next) {
-      if (req.session.user) {
-        app.user.findById(req.session.user._id, function(err, user) {
+      function init() {
+        // generate CSRF token
+        req.session._csrf || (req.session._csrf = hash('sha1', req.sessionID + "thanksJan"));
+
+        if (req.session.user) {
           // Updates the user object, since it may have changed.
-          req.session.user = user;
+          app.user.findById(req.session.user._id, function(err, user) {
+            req.session.user = user;
+            next();
+          });
+        }
+        else {
           next();
+        }
+      }
+
+      if (1 && (req.url == "/auth/facebook" || req.url == "/auth/google")) {
+        app.log("Regenerating session before login");
+        req.session.regenerate(function(err) {
+          init();
         });
       }
       else {
-        next();
+        init();
       }
     },
 

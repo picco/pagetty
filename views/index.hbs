@@ -14,6 +14,7 @@
   </noscript>
       <div class="sign-in">
         <form class="form-horizontal" action="/signin" method="post">
+          <input type="hidden" name="_csrf" value="{{_csrf}}" />
           <h2>Create your personal news feed.</h2>
           <div class="login">
             <input class="mail input-medium" type="email" name="mail" placeholder="E-mail" />

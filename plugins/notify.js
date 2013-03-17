@@ -79,14 +79,16 @@ exports.attach = function (options) {
      * Prepare and send the notification mail.
      */
     mail: function(subject, text) {
-      var mail = {to: app.conf.mail.logs, subject: app.conf.env + ':' + subject};
+      if (app.conf.env != "development") {
+        var mail = {to: app.conf.mail.logs, subject: app.conf.env + ':' + subject};
 
-      if (text) {
-        mail.text = '<pre><font face="Courier New" style="font-size: 11px">' + text + '</font></pre>';
-        mail.headers = {'Content-Type': 'text/html'};
+        if (text) {
+          mail.text = '<pre><font face="Courier New" style="font-size: 11px">' + text + '</font></pre>';
+          mail.headers = {'Content-Type': 'text/html'};
+        }
+  
+        app.mail(mail);
       }
-
-      app.mail(mail);
     }
   }
 }

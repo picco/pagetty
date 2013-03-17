@@ -88,7 +88,7 @@ exports.attach = function(options) {
     async.waterfall([
       function(next) {
         app.fetch({url: self.url}, function(err, buffer) {
-          buffer ? next(err, buffer.toString()) : next("Unable to download from: " + self.url);
+          buffer ? next(err, app.bufferToString(buffer)) : next("Unable to download from: " + self.url);
         });
       },
       function(body, next) {
@@ -114,14 +114,21 @@ exports.attach = function(options) {
   channelSchema.methods.fetchRssItems = function(date, callback) {
     var self = this;
 
-    feedparser.parseUrl(this.url, function(err, meta, articles) {
+    app.fetch({url: this.url}, function(err, buffer) {
       if (err) {
         callback(err);
-      } else {
-        app.rule.findOne({type: "rss", domain: self.domain}, function(err, rule) {
-          app.parser.processRSS(date, self.url, articles, rule, function(items) {
-            callback(null, meta.title, items);
-          });
+      }
+      else {
+        feedparser.parseString(app.bufferToString(buffer), function(err, meta, articles) {
+          if (err) {
+            callback(err);
+          } else {
+            app.rule.findOne({type: "rss", domain: self.domain}, function(err, rule) {
+              app.parser.processRSS(date, self.url, articles, rule, function(items) {
+                callback(null, meta.title, items);
+              });
+            });
+          }
         });
       }
     });

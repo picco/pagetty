@@ -1,5 +1,6 @@
 exports.attach = function(options) {
   var app = this;
+  var async = require("async");
   var mongoose = require("mongoose");
 
   var listSchema = mongoose.Schema({
@@ -19,7 +20,7 @@ exports.attach = function(options) {
    */
   listSchema.pre("save", function(next) {
     var validator = app.getValidator();
-    validator.check(this.name, "Name must start with a character.").is(/\w+.*/);
+    validator.check(this.name, "Name must be specified.").len(3);
     validator.hasErrors() ? next(new Error(validator.getErrors()[0])) : next();
   });
 
@@ -51,11 +52,40 @@ exports.attach = function(options) {
   /**
    * Create a subscription list.
    */
-  listSchema.statics.createFromChannel = function(user_id, channel, name, callback) {
-    app.list.create({user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0}, function(err, list) {
-      if (err) console.log(err);
-      callback(err, list);
-    });
+  listSchema.statics.createFromChannel = function(user_id, channel, name, directory_name, callback) {
+    var list = {user_id: user_id, channel_id: channel._id, type: "channel", domain: channel.domain, link: channel.link, name: name, weight: 0};
+
+    async.series([
+      function(next) {
+        if (directory_name) {
+          app.list.findOne({user_id: user_id, type: "directory", name: directory_name}, function(err, doc) {
+            if (err) app.err("createFromChannel", err);
+
+            if (doc) {
+              list.directory_id = doc._id;
+              next();
+            }
+            else {
+              app.list.create({type: "directory", user_id: user_id, name: directory_name}, function(err, doc) {
+                if (err) app.err("createFromChannel", err);
+                if (doc) list.directory_id = doc._id;
+                next();
+              });
+            }
+          });
+        }
+        else {
+          next();
+        }
+      },
+      function(next) {
+        app.list.create(list, function(err, list) {
+          if (err) app.err("createFromChannel", err);
+          callback(err, list);
+          next();
+        });
+      }
+    ]);
   }
 
   listSchema.statics.getById = function(list_id, variant, callback) {

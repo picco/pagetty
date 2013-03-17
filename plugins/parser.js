@@ -52,7 +52,7 @@ exports.attach = function (options) {
         function(next) {
           app.fetch({url: self.processURL(baseURL, article.link)}, function(err, buffer) {
             if (err) console.log(err);
-            buffer ? next(null, buffer.toString()) : next(null, "");
+            buffer ? next(null, app.bufferToString(buffer)) : next(null, "");
           });
         },
       ], function(err, page) {

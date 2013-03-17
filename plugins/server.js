@@ -11,6 +11,7 @@ exports.attach = function (options) {
   var gzippo = require('gzippo');
   var hash = require("mhash").hash;
   var hbs = require("hbs");
+  var helmet = require("helmet");
   var mongoStore = require('connect-mongo')(express);
   var mongoose = require('mongoose');
 
@@ -78,17 +79,18 @@ exports.attach = function (options) {
   app.server.set('view engine', 'hbs');
   app.server.set('view cache', false);
   app.server.use(app.middleware.logger);
-  app.server.use(express.errorHandler({dumpExceptions: false, showStack: false}));
   app.server.use(app.middleware.forceHTTPS);
   app.server.use(app.middleware.imagecache);
   app.server.use(gzippo.staticGzip('./public', {contentTypeMatch: /text|javascript|json/}));
   app.server.use(express.bodyParser());
+  app.server.use(helmet.xframe());
   app.server.use(express.cookieParser());
   app.server.use(express.session({secret: 'nõude', store: new mongoStore({db: app.conf.db_name})}));
   app.server.use(app.middleware.session);
   app.server.use(gzippo.compress());
   app.server.use(app.middleware.locals);
   app.server.use(app.server.router);
+  app.server.use(express.errorHandler({showMessage: true, dumpExceptions: false, showStack: false}));
 
   /**
    * Render the main application.
@@ -152,6 +154,7 @@ exports.attach = function (options) {
               next();
             });
           });
+
         },
         function(next) {
           app.item.getListItems(list, req.session.user, variant, 0, function(err, items) {
@@ -161,7 +164,6 @@ exports.attach = function (options) {
         },
         function(next) {
           req.session.user.getDirectories(function(err, dirs) {
-            console.dir(dirs);
             render.directories = dirs;
             next();
           });
@@ -172,6 +174,17 @@ exports.attach = function (options) {
             next();
           });
         },
+        function(next) {
+          if (list.type == "channel") {
+            app.channel.findById(list.channel_id, function(err, channel) {
+              list.channel_url = channel ? channel.url : null;
+              next();
+            });
+          }
+          else {
+            next();
+          }
+        }
       ], function(err, callback) {
         render.app_style = (req.session.user.getListStyle(list) == "list") ? "app app-style-list" : "app app-style-grid";
         render.list = list;
@@ -194,7 +207,7 @@ exports.attach = function (options) {
   app.server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
     app.channel.findById(req.params.id, function(err, channel) {
       app.fetch({url: channel.url}, function(err, buffer) {
-        var html = $('<div>').append($(buffer.toString()).find(req.params.selector).first().clone()).remove().html();
+        var html = $('<div>').append($(app.bufferToString(buffer)).find(req.params.selector).first().clone()).remove().html();
         app.tidy(html, function(err, formatted) {
           res.send(_.escape(err ? html : formatted));
         });
@@ -238,10 +251,13 @@ exports.attach = function (options) {
         res.send(500);
       }
       else {
-        req.session.user.getDirectories(function(err, directories) {
-          app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-            res.setHeader("X-Pagetty-Style", req.session.user.getListStyle(list));
-            res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
+        app.channel.findById(list.channel_id, function(err, channel) {
+          list.channel_url = channel ? channel.url : null;
+          req.session.user.getDirectories(function(err, directories) {
+            app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
+              res.setHeader("X-Pagetty-Style", req.session.user.getListStyle(list));
+              res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
+            });
           });
         });
       }
@@ -277,20 +293,20 @@ exports.attach = function (options) {
    * Display subscription page.
    */
   app.server.get("/add", app.middleware.restricted, function(req, res) {
-    res.render("subscribe");
+    res.render("add", {url: req.query.url});
   });
 
   /**
-   * Subscribe user to a site.
+   * Detect feeds to which user can subscribe.
    */
-  app.server.post("/subscribe/options", app.middleware.restricted, function(req, res) {
+  app.server.post("/subscribe/options", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     app.parseFeed(req.body.url, function(err, feed) {
       if (err) {
         res.send(err, 400);
       }
       else {
         if (feed.type == "rss") {
-          req.session.user.subscribe(feed.url, function(err, list) {
+          req.session.user.subscribe({url: feed.url}, function(err, list) {
             err ? res.send(err, 400) : res.json({status: "subscribed", list_id: list._id}, 200);
           });
         }
@@ -302,18 +318,66 @@ exports.attach = function (options) {
   });
 
   /**
-   * Subscribe user to a feed.
+   * Subscribe to a feed.
    */
-  app.server.get("/subscribe", app.middleware.restricted, function(req, res) {
-    req.session.user.subscribe(req.query.url, function(err, list) {
-      res.redirect("/list/" + list._id);
+  app.server.post("/subscribe", app.middleware.restricted, app.middleware.csrf, function(req, res) {
+    req.session.user.subscribe({url: req.body.url}, function(err, list) {
+      err ? res.send(err, 500) : res.json({list_id: list._id});
+    });
+  });
+
+  /**
+   * Display import page.
+   */
+  app.server.get("/import", app.middleware.restricted, function(req, res) {
+    res.render("import");
+  });
+
+  /**
+   * Handle OPML import.
+   */
+  app.server.post("/import", app.middleware.restricted, function(req, res) {
+    var opml = require("opmlparser");
+    var parser = new opml();
+
+    parser.parseFile(req.files.opml.path, function(err, meta, feeds, outline) {
+      if (feeds && feeds.length) {
+        async.each(feeds, function(feed, iterate) {
+          req.session.user.subscribe({url: feed.xmlurl, directory: feed.folder, crawl: false}, function(err) {
+            iterate();
+          });
+        }, function(err) {
+          err ? res.redirect("/import") : res.redirect("/");
+        });
+      }
+      else {
+        res.redirect("/import");
+      }
+    });
+  });
+
+  app.server.get("/crawl/:list/:channel", app.middleware.restricted, function(req, res) {
+    app.channel.findById(req.params.channel, function(err, channel) {
+      if (err) {
+        app.err("/crawl/:list/:channel", err);
+        res.redirect("/list/" + req.params.list);
+      }
+      else {
+        channel.crawl(function(err) {
+          if (err) app.err("/crawl/:list/:channel", err);
+          
+          req.session.user.updateReadState(function() {
+            res.redirect("/list/" + req.params.list);
+          });
+        });
+      }
     });
   });
 
   /**
    * Update list data.
    */
-  app.server.post("/list", app.middleware.restricted, function(req, res) {
+  app.server.post("/list", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     app.list.findById(req.body.list_id, function(err, list) {
       if (err) {
         res.send(err, 400);
@@ -441,7 +505,7 @@ exports.attach = function (options) {
   /**
    * Unsubscrbe user from a site.
    */
-  app.server.post("/unsubscribe", app.middleware.restricted, function(req, res) {
+  app.server.post("/unsubscribe", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     req.session.user.unsubscribe(req.body.channel_id, function(err) {
       err ? res.send(400, err) : res.send(200);
     });
@@ -450,7 +514,7 @@ exports.attach = function (options) {
   /**
    * Save a rule.
    */
-  app.server.post("/rule", app.middleware.restricted, function(req, res) {
+  app.server.post("/rule", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     var validator = app.getValidator();
     var valid_modes = ["page", "rss"];
 
@@ -601,7 +665,7 @@ exports.attach = function (options) {
   /**
    * Log the user in to the system.
    */
-  app.server.post("/signin", function(req, res) {
+  app.server.post("/signin", app.middleware.csrf, function(req, res) {
     app.user.authenticate(req.body.mail, req.body.password, function(err, user) {
       if (err) {
         res.redirect("/");
@@ -615,11 +679,12 @@ exports.attach = function (options) {
   });
 
   /**
-   * Log the user out of the system.
+   * Log the user out of the system and destroy the session.
    */
   app.server.get("/signout", function(req, res) {
-    delete req.session.user;
-    res.redirect('/');
+    req.session.destroy(function(err) {
+      res.redirect('/');
+    });
   });
 
   /**
@@ -674,7 +739,7 @@ exports.attach = function (options) {
   /**
    * Update account settings.
    */
-  app.server.post("/account", app.middleware.restricted, function(req, res) {
+  app.server.post("/account", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     var validator = app.getValidator();
 
     if (req.session.user.pass !== null) validator.check(app.user.hashPassword(req.session.user._id, req.body.existing_pass), 'Existing password is not correct.').equals(req.session.user.pass);
@@ -695,20 +760,20 @@ exports.attach = function (options) {
   });
 
   /**
-   * Display sign-up form.
+   * Delete the user account.
    */
-  app.server.get('/account/delete', app.middleware.restricted, function(req, res) {
+  app.server.post('/account/delete', app.middleware.restricted, app.middleware.csrf, function(req, res) {
     req.session.user.remove(function(err) {
-      delete req.session.user;
-      res.redirect('/');
+      req.session.destroy(function(err) {
+        res.redirect('/');
+      });
     });
   });
 
   /**
    * Save user preferences.
    */
-  app.server.post("/preferences", app.middleware.restricted, function(req, res) {
-    console.dir(req.body);
+  app.server.post("/preferences", app.middleware.restricted, app.middleware.csrf, function(req, res) {
     req.session.user.style = (req.body.style == "grid" || req.body.style == "list") ? req.body.style : null;
     req.session.user.save(function(err) {
       err ? res.send("Error saving preferences.", 400) : res.send(200);
@@ -725,7 +790,7 @@ exports.attach = function (options) {
   /**
    * Handle password reminder form submission.
    */
-  app.server.post('/password', function(req, res) {
+  app.server.post('/password', app.middleware.csrf, function(req, res) {
     app.user.findOne({mail: req.body.mail}, function(err, user) {
       if (err) throw err;
 

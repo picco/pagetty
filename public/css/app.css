@@ -48,7 +48,7 @@
 .sidebar h3 {
   line-height: 28px;
 }
-.btn-subscribe {
+.sidebar .btn-subscribe {
   padding: 4px 10px;
 }
 .notification {
@@ -202,6 +202,9 @@ nav span {
 
 /* ARTICLE ------------------------------------------------------------------ */
 
+article {
+  cursor: pointer;
+}
 article h2 {
   position: relative;
 }

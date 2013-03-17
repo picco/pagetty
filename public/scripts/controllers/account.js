@@ -13,6 +13,7 @@ Controller = {
       existing_pass: $('input.existing-pass').val(),
       pass: $('input.pass').val(),
       pass2: $('input.pass2').val(),
+      _csrf: _csrf,
     }
 
     $.ajax('/account', {type: 'POST', data: data})
@@ -27,7 +28,7 @@ Controller = {
     return false;
   },
   savePreferences: function() {
-    var data = {style: $(".style").val()};
+    var data = {style: $(".style").val(), _csrf: _csrf};
 
     $.ajax("/preferences", {type: "POST", data: data})
       .success(function() {
@@ -42,7 +43,7 @@ Controller = {
   },
   deleteAccount: function() {
     if (confirm("Are you sure? Your account and all your user data will be deleted immediately!")) {
-      $.get('/account/delete')
+      $.ajax("/account/delete", {type: "POST", data: {_csrf: _csrf}})
        .success(function() {
          window.location = '/';
        })

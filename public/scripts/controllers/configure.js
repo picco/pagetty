@@ -16,7 +16,7 @@ Controller = {
     $(".btn-unsubscribe").click(function() {
       $.ajax("/unsubscribe", {
         type: "POST",
-        data: {channel_id: channel_id},
+        data: {channel_id: channel_id, _csrf: _csrf},
         success: function(data, status) {
           window.location = "/";
         },
@@ -58,7 +58,7 @@ Controller = {
 
     $.ajax("/list", {
       type: "POST",
-      data: {list_id: list_id, name: $("#list .name").val()},
+      data: {list_id: list_id, name: $("#list .name").val(), _csrf: _csrf},
       success: function(data, status) {
         pagetty.success('Changes saved.');
       },
@@ -69,6 +69,7 @@ Controller = {
   },
   getRulesData: function() {
     var data = {
+      _csrf: _csrf,
       channel_id: channel_id,
       rule: {
         item: $("input.item").val(),

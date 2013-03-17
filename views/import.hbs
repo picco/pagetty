@@ -1,0 +1,26 @@
+<div class="page">
+  <header>
+    <div class="container">
+      <div class="row">
+        <div class="span16">
+          <a class="logo" href="/">Pagetty</a>
+          <h1>Import subscriptions</h1>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="body container">
+    <div class="row">
+      <div class="span16">
+        <div class="messages"></div>
+        <div class="well">
+          <h2>Upload OPML file</h2>
+          <form action="/import" method="post" enctype="multipart/form-data">
+            <input type="file" name="opml" />
+            <button type="submit" class="btn">Import</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

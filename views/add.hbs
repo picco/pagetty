@@ -15,10 +15,12 @@
         <div class="messages"></div>
         <div class="well">
           <h2>Enter an RSS feed or website URL</h2>
-          <form class="subscribe-form no-margin" action="/signup" method="post">
-            <input class="url input-block-level" type="text" name="url" value="" />
-            <button type="submit" class="btn btn-subscribe">Continue</button>
+          <form class="subscribe-form no-margin" action="/subscribe/options" method="post">
+            <input class="url input-block-level" type="text" name="url" value="{{url}}" />
+            <button type="submit" class="btn btn-subscribe-options">Continue</button>
           </form>
+          <br/>
+          <a href="/import">Import subscriptions from a OPML file</a>
         </div>
         <form class="options">
           <table class="table table-striped">
@@ -37,7 +39,7 @@
           </table>
           <h2>Custom feed (experimental)</h2>
           <p>The site does not provide RSS feed? No problem! If you know some HTML/CSS you can still create a feed yourself using some CSS based scraping rules.</p>
-          <a class="btn btn-success btn-subscribe-custom" href="">Create custom feed</a>
+          <button class="btn btn-success btn-subscribe btn-subscribe-custom" data-url="">Create custom feed</button>
         </form>
       </div>
     </div>
