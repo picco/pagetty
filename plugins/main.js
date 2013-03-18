@@ -173,7 +173,7 @@ exports.attach = function (options) {
    */
   app.logger = new (winston.Logger)({
     transports: [
-      new (winston.transports.Console)({colorize: true}),
+      new (winston.transports.Console)({colorize: true, timestamp: true}),
     ],
     levels: {info: 0, error: 1, access: 2},
     colors: {info: "green", error: "red", access: "grey"},
