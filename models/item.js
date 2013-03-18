@@ -252,7 +252,7 @@ exports.attach = function(options) {
       "ul": [],
     });
 
-    return description;
+    return description || null;
   }
 
   /**
