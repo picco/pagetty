@@ -7,7 +7,6 @@ exports.attach = function (options) {
   var fs = require('fs');
   var hash = require("mhash").hash;
   var hbs = require("hbs");
-  var loggly = require("winston-loggly");
   var mongoose = require('mongoose');
   var nodemailer = require('nodemailer');
   var request = require("request");
