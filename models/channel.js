@@ -25,13 +25,13 @@ exports.attach = function(options) {
 
     self.fetchItems(date, function(err, title, items) {
       self.syncItems(date, items, function(err) {
-        app.log("crawl", "updated", self.url, "items:", items.length);
-
         if (err) {
+          app.err("crawl", "update failed", self.url);
           callback();
         }
         else {
           self.recalculateRelativeScores(function(err) {
+            app.log("crawl", "updated", self.url, "items:", items.length);
             callback();
           });
         }
