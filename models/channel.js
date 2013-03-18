@@ -133,9 +133,7 @@ exports.attach = function(options) {
   channelSchema.methods.syncItems = function(date, items, callback) {
     var self = this;
 
-    async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
-      if (err) app.err("syncItems", err);
-
+    function update() {
       // Update the items_updated attribute.
       self.items_updated = date;
 
@@ -144,7 +142,17 @@ exports.attach = function(options) {
         if (err) app.err("syncItems", err);
         callback();
       });
-    });
+    }
+
+    if (items && items.length) {
+      async.forEach(items, function(item, callback) { self.syncItem.call(self, item, callback) }, function(err) {
+        if (err) app.err("syncItems", err);
+        update();
+      });
+    }
+    else {
+      update();
+    }
   }
 
   /**
