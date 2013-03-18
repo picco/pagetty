@@ -167,6 +167,7 @@ exports.attach = function(options) {
       }
       else if (current_item) {
         current_item.title = new_item.title;
+        current_item.description = new_item.description;
         current_item.target = new_item.target;
         current_item.image = new_item.image;
         current_item.image_hash = new_item.image ? hash('adler32', new_item.image) : null;
