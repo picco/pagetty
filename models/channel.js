@@ -23,26 +23,19 @@ exports.attach = function(options) {
     var self = this;
     var date = new Date();
 
-    async.waterfall([
-      function(next) {
-        self.fetchItems(date, function(err, title, items) {
-          self.title = title;
-          next(err, items);
-        });
-      },
-      function(items, next) {
-        self.syncItems(date, items, function(err) {
-          app.log("crawl", "updated", self.url, "items:", items.length);
-          next(err);
-        });
-      },
-      function(next) {
-        self.recalculateRelativeScores(function(err) {
-          next();
-        });
-      },
-    ], function(err) {
-      callback(err);
+    self.fetchItems(date, function(err, title, items) {
+      self.syncItems(date, items, function(err) {
+        app.log("crawl", "updated", self.url, "items:", items.length);
+
+        if (err) {
+          callback();
+        }
+        else {
+          self.recalculateRelativeScores(function(err) {
+            callback();
+          });
+        }
+      });
     });
   }
 

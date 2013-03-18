@@ -91,6 +91,9 @@ nav ul ul {
   background: -webkit-linear-gradient(bottom, #eee 0, #f5f5f5 10px);
   background: -moz-linear-gradient(bottom, #eee 0, #f5f5f5 10px);
 }
+nav li {
+  display: block; /* IE10 bug */
+}
 nav a {
   position: relative;
   display: block;
@@ -102,8 +105,9 @@ nav a {
   padding: 6px 40px 6px 39px;
   color: #333;
 }
-nav a:active {
+nav a:active, nav a:focus {
   text-shadow: none;
+  text-decoration: none;
   background-color: #ddd;
 }
 nav li.directory > a,
@@ -237,8 +241,8 @@ article .title {
   background: #fff;
 }
 article .meta {
-  height: 24px;
-  line-height: 24px;
+  height: 28px;
+  line-height: 28px;
   color: #999;
   font-size: 11px;
   text-transform: uppercase;
@@ -362,8 +366,8 @@ article abbr {
   position: absolute;
   margin-right: 19px;
 }
-.app-style-grid article .title a {
-  max-height: 81px;
+.app-style-grid article .title h2 {
+  max-height: 82px;
 }
 .app-style-grid article.no-image .title a,
 .app-style-grid article:hover .title a {
@@ -372,7 +376,7 @@ article abbr {
 .app-style-grid article .image {
   display: block;
   height: 260px;
-  margin-top: 120px;
+  margin-top: 140px;
   line-height: 260px;
   text-align: center;
   vertical-align: middle;
