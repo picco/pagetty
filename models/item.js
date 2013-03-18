@@ -209,7 +209,7 @@ exports.attach = function(options) {
    * Get the new items count for a given user.
    */
   itemSchema.statics.sanitizeDescription = function(str) {
-    var description = new String(str);
+    var description = new String(str || "");
 
     description = description.replace(/<p>&nbsp;<\/p>/gi, "");
     description = description.replace(/(<br\s*\/?>\s*)+/gi, "<br/>");
@@ -252,7 +252,7 @@ exports.attach = function(options) {
       "ul": [],
     });
 
-    return description || null;
+    return description;
   }
 
   /**
