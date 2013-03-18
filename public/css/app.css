@@ -206,9 +206,6 @@ nav span {
 
 /* ARTICLE ------------------------------------------------------------------ */
 
-article {
-  cursor: pointer;
-}
 article h2 {
   position: relative;
 }
@@ -350,6 +347,9 @@ article .list-name {
   text-transform: uppercase;
   margin-right: 6px;
 }
+article .summary {
+  display: none;
+}
 article abbr {
   border: none !important;
 }
@@ -358,6 +358,7 @@ article abbr {
 }
 .app-style-grid article .inner {
   position: relative;
+  height: 401px;
 }
 .app-style-grid article.highlighted {
   box-shadow: inset 0 0 10px 0 #ccc;
@@ -372,6 +373,24 @@ article abbr {
 .app-style-grid article.no-image .title h2,
 .app-style-grid article:hover .title h2 {
   max-height: inherit;
+}
+.app-style-grid article.no-image .image {
+  display: none;
+}
+.app-style-grid article .summary {
+  display: none;
+  font-family: GraublauWeb, Helvetica, Arial;
+  font-weight: normal;
+  text-rendering: auto !important;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 30px;
+  color: #999;
+  margin-top: 20px;
+  overflow: hidden;
+}
+.app-style-grid article.summary .summary {
+  display: block;
 }
 .app-style-grid article .image {
   display: block;

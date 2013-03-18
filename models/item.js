@@ -165,6 +165,7 @@ exports.attach = function(options) {
       }, function(next) {
         async.forEach(items, function(item, cb) {
           item.description = self.sanitizeDescription(item.description);
+          item.summary = self.summary(item.description);
           item.list_name = names[item.channel_id].substr(0, 22);
           item.list_id = links[item.channel_id];
           item.stamp = item.date.toISOString();
@@ -284,6 +285,26 @@ exports.attach = function(options) {
     });
 
     return $(els).html();
+  }
+
+  /**
+   * Create a summary from the description.
+   */
+  itemSchema.statics.summary = function(description) {
+    var summary = description ? $('<div>'+ description +'</div>').text().substr(0, 200) : null;
+
+    if (summary) {
+      var pos = summary.lastIndexOf(".");
+
+      if (pos != -1 && pos > 30)  {
+        summary = summary.substr(0, pos);
+      }
+    }
+    else {
+      return null;
+    }
+
+    return summary + "...";
   }
 
   this.item = app.db.model('Item', itemSchema, 'items');

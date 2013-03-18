@@ -58,13 +58,6 @@ define([
 
       //$('.tt').tooltip();
 
-      $(document).on("click", "article", function(e) {
-        if (e.target.nodeName.toLowerCase() != "a") {
-          e.preventDefault();
-          window.open($(this).find(".title a").attr("href"), "_blank");
-        }
-      });
-
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();
         History.pushState({page: "list", list: $(this).data("list"), variant: $(this).data("variant")}, self.title, self.listUrl($(this).data("list"), $(this).data("variant")));
@@ -233,6 +226,12 @@ define([
         img.onload = function() {
           $("." + id + " .image").html($(this)).removeClass("disabled").parents("article").removeClass("no-image");
         }
+        img.error = function() {
+          $("." + id).addClass("summary");
+        }
+      }
+      else {
+        $("." + id).addClass("summary");
       }
 
       $("." + id + " .image").parents("article").removeClass("load");
