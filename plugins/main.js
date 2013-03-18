@@ -103,10 +103,16 @@ exports.attach = function (options) {
 
     try {
       return buffer.toString(charset);
-    } catch (x) {
-      var Iconv = require("iconv").Iconv;
-      var charsetConverter = new Iconv(charset, "utf8");
-      return charsetConverter.convert(buffer).toString();
+    } catch (e) {
+      try {
+        var Iconv = require("iconv").Iconv;
+        var charsetConverter = new Iconv(charset, "utf8");
+        return charsetConverter.convert(buffer).toString();
+      }
+      catch (e) {
+        app.err("bufferToString", "charset conversion failed", charset);
+        return buffer.toString();
+      }
     }
   }
 
