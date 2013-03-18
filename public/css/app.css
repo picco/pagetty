@@ -369,8 +369,8 @@ article abbr {
 .app-style-grid article .title h2 {
   max-height: 82px;
 }
-.app-style-grid article.no-image .title a,
-.app-style-grid article:hover .title a {
+.app-style-grid article.no-image .title h2,
+.app-style-grid article:hover .title h2 {
   max-height: inherit;
 }
 .app-style-grid article .image {
