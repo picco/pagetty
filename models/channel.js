@@ -31,7 +31,7 @@ exports.attach = function(options) {
         }
         else {
           self.recalculateRelativeScores(function(err) {
-            app.log("crawl", "updated", self.url, "items:", items.length);
+            app.log("crawl", "updated", self.url, "items:", items ? items.length : 0);
             callback();
           });
         }
