@@ -19,22 +19,9 @@
       <div class="span8">
         <h3>Account e-mail:</h3>
         {{user.mail}}
+        <br/><br/>
         <h3>Registered on:</h3>
         {{user.created}}
-        <br/><br/>
-        <h2>Preferences</h2>
-        <form class="preferences-form" action="/preferences" method="post">
-          <label>Default style:</label>
-          <select class="style" name="style">
-            {{#select user.style}}
-              <option value="grid">Grid</option>
-              <option value="list">List</option>
-            {{/select}}
-          </select>
-          <div style="margin-top: .5em">
-            <button class="btn btn-primary btn-save-preferences" href="#">Save preferences</button>
-          </div>
-        </form>
       </div>
       <div class="span8">
         <h2>Delete my account</h2>

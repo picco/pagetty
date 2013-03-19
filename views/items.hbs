@@ -1,24 +1,21 @@
 {{#if items}}
   {{#items}}
-    <article class="{{new}} {{_id}} load no-image" data-id="{{_id}}" data-image="{{image_hash}}" data-stamp="{{stamp_unix}}" data-title="{{title}}">
-      <div class="new"></div>
-      <div class="inner">
-        <div class="title">
-          <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
-          <div class="meta">
-            <a class="list-name" href="/list/{{list_id}}">{{list_name}}</a><span class="timeago" data-stamp="{{stamp}}"></span>
-          </div>
-          {{#if score}}<a class="action action-primary" target="_blank" href="{{comments}}"><i class="fa-icon-comments"></i> {{score}}</a>{{/if}}
-          <!--{{#if score}}<a class="action action-secondary" target="_blank" href="{{comments}}"><i class="fa-icon-twitter"></i> {{score}}</a>{{/if}}-->
-          <!--{{#if score}}<a class="action action-secondary" target="_blank" href="{{comments}}"><i class="fa-icon-facebook-sign"></i> {{score}}</a>{{/if}}-->
-          <div class="summary">{{summary}}</div>
+    <article class="{{new}} {{_id}} load" data-id="{{_id}}" data-stamp="{{stamp_unix}}" data-image="{{image}}">
+      <div class="title">
+        <div class="new"></div>
+        <h2><a target="_blank" href="{{target}}">{{title}}</a></h2>
+        <div class="meta">
+          <a class="list-name" href="/list/{{list_id}}">{{list_name}}</a><span class="timeago" data-stamp="{{stamp}}"></span>
         </div>
-        <a class="image disabled" target="_blank" href="{{target}}"><img src="/images/empty.gif" /></a>
+        <div class="actions">
+          {{#if score}}<a class="action action-primary" target="_blank" href="{{comments}}"><i class="fa-icon-comments"></i> {{score}}</a>{{/if}}
+        </div>
+      </div>
+      <div class="inner">
         <div class="description">
           {{{description}}}
         </div>
       </div>
-      <div class="sep"></div>
     </article>
   {{/items}}
 {{else}}

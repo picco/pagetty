@@ -17,11 +17,6 @@ define([
       this.new_count = new_count;
       this.title = "Pagetty Reader";
 
-      //var el = $("nav ul li.list-" + this.list_id);
-
-      //$(el).addClass("active");
-      //$(el).hasClass("directory") ? $(el).addClass("open") : $(el).parents("li.directory").addClass("open");
-
       self.showUpdateNotification();
       self.loadImages();
       self.setHeight();
@@ -38,12 +33,6 @@ define([
       $(".notification a").on("click", function(e) {
         e.preventDefault();
         self.update();
-      });
-
-      $(".content-width").on("click", function(e) {
-        e.preventDefault();
-        self.toggleStyle();
-        window.scrollTo(0, 0);
       });
 
       $(".prev").on("click", function(e) {
@@ -95,18 +84,6 @@ define([
         if (confirm("Are you sure you want to delete this folder?\nAll feeds in this folder will be moved to the root level.")) {
           window.location = "/list/remove/" + self.list_id;
         }
-      });
-
-      $(document).on("contextmenu", "article", function(e) {
-        var el = this;
-        e.preventDefault();
-        self.toggleStyle();
-
-        $("article").removeClass("highlighted");
-        $(this).addClass("highlighted");
-
-        var offset = $(this).offset().top - 20;
-        $('html, body').scrollTop(offset <= 86 ? 0 : offset);
       });
 
       $(window).on("keypress", function(e) {
@@ -166,7 +143,6 @@ define([
           self.list_loading = false;
           self.list_exhausted = false;
           self.page = 1;
-          self.toggleStyle(xhr.getResponseHeader("X-Pagetty-Style"));
 
           $(".content").html(content);
 
@@ -212,29 +188,20 @@ define([
         var a = $(articles[i]);
         var id = a.data("id");
         var ih = a.data("image");
-        this.loadImage(id, ih);
+        this.loadImage(id);
       }
     },
-    loadImage: function(id, ih) {
-      var self = this;
-      var stamp = Math.round($("." + id).data("stamp") / 1000);
-      var el;
-
-      if (ih) {
+    loadImage: function(id) {
+      if (!$("." + id + " .description img").size()) {
         var img = new Image();
-        img.src = "/imagecache/" + id + "-" + ih + ".jpg";
+        img.src = $("." + id).data("image");
         img.onload = function() {
-          $("." + id + " .image").html($(this)).removeClass("disabled").parents("article").removeClass("no-image");
-        }
-        img.error = function() {
-          $("." + id).addClass("summary");
+          if (this.width > 32 && this.height > 32) {
+            $("." + id + " .inner").prepend($(this).addClass("image"));
+            $("." + id).removeClass("load");
+          }
         }
       }
-      else {
-        $("." + id).addClass("summary");
-      }
-
-      $("." + id + " .image").parents("article").removeClass("load");
     },
     timeAgo: function() {
       $('.items article .timeago').each(function() {
@@ -300,12 +267,12 @@ define([
       $("section.list").css("min-height", $(window).height());
     },
     nextItem: function() {
-      var adjust = 20;
+      var adjust = 0;
       var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
 
       $("article").each(function() {
           itemPos = $(this).offset().top;
-          if (itemPos > scrollPos && itemPos > 86) {
+          if (itemPos > scrollPos && itemPos > 126) {
             changePos = itemPos - adjust;
             $(window).scrollTop(changePos);
             return false;
@@ -313,7 +280,7 @@ define([
       });
     },
     prevItem: function() {
-      var adjust = 20;
+      var adjust = 0;
       var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
       var items = $("article").get();
 
@@ -326,16 +293,7 @@ define([
             break;
           }
       }
-      $(window).scrollTop(changePos <= 86 ? 0 : changePos);
-    },
-    toggleStyle: function(style) {
-      if (style) {
-        $(".app").removeClass("app-style-grid app-style-list").addClass("app-style-" + style);
-      }
-      else {
-        $(".app").toggleClass("app-style-grid");
-        $(".app").toggleClass("app-style-list");
-      }
+      $(window).scrollTop(changePos <= 126 ? 0 : changePos);
     },
     hideUpdateNotification: function() {
       $(".notification").hide();

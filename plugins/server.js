@@ -186,7 +186,7 @@ exports.attach = function (options) {
           }
         }
       ], function(err, callback) {
-        render.app_style = (req.session.user.getListStyle(list) == "list") ? "app app-style-list" : "app app-style-grid";
+        render.app = "app";
         render.list = list;
         render.lists = app.list.sortNavigation(_.toArray(user_lists));
         render.lists_json = JSON.stringify(user_lists);
@@ -202,6 +202,13 @@ exports.attach = function (options) {
   }
 
   /**
+   * Redirect to the frontpage.
+   */
+  app.server.get("/front", function(req, res) {
+    res.redirect("/");
+  });
+
+  /**
    * API: send the whole source code of the channel.
    */
   app.server.get("/api/channel/sample/:id/:selector", app.middleware.restricted, function(req, res) {
@@ -212,17 +219,6 @@ exports.attach = function (options) {
           res.send(_.escape(err ? html : formatted));
         });
       });
-    });
-  });
-
-  /**
-   * API: Store the default list style.
-   */
-  app.server.get("/style/:list/:style", app.middleware.restricted, function(req, res) {
-    var style = (req.params.style == "list" || req.params.style == "grid") ? req.params.style : null;
-
-    app.list.update({_id: req.params.list}, {$set: {style: style}}, function(err) {
-      res.redirect("/list/" + req.params.list);
     });
   });
 
@@ -255,7 +251,6 @@ exports.attach = function (options) {
           list.channel_url = channel ? channel.url : null;
           req.session.user.getDirectories(function(err, directories) {
             app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-              res.setHeader("X-Pagetty-Style", req.session.user.getListStyle(list));
               res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
             });
           });
@@ -365,7 +360,7 @@ exports.attach = function (options) {
       else {
         channel.crawl(function(err) {
           if (err) app.err("/crawl/:list/:channel", err);
-          
+
           req.session.user.updateReadState(function() {
             res.redirect("/list/" + req.params.list);
           });
@@ -774,7 +769,6 @@ exports.attach = function (options) {
    * Save user preferences.
    */
   app.server.post("/preferences", app.middleware.restricted, app.middleware.csrf, function(req, res) {
-    req.session.user.style = (req.body.style == "grid" || req.body.style == "list") ? req.body.style : null;
     req.session.user.save(function(err) {
       err ? res.send("Error saving preferences.", 400) : res.send(200);
     });

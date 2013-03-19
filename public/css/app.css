@@ -9,7 +9,7 @@
 }
 .app .wrapper {
   min-width: 600px;
-  max-width: 1262px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 .app img.u {
@@ -76,8 +76,7 @@
   margin-bottom: 0;
 }
 nav {
-  margin: 0 0 15px 0;
-  border-radius: 3px;
+  margin: 0 15px 15px 15px;
 }
 nav ul {
   margin: 0 0 10px 0;
@@ -158,44 +157,41 @@ nav span {
 
 .list {
   position: relative;
-  background: #fff;
-  border-left: 1px solid #eee;
-  border-right: 1px solid #eee;
-  box-shadow: 0 0 10px #eee;
 }
 .list header {
   background: #fff;
-  border-bottom: 1px solid #eee;
+  box-shadow: 0 0 10px #ddd;
 }
 .list header .inner {
-  margin: 0 20px;
-  padding: 10px 0;
 }
 .list h1 {
-  display: block;
-  overflow: hidden;
-  width: 100%;
-  height: 46px;
   font-weight: bold;
-  line-height: 46px;
+  line-height: 60px;
+  margin: 0 20px;
+  overflow: hidden;
 }
 .list h1 a {
   color: #333;
+  white-space: nowrap;
+  line-height: 46px;
+  overflow: hidden;
 }
 .no-items {
   padding: 20px;
-  border-bottom: 1px solid #eee;
+}
+.variants {
+  padding: 10px 20px;
+  border-top: 1px solid #eee;
 }
 .variants .mini {
   border-radius: 5px;
-  padding: 3px 6px;
   color: #333;
   font-size: 11px;
   white-space: nowrap;
+  padding: 10px 20px 10px 0;
 }
 .variants .mini:hover,
 .variants .mini:focus {
-  background: #fafafa;
   text-decoration: none;
 }
 .variants .dropdown {
@@ -206,11 +202,17 @@ nav span {
 
 /* ARTICLE ------------------------------------------------------------------ */
 
+article {
+  background: #fff;
+  margin: 20px 0;
+  box-shadow: 0 0 10px #ddd;
+}
 article h2 {
   position: relative;
 }
 article .inner {
-  padding: 20px 19px 20px 20px;
+  overflow: hidden;
+  padding: 20px;
 }
 article h2 a {
   display: block;
@@ -225,17 +227,20 @@ article h2 a:visited {
 article .new {
   display: none;
   position: absolute;
-  top: 21px;
+  top: 23px;
+  left: 0;
   background: red;
   width: 6px;
-  height: 24px;
+  height: 21px;
 }
 article.new .new {
   display: block;
 }
 article .title {
-  padding-bottom: 10px;
+  position: relative;
+  padding: 20px 20px 10px 20px;
   background: #fff;
+  border-bottom: 1px solid #eee;
 }
 article .meta {
   height: 28px;
@@ -246,11 +251,9 @@ article .meta {
   overflow: hidden;
 }
 article .image {
-  display: none;
+  margin-bottom: 20px;
 }
 article .description {
-  display: none;
-  xmax-width: 600px;
   font-size: 13px;
   line-height: 20px;
 }
@@ -321,11 +324,14 @@ article .disabled {
   pointer-events: none;
   cursor: default;
 }
+article .actions {
+  margin: 5px 0;
+}
 article .action {
   color: #ccc;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: bold;
-  margin-right: 4px;
+  margin-right: 5px;
 }
 article .action-primary {
   border-radius: 3px;
@@ -347,63 +353,8 @@ article .list-name {
   text-transform: uppercase;
   margin-right: 6px;
 }
-article .summary {
-  display: none;
-}
 article abbr {
   border: none !important;
-}
-.app-style-list article .description {
-  display: block;
-}
-.app-style-grid article .inner {
-  position: relative;
-  height: 401px;
-}
-.app-style-grid article.highlighted {
-  box-shadow: inset 0 0 10px 0 #ccc;
-}
-.app-style-grid article .title {
-  position: absolute;
-  margin-right: 19px;
-}
-.app-style-grid article .title h2 {
-  max-height: 82px;
-}
-.app-style-grid article.no-image .title h2,
-.app-style-grid article:hover .title h2 {
-  max-height: inherit;
-}
-.app-style-grid article.no-image .image {
-  display: none;
-}
-.app-style-grid article .summary {
-  display: none;
-  font-family: GraublauWeb, Helvetica, Arial;
-  font-weight: normal;
-  text-rendering: auto !important;
-  font-size: 18px;
-  font-weight: normal;
-  line-height: 30px;
-  color: #999;
-  margin-top: 20px;
-  overflow: hidden;
-}
-.app-style-grid article.summary .summary {
-  display: block;
-}
-.app-style-grid article .image {
-  display: block;
-  height: 260px;
-  margin-top: 140px;
-  line-height: 260px;
-  text-align: center;
-  vertical-align: middle;
-  overflow: hidden;
-}
-.app-style-grid article .image img {
-  width: auto;
-  height: auto;
 }
 
 /* CONTROLS ----------------------------------------------------------------- */
@@ -457,74 +408,6 @@ article abbr {
 
 /* EXPERIMENTAL ------------------------------------------------------------- */
 
-article {
-  position: relative;
-  float: left;
-  border-bottom: 1px solid #eee;
-  width: 100%;
-  box-shadow: inset 0 0 20px 0 white;
-}
 article h2 {
   overflow: hidden;
-}
-article .inner {
-  overflow: hidden;
-}
-.app-style-list article {
-  background: #fff;
-  border-bottom: none;
-}
-.app-style-list article h2 a {
-  font-size: 24px;
-  line-height: 30px;
-}
-.app-style-list .sep {
-  height: 4px;
-  margin: 0;
-  background: #ddd;
-  background: linear-gradient(to left, #ddd 0, #fff 100%);
-  background: -webkit-linear-gradient(left, #ddd 0, #fff 100%);
-  background: -moz-linear-gradient(left, #ddd 0, #fff 100%);
-}
-.app-style-list .circle {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  width: 22px;
-  height: 22px;
-  border-radius: 12px;
-  background: #eee;
-}
-
-/* RESPONSIVE */
-
-@media (max-width: 961px) {
-  .app-style-grid .wrapper {
-    max-width: 902px;
-  }
-}
-@media (min-width: 962px) {
-  .app-style-grid article {
-    width: 300px;
-  }
-  .app-style-grid .wrapper {
-    max-width: 962px;
-  }
-  .app-style-grid article .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-style-grid article:nth-child(2n) .inner {
-    border-right: none;
-  }
-}
-@media (min-width: 1262px) {
-  .app-style-grid .wrapper {
-    max-width: 1262px;
-  }
-  .app-style-grid article:nth-child(2n) .inner {
-    border-right: 1px solid #eee;
-  }
-  .app-style-grid article:nth-child(3n) .inner {
-    border-right: none;
-  }
 }

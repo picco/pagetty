@@ -218,7 +218,7 @@ exports.init = function(done) {
 
       return promise;
     })
-    .redirectPath('/');
+    .redirectPath('/front');
 
   app.everyauth.facebook
     .appId(app.conf.facebook.clientId)
@@ -242,7 +242,7 @@ exports.init = function(done) {
 
       return promise;
     })
-    .redirectPath('/');
+    .redirectPath('/front');
 
   app.everyauth.everymodule.userPkey('_id');
   app.everyauth.everymodule.findUserById(function (user_id, callback) {

@@ -10,7 +10,6 @@ exports.attach = function(options) {
     created: Date,
     high: Date,
     low: Date,
-    style: String,
     verification: {type: String, index: true},
     verified: {type: Boolean, index: true},
   });
@@ -87,23 +86,6 @@ exports.attach = function(options) {
         });
       }
     });
-  }
-
-  /**
-   * Get the effective list display style.
-   */
-  userSchema.methods.getListStyle = function(list) {
-    var default_style = (this.style ? this.style : "grid");
-
-    if (list.type == "channel" || list.type == "directory") {
-      return list.style ? list.style : default_style;
-    }
-    else if (list.type == "search") {
-      return "grid";
-    }
-    else {
-      return default_style;
-    }
   }
 
   /**
@@ -247,6 +229,7 @@ exports.attach = function(options) {
       }
       else {
         app.user.create({mail: mail, pass: null, created: date, high: date, low: date, narrow: false, verification: null, verified: true}, function(err, user) {
+          user.subscribe({url: "http://www.theverge.com/rss/index.xml", directory: "Sample feeds", crawl: false}, function(err) {});
           app.mail({to: user.mail, subject: 'Welcome to pagetty.com'}, 'signup_auto', {user: user});
           callback(err, user);
         });
