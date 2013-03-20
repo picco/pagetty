@@ -161,7 +161,7 @@ nav span {
 .list header {
   background: #fff;
   box-shadow: 0 0 10px #ddd;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 .list header .inner {
 }
@@ -242,6 +242,24 @@ article .title {
   background: #fff;
   border-bottom: 1px solid #eee;
 }
+article .exco {
+  position: relative;
+  float: right;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 26px;
+  margin-left: 20px;
+  cursor: pointer;
+  color: #999;
+  border: 1px solid white;
+  border-radius: 3px;
+}
+article .exco:hover {
+  border: 1px solid #ddd;
+  color: #000;
+}
 article .meta {
   height: 28px;
   line-height: 28px;
@@ -256,7 +274,6 @@ article .thumb {
   max-height: 120px;
   overflow: hidden;
   text-align: center;
-  cursor: pointer;
 }
 article .thumb img {
   max-width: 120px;
@@ -373,6 +390,12 @@ article.open .thumb {
 article.open .inner {
   display: block;
 }
+article:not(.open) .collapse {
+  display: none;
+}
+article.open .expand {
+  display: none;
+}
 article h2,
 article .meta,
 article .actions {
@@ -387,12 +410,13 @@ article.open .actions,
   margin-left: 0;
 }
 .expanded article {
-  margin: 20px 0;
+  margin-bottom: 20px;
 }
 .expanded article .inner {
   display: block;
 }
-.expanded article .thumb {
+.expanded article .thumb,
+.expanded article .exco {
   display: none;
 }
 

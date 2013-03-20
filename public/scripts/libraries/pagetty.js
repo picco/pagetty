@@ -30,7 +30,7 @@ define([],function() {
         self.update();
       });
 
-      $(".expanded").on("click", function(e) {
+      $("a.expanded").on("click", function(e) {
         e.preventDefault();
 
         if ($("html").hasClass("expanded")) {
@@ -92,14 +92,7 @@ define([],function() {
         }
       });
 
-      $(document).on("click", "article h2 a", function(e) {
-        if (!$(this).parents("article").hasClass("open") && !$("html").hasClass("expanded")) {
-          e.preventDefault();
-          self.toggleItem($(this).parents("article"), true);
-        }
-      });
-
-      $(document).on("click", "article .thumb", function(e) {
+      $(document).on("click", "article .exco", function(e) {
         e.preventDefault();
         self.toggleItem($(this).parents("article"), true);
       });
