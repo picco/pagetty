@@ -166,7 +166,7 @@ exports.attach = function(options) {
         async.forEach(items, function(item, cb) {
           item.description = self.sanitizeDescription(item.description);
           item.summary = self.summary(item.description);
-          item.list_name = names[item.channel_id].substr(0, 22);
+          item.list_name = names[item.channel_id];
           item.list_id = links[item.channel_id];
           item.stamp = item.date.toISOString();
           item.stamp_unix = item.date.getTime();

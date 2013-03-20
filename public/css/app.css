@@ -161,6 +161,7 @@ nav span {
 .list header {
   background: #fff;
   box-shadow: 0 0 10px #ddd;
+  margin-bottom: 20px;
 }
 .list header .inner {
 }
@@ -204,13 +205,15 @@ nav span {
 
 article {
   background: #fff;
-  margin: 20px 0;
   box-shadow: 0 0 10px #ddd;
+  margin: 0 0;
+  clear: both;
 }
 article h2 {
   position: relative;
 }
 article .inner {
+  display: none;
   overflow: hidden;
   padding: 20px;
 }
@@ -220,9 +223,6 @@ article h2 a {
   font-size: 21px;
   font-weight: normal;
   line-height: 27px;
-}
-article h2 a:visited {
-  color: #999;
 }
 article .new {
   display: none;
@@ -249,6 +249,17 @@ article .meta {
   font-size: 11px;
   text-transform: uppercase;
   overflow: hidden;
+}
+article .thumb {
+  float: left;
+  width: 120px;
+  max-height: 120px;
+  overflow: hidden;
+  text-align: center;
+  cursor: pointer;
+}
+article .thumb img {
+  max-width: 120px;
 }
 article .image {
   margin-bottom: 20px;
@@ -325,7 +336,7 @@ article .disabled {
   cursor: default;
 }
 article .actions {
-  margin: 5px 0;
+  margin: 5px 0 5px 0;
 }
 article .action {
   color: #ccc;
@@ -351,10 +362,38 @@ article .list-name {
   height: 16px;
   line-height: 16px;
   text-transform: uppercase;
-  margin-right: 6px;
+  margin-right: 3px;
 }
-article abbr {
-  border: none !important;
+article.open {
+  margin: 20px 0;
+}
+article.open .thumb {
+  display: none;
+}
+article.open .inner {
+  display: block;
+}
+article h2,
+article .meta,
+article .actions {
+  margin-left: 140px;
+}
+article.open h2,
+article.open .meta,
+article.open .actions,
+.expanded article h2,
+.expanded article .meta,
+.expanded article .actions {
+  margin-left: 0;
+}
+.expanded article {
+  margin: 20px 0;
+}
+.expanded article .inner {
+  display: block;
+}
+.expanded article .thumb {
+  display: none;
 }
 
 /* CONTROLS ----------------------------------------------------------------- */

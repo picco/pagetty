@@ -185,7 +185,7 @@ exports.attach = function (options) {
       return "http://img.youtube.com/vi/" + matches[1] + "/1.jpg";
     }
 
-    return false;
+    return null;
   }
 
   /**

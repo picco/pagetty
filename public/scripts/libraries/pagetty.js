@@ -1,9 +1,4 @@
-define([
-  "underscore",
-  "nicescroll",
-  "history",
-  "moment",
-],function() {
+define([],function() {
   var Pagetty = {
     init: function(list_id, lists, variant, new_count) {
       var self = this;
@@ -33,6 +28,17 @@ define([
       $(".notification a").on("click", function(e) {
         e.preventDefault();
         self.update();
+      });
+
+      $(".expanded").on("click", function(e) {
+        e.preventDefault();
+
+        if ($("html").hasClass("expanded")) {
+          $("article").removeClass("open");
+        }
+
+        $("html").toggleClass("expanded");
+        $(window).scrollTop(0);
       });
 
       $(".prev").on("click", function(e) {
@@ -84,6 +90,18 @@ define([
         if (confirm("Are you sure you want to delete this folder?\nAll feeds in this folder will be moved to the root level.")) {
           window.location = "/list/remove/" + self.list_id;
         }
+      });
+
+      $(document).on("click", "article h2 a", function(e) {
+        if (!$(this).parents("article").hasClass("open") && !$("html").hasClass("expanded")) {
+          e.preventDefault();
+          self.toggleItem($(this).parents("article"), true);
+        }
+      });
+
+      $(document).on("click", "article .thumb", function(e) {
+        e.preventDefault();
+        self.toggleItem($(this).parents("article"), true);
       });
 
       $(window).on("keypress", function(e) {
@@ -187,20 +205,51 @@ define([
       for (var i in articles) {
         var a = $(articles[i]);
         var id = a.data("id");
-        var ih = a.data("image");
         this.loadImage(id);
       }
     },
     loadImage: function(id) {
-      if (!$("." + id + " .description img").size()) {
+      var src = $("." + id).data("image");
+
+      if (src) {
         var img = new Image();
-        img.src = $("." + id).data("image");
+        img.src = src;
         img.onload = function() {
-          if (this.width > 32 && this.height > 32) {
-            $("." + id + " .inner").prepend($(this).addClass("image"));
-            $("." + id).removeClass("load");
+          if (this.width >= 120) {
+            if (!$("." + id + " .description img").size()) {
+              $("." + id + " .inner").prepend($(this).addClass("image"));
+            }
+            $("." + id + " .thumb").html($(this).clone());
           }
         }
+      }
+      else {
+        var suggestions = $("." + id + " .description").find("img");
+
+        if (suggestions.length) {
+          var img = new Image();
+          img.src = $(suggestions).first().attr("src");
+          img.onload = function() {
+            if (this.width >= 120) {
+              $("." + id + " .thumb").html(img);
+            }
+          }
+        }
+      }
+
+      $("." + id).removeClass("load");
+    },
+    toggleItem: function(article, animate, only_open) {
+      if ($(article).hasClass("open") && !only_open) {
+        $(article).removeClass("open");
+        $(window).scrollTop($(article).offset().top);
+      }
+      else {
+        $(article).animate({marginTop: 20, marginBottom: 20}, animate ? 100 : 0, function() {
+          $(article).addClass("open");
+          $(article).removeAttr("style");
+          $("html, body").animate({scrollTop: $(article).offset().top}, animate ? 200 : 0);
+        });
       }
     },
     timeAgo: function() {
@@ -268,13 +317,12 @@ define([
     },
     nextItem: function() {
       var adjust = 0;
-      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
+      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0;
 
       $("article").each(function() {
           itemPos = $(this).offset().top;
-          if (itemPos > scrollPos && itemPos > 126) {
-            changePos = itemPos - adjust;
-            $(window).scrollTop(changePos);
+          if (itemPos > scrollPos) {
+            self.toggleItem($(this), false, true);
             return false;
           }
       });

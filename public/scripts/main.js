@@ -11,6 +11,7 @@ require.config({
     gal: "libraries/jquery.grid-a-licious.min",
     nicescroll: "libraries/jquery.nicescroll.min",
     pagetty: "libraries/pagetty",
+    scrollto: "libraries/jquery.scrollTo.min",
     timeago: "libraries/jquery.timeago.min",
     underscore: "libraries/underscore.min",
     url: "libraries/jquery.url.min"
