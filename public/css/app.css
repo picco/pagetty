@@ -381,11 +381,6 @@ article:not(.open) .collapse {
 article.open .expand {
   display: none;
 }
-article h2,
-article .meta,
-article .actions {
-  margin-right: 140px;
-}
 article.open h2,
 article.open .meta,
 article.open .actions,
