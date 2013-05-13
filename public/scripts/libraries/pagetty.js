@@ -92,9 +92,11 @@ define([],function() {
         }
       });
 
-      $(document).on("click", "article .exco", function(e) {
-        e.preventDefault();
-        self.toggleItem($(this).parents("article"), true);
+      $(document).on("click", "article .title", function(e) {
+        if (e.target.nodeName.toLowerCase() != "a") {
+          e.preventDefault();
+          self.toggleItem($(this).parents("article"), true);
+        }
       });
 
       $(window).on("keypress", function(e) {

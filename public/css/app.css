@@ -159,9 +159,10 @@ nav span {
   position: relative;
 }
 .list header {
+  position: relative;
   background: #fff;
   box-shadow: 0 0 10px #ddd;
-  margin-bottom: 10px;
+  border-bottom: 1px solid #eee;
 }
 .list header .inner {
 }
@@ -169,6 +170,7 @@ nav span {
   font-weight: bold;
   line-height: 60px;
   margin: 0 20px;
+  padding-top: 10px;
   overflow: hidden;
 }
 .list h1 a {
@@ -181,8 +183,7 @@ nav span {
   padding: 20px;
 }
 .variants {
-  padding: 10px 20px;
-  border-top: 1px solid #eee;
+  padding: 0 20px 15px 20px;
 }
 .variants .mini {
   border-radius: 5px;
@@ -206,11 +207,13 @@ nav span {
 article {
   background: #fff;
   box-shadow: 0 0 10px #ddd;
-  margin: 0 0;
+  margin: 0;
   clear: both;
 }
 article h2 {
+  display: inline;
   position: relative;
+  line-height: 27px;
 }
 article .inner {
   display: none;
@@ -218,17 +221,15 @@ article .inner {
   padding: 20px;
 }
 article h2 a {
-  display: block;
   color: #333;
   font-size: 21px;
   font-weight: normal;
-  line-height: 27px;
 }
 article .new {
   display: none;
   position: absolute;
   top: 23px;
-  left: 0;
+  left: -6px;
   background: red;
   width: 6px;
   height: 21px;
@@ -241,24 +242,7 @@ article .title {
   padding: 20px 20px 10px 20px;
   background: #fff;
   border-bottom: 1px solid #eee;
-}
-article .exco {
-  position: relative;
-  float: right;
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  font-size: 26px;
-  margin-left: 20px;
   cursor: pointer;
-  color: #999;
-  border: 1px solid white;
-  border-radius: 3px;
-}
-article .exco:hover {
-  border: 1px solid #ddd;
-  color: #000;
 }
 article .meta {
   height: 28px;
@@ -269,11 +253,12 @@ article .meta {
   overflow: hidden;
 }
 article .thumb {
-  float: left;
+  float: right;
   width: 120px;
-  max-height: 120px;
+  max-height: 60px;
   overflow: hidden;
   text-align: center;
+  margin-left: 15px;
 }
 article .thumb img {
   max-width: 120px;
@@ -399,7 +384,7 @@ article.open .expand {
 article h2,
 article .meta,
 article .actions {
-  margin-left: 140px;
+  margin-right: 140px;
 }
 article.open h2,
 article.open .meta,
@@ -415,8 +400,7 @@ article.open .actions,
 .expanded article .inner {
   display: block;
 }
-.expanded article .thumb,
-.expanded article .exco {
+.expanded article .thumb {
   display: none;
 }
 
