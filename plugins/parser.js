@@ -171,7 +171,7 @@ exports.attach = function (options) {
   Parser.checkImageURL = function(url) {
     var test = new String(url);
 
-    if (test.match(/\.(jpg|jpeg|png|gif)$/gi)) return url;
+    if (test.match(/\.(jpg|jpeg|png|gif)(\?.+)*$/gi)) return url;
 
     var matches = test.match(/^http:\/\/imgur\.com\/([\w\d]+)\/?$/);
 
@@ -226,6 +226,9 @@ exports.attach = function (options) {
     var value;
 
     if (!selector) {
+      return null;
+    }
+    else if (data.length > 1048576) {
       return null;
     }
     else if (attribute) {

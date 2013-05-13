@@ -164,8 +164,7 @@ exports.attach = function(options) {
         });
       }, function(next) {
         async.forEach(items, function(item, cb) {
-          item.description = self.sanitizeDescription(item.description);
-          item.summary = self.summary(item.description);
+          item.description = self.sanitizeDescription(item);
           item.list_name = names[item.channel_id];
           item.list_id = links[item.channel_id];
           item.stamp = item.date.toISOString();
@@ -206,11 +205,11 @@ exports.attach = function(options) {
     });
   }
 
-  /**
+/**
    * Get the new items count for a given user.
    */
-  itemSchema.statics.sanitizeDescription = function(str) {
-    var description = new String(str || "");
+  itemSchema.statics.sanitizeDescription = function(item) {
+    var description = new String(item.description || "");
 
     description = description.replace(/<p>&nbsp;<\/p>/gi, "");
     description = description.replace(/(<br\s*\/?>\s*)+/gi, "<br/>");
@@ -253,6 +252,23 @@ exports.attach = function(options) {
       "ul": [],
     });
 
+    // Add image to the description when appropriate.
+
+    if (item.image && !$('<div>' + description + '</div>').find("img").length) {
+      description = '<img src="' + item.image + '" alt="" />' + description;
+    }
+    else {
+      var links = $(description).find("a").toArray();
+
+      for (var i = 0; i < links.length; i++) {
+        if ($(links[i]).html() == "[link]") {
+          var href = app.parser.checkImageURL($(links[i]).attr("href"));
+          if (href) description = '<img src="' +  href + '" alt="" />' + description;
+          break;
+        }
+      }
+    }
+
     return description;
   }
 
@@ -285,26 +301,6 @@ exports.attach = function(options) {
     });
 
     return $(els).html();
-  }
-
-  /**
-   * Create a summary from the description.
-   */
-  itemSchema.statics.summary = function(description) {
-    var summary = description ? $('<div>'+ description +'</div>').text().substr(0, 200) : null;
-
-    if (summary) {
-      var pos = summary.lastIndexOf(".");
-
-      if (pos != -1 && pos > 30)  {
-        summary = summary.substr(0, pos);
-      }
-    }
-    else {
-      return null;
-    }
-
-    return summary + "...";
   }
 
   this.item = app.db.model('Item', itemSchema, 'items');
