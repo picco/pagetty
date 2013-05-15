@@ -149,13 +149,15 @@ exports.attach = function(options) {
     var self = this;
     var names = {};
     var links = {};
+    var ids = {};
 
     async.series([
       function(next) {
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
           async.forEach(lists, function(list, cb) {
             names[list.channel_id] = list.name;
-            links[list.channel_id] = list._id;
+            links[list.channel_id] = list.link;
+            ids[list.channel_id] = list._id;
             cb();
           },
           function() {
@@ -166,7 +168,8 @@ exports.attach = function(options) {
         async.forEach(items, function(item, cb) {
           item.description = self.sanitizeDescription(item);
           item.list_name = names[item.channel_id];
-          item.list_id = links[item.channel_id];
+          item.list_link = links[item.channel_id];
+          item.list_id = ids[item.channel_id];
           item.stamp = item.date.toISOString();
           item.stamp_unix = item.date.getTime();
           item.new = item.created > user.low ? "new" : "";
