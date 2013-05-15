@@ -158,6 +158,7 @@ define([],function() {
           self.page = 1;
 
           $(".content").html(content);
+          $("html").removeClass("expanded");
 
           window.scrollTo(0, 0);
 

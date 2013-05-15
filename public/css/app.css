@@ -390,7 +390,7 @@ article.open .actions,
   margin-left: 0;
 }
 .expanded article {
-  margin-bottom: 20px;
+  margin: 20px 0;
 }
 .expanded article .inner {
   display: block;
