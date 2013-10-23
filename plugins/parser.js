@@ -35,7 +35,7 @@ exports.attach = function (options) {
       }
     }
 
-    var title = this.sanitize($(html).find('title').text() || baseURL).trim().substr(0, 50);
+    var title = this.sanitize($(html).find('title').text() || channel.url).trim().substr(0, 50);
     callback(title, items);
   }
 
@@ -61,7 +61,7 @@ exports.attach = function (options) {
           rssItem: article,
           rule: rule,
           date: date,
-          page: page
+          page: self.checkIfHtml(page) ? page : '',
         });
 
         item.created = date;
@@ -76,6 +76,13 @@ exports.attach = function (options) {
       callback(items);
     });
 
+  }
+
+  /**
+   * Check that the content is HTML.
+   */
+  Parser.checkIfHtml = function(data) {
+    return data.match(/<html>|<body>/gi) ? true : false;
   }
 
   Parser.processItem = function(options) {
