@@ -50,7 +50,7 @@ exports.attach = function(options) {
     var check = new Date(now - (channel_lifetime * 60 * 1000));
     var updated_channels = 0;
 
-    app.log("crawlBatch", "starting new batch");
+    app.log("crawlBatch", "starting new batch (check: " + check + ")");
 
     app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batch_size).execFind(function(err, channels) {
       async.mapSeries(channels, function(channel, next) {
