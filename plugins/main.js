@@ -15,11 +15,11 @@ exports.attach = function (options) {
   var winston = require("winston");
   var zlib = require("zlib");
 
-  app.build = new Date().getTime();
-  app.dir = fs.realpathSync(__dirname + '/..');
+  //mongoose.set('debug', true);
 
+  app.dir = fs.realpathSync(__dirname + '/..');
   app.conf = require("config").server;
-  app.db = mongoose.createConnection(app.conf.db_host, app.conf.db_name);
+  app.db = mongoose.createConnection(app.conf.db_url);
 
   this.use(require('./notify.js'));
   this.use(require('./parser.js'));
@@ -45,7 +45,7 @@ exports.attach = function (options) {
         // Download content.
         function(next) {
           // When encoding is null the content is returned as a Buffer.
-          var r = request.defaults({timeout: 30000, encoding: null});
+          var r = request.defaults({timeout: 30000, encoding: null, jar: false});
 
           r.get(options, function(err, response, buffer) {
             if (response) status = response.statusCode;
@@ -75,7 +75,7 @@ exports.attach = function (options) {
                 next(null, buffer);
               }
             }
-          });
+          }).setMaxListeners(100);
         }
       ], function(err, buffer) {
         if (err) {
@@ -110,8 +110,14 @@ exports.attach = function (options) {
         return charsetConverter.convert(buffer).toString();
       }
       catch (e) {
-        app.err("bufferToString", "charset conversion failed", charset);
-        return buffer.toString();
+        try {
+          return buffer.toString();
+        }
+        catch (e) {
+          app.err("bufferToString", "charset conversion failed", charset);
+          // all conversions have failed, so do not return anything.
+          return '';
+        }
       }
     }
   }
