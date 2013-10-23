@@ -1,9 +1,5 @@
 {
   "server": {
-    "db_host": "127.0.0.1",
-    "db_port": 27017,
-    "db_name": "pagetty",
-    "db_url": "mongodb://localhost/pagetty",
     "http_port": 8080,
     "https_port": 8443,
     "mail": {

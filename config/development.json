@@ -3,6 +3,10 @@
     "env": "development",
     "domain": "dev.pagetty.com",
     "host": "dev.pagetty.com",
+    "db_host": "127.0.0.1",
+    "db_port": 27017,
+    "db_name": "pagetty",
+    "db_url": "mongodb://localhost/pagetty",
     "crawler": {
       "batchSize": 10,
       "channelLifetime": 1
