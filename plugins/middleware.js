@@ -199,6 +199,7 @@ exports.init = function(done) {
     .appId(app.conf.google.clientId)
     .appSecret(app.conf.google.clientSecret)
     .scope(['https://www.googleapis.com/auth/userinfo.email http://www.google.com/reader/api'])
+    .authQueryParam({approval_prompt:'auto'})
     .handleAuthCallbackError(function(req, res) {
       res.redirect('/');
     })
