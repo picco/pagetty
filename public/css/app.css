@@ -205,7 +205,6 @@ nav span {
 /* ARTICLE ------------------------------------------------------------------ */
 
 article {
-  background: #fff;
   box-shadow: 0 0 10px #ddd;
   margin: 0;
   clear: both;
@@ -219,6 +218,7 @@ article .inner {
   display: none;
   overflow: hidden;
   padding: 20px;
+  background: #fff;
 }
 article h2 a {
   color: #333;
@@ -266,9 +266,10 @@ article .thumb img {
 article .image {
   margin-bottom: 20px;
 }
-article .description {
-  font-size: 13px;
-  line-height: 20px;
+article .description,
+article .description * {
+  font-size: 14px;
+  line-height: 23px;
 }
 article .description *:empty:not(img, hr, br) {
   display: none;
@@ -328,10 +329,10 @@ article .description h4 {
 }
 article .description h5,
 article .description h6 {
-  font-size: 13px;
+  font-size: 14px;
 }
 article .description p {
-  margin-bottom: 13px;
+  margin-bottom: 14px;
 }
 article .disabled {
   pointer-events: none;
