@@ -79,13 +79,13 @@ exports.attach = function (options) {
   app.server.set('view engine', 'hbs');
   app.server.set('view cache', false);
   app.server.use(app.middleware.logger);
-  app.server.use(app.middleware.forceHTTPS);
+  //app.server.use(app.middleware.forceHTTPS);
   app.server.use(app.middleware.imagecache);
   app.server.use(gzippo.staticGzip('./public', {contentTypeMatch: /text|javascript|json/}));
   app.server.use(express.bodyParser());
   app.server.use(helmet.xframe());
   app.server.use(express.cookieParser());
-  app.server.use(express.session({secret: 'nõude', store: new mongoStore({db: app.conf.db_name})}));
+  app.server.use(express.session({secret: 'nõude', store: new mongoStore({host: app.conf.db_host, port: app.conf.db_port, db: app.conf.db_name})}));
   app.server.use(app.middleware.session);
   app.server.use(gzippo.compress());
   app.server.use(app.middleware.locals);
@@ -817,6 +817,6 @@ exports.init = function(done) {
   var app = this;
   app.log("Starting server on ports:", app.conf.http_port, app.conf.https_port);
   app.http.createServer(app.server).listen(app.conf.http_port);
-  app.https.createServer(app.ssl_options, app.server).listen(app.conf.https_port);
+  //app.https.createServer(app.ssl_options, app.server).listen(app.conf.https_port);
   done();
 }
