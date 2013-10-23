@@ -3,6 +3,7 @@ exports.attach = function(options) {
   var $ = require("cheerio");
   var _ = require("underscore");
   var async = require("async");
+  var es = require("es")({_index: 'main', _type : 'item'});  
   var mongoose = require("mongoose");
 
   var itemSchema = mongoose.Schema({
@@ -19,6 +20,13 @@ exports.attach = function(options) {
     date: {type: Date, index: true},
   });
 
+  /**
+   * Index the item to ElasticSearch after saving.
+   */
+  itemSchema.post('save', function(item) {
+    es.index({_id: item._id}, item, function(err, data) {});    
+  });  
+  
   /**
    * Get list items.
    */
@@ -53,6 +61,7 @@ exports.attach = function(options) {
         });
       }
       else if (list.type == "search") {
+        /*
         app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
           sort = {created: "desc", date: "desc", relative_score: "desc"};
           query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
@@ -60,6 +69,8 @@ exports.attach = function(options) {
           old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
           next();
         });
+        */
+        next();
       }
       else {
         sort = {score: "desc", created: "desc", date: "desc"};
@@ -92,7 +103,33 @@ exports.attach = function(options) {
       next();
 
     }, function(next) {
-      if (variant == "time") {
+      if (list.type == "search") {
+        var es_query = {
+          query: {field: {description: variant}},
+          from: page * app.conf.load_items,
+          size: app.conf.load_items,
+          sort: [
+            {created: {order: "desc"}},
+            {date: {order: "desc"}},
+            {relative_score: {order: "desc"}}
+          ],
+        };
+        
+        es.search(es_query, function(err, data) {
+          if (err) {
+          }
+          else {
+            for (var i in data.hits.hits) {
+              // Restore the BSON data types that are lost when storing the objects to ES.
+              data.hits.hits[i]._source.created = new Date(data.hits.hits[i]._source.created);
+              data.hits.hits[i]._source.date = new Date(data.hits.hits[i]._source.date);
+              items.push(data.hits.hits[i]._source);
+            }
+          }
+          next();
+        });
+      }      
+      else if (variant == "time") {
         async.series([function(next2) {
           self.count(fresh_query, function(err, count) {
             fresh_count = count;
