@@ -12,11 +12,13 @@
           {{#if score}}<a class="action action-primary" target="_blank" href="{{comments}}"><i class="fa-icon-comments"></i> {{score}}</a>{{/if}}
         </div>
       </div>
+      {{#if description}}
       <div class="inner">
         <div class="description">
           {{{description}}}
         </div>
       </div>
+      {{/if}}
     </article>
   {{/items}}
 {{else}}
