@@ -24,10 +24,10 @@ exports.attach = function(options) {
    * Index the item to ElasticSearch after saving.
    */
   itemSchema.post('save', function(item) {
-    es.index({_id: item._id}, item, function(err, data) {});    
+    es.index({_id: item._id}, {title: item.title, description: item.description}, function(err, data) {});    
   });  
   
-  /**
+  /**s
    * Get list items.
    */
   itemSchema.statics.getListItems = function(list, user, variant, page, callback) {
@@ -60,17 +60,23 @@ exports.attach = function(options) {
           next();
         });
       }
-      else if (list.type == "search") {
-        /*
-        app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
-          sort = {created: "desc", date: "desc", relative_score: "desc"};
-          query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
-          fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}], title: {$regex: (".*" + variant + ".*"), $options: "i"}};
-          old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}, title: {$regex: (".*" + variant + ".*"), $options: "i"}};
-          next();
+      else if (list.type == "search") {       
+        es.search({query: {field: {description: variant}}, from: page * app.conf.load_items, size: app.conf.load_items}, function(err, data) {
+          if (err) {
+            next();
+          }
+          else {
+            var ids = _.pluck(data.hits.hits, "_id");
+           
+            app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {           
+              sort = {created: "desc", date: "desc", relative_score: "desc"};
+              query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, _id: {$in: ids}};
+              fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}], _id: {$in: ids}};
+              old_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.low}, _id: {$in: ids}};
+              next();
+            });
+          }
         });
-        */
-        next();
       }
       else {
         sort = {score: "desc", created: "desc", date: "desc"};
@@ -103,33 +109,7 @@ exports.attach = function(options) {
       next();
 
     }, function(next) {
-      if (list.type == "search") {
-        var es_query = {
-          query: {field: {description: variant}},
-          from: page * app.conf.load_items,
-          size: app.conf.load_items,
-          sort: [
-            {created: {order: "desc"}},
-            {date: {order: "desc"}},
-            {relative_score: {order: "desc"}}
-          ],
-        };
-        
-        es.search(es_query, function(err, data) {
-          if (err) {
-          }
-          else {
-            for (var i in data.hits.hits) {
-              // Restore the BSON data types that are lost when storing the objects to ES.
-              data.hits.hits[i]._source.created = new Date(data.hits.hits[i]._source.created);
-              data.hits.hits[i]._source.date = new Date(data.hits.hits[i]._source.date);
-              items.push(data.hits.hits[i]._source);
-            }
-          }
-          next();
-        });
-      }      
-      else if (variant == "time") {
+      if (variant == "time") {
         async.series([function(next2) {
           self.count(fresh_query, function(err, count) {
             fresh_count = count;
