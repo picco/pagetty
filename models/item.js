@@ -61,7 +61,7 @@ exports.attach = function(options) {
         });
       }
       else if (list.type == "search") {       
-        es.search({query: {query_string: {query: variant}}, from: page * app.conf.load_items, size: app.conf.load_items}, function(err, data) {
+        es.search({query: {query_string: {query: variant}}, from: 0, size: 100}, function(err, data) {
           if (err) {
             next();
           }
