@@ -17,8 +17,10 @@ define([],function() {
       self.setHeight();
       self.timeAgo();
 
-      $(".sidebar .inner").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
-
+      self.sidebarScroll = $(".sidebar .inner").niceScroll({scrollspeed: 60, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
+      self.listScroll = $("section.list").niceScroll({scrollspeed: 60, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
+      self.listScroll.scrollend(self.loadMoreListItems);      
+      
       $("nav ul a").on("click", function(e) {
         e.preventDefault();
         History.pushState({page: "list", list: $(this).data("list"), variant: "time"}, self.title, self.listUrl($(this).data("list"), "time"));
@@ -50,8 +52,6 @@ define([],function() {
         e.preventDefault();
         self.nextItem();
       });
-
-      //$('.tt').tooltip();
 
       $(document).on("click", "a.variant", function(e) {
         e.preventDefault();
@@ -92,12 +92,20 @@ define([],function() {
         }
       });
 
-      $(document).on("click", "article .title", function(e) {
+      $(document).on("click", ".list article .title", function(e) {
         if (e.target.nodeName.toLowerCase() != "a") {
           e.preventDefault();
-          self.toggleItem($(this).parents("article"), true);
+          //self.toggleItem($(this).parents("article"), true);
+          $('html,body').animate({scrollTop: $(".preview ." + $(this).parent().data('id')).offset().top - 20}, 200);
         }
       });
+      
+      $(document).on("click", ".preview article .title", function(e) {
+        if (e.target.nodeName.toLowerCase() != "a") {
+          e.preventDefault();
+          $('.list').scrollTo('.' + $(this).parent().data('id'), 200);
+        }
+      });      
 
       $(window).on("keypress", function(e) {
         if (e.target.nodeName.toLowerCase() != "input") {
@@ -115,7 +123,7 @@ define([],function() {
           self.loadItems();
         }
       });
-
+                         
       $(window).resize(function() {
         self.setHeight();
       });
@@ -161,6 +169,8 @@ define([],function() {
           $("html").removeClass("expanded");
 
           window.scrollTo(0, 0);
+          self.listScroll = $("section.list").niceScroll({scrollspeed: 1, mousescrollstep: 40, cursorcolor: "#fff", cursorborder: "none", cursoropacitymax: 0});
+          self.listScroll.scrollend(self.loadMoreListItems);      
 
           self.timeAgo();
           self.updateTitle();
@@ -194,6 +204,12 @@ define([],function() {
             self.list_exhausted = true;
           });
       }
+    },
+    loadMoreListItems: function() {
+      console.dir('here');
+      if ($('.list').scrollTop() + $('.list').height() >= $('.list .items').height() - 400) {
+        Pagetty.loadItems();
+      }      
     },
     loadImages: function() {
       var articles = $("article.load").toArray();
@@ -312,32 +328,24 @@ define([],function() {
       $("section.list").css("min-height", $(window).height());
     },
     nextItem: function() {
-      var adjust = 0;
-      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0;
-
-      $("article").each(function() {
-          itemPos = $(this).offset().top;
-          if (itemPos > scrollPos) {
-            self.toggleItem($(this), false, true);
-            return false;
-          }
+      $('.preview article').each(function(index, article) {
+        var pos = parseInt($(article).offset().top - $(document).scrollTop());
+        
+        if (pos > 20){
+          $(window).scrollTop($(article).offset().top - 20);
+          return false;
+        }
       });
     },
     prevItem: function() {
-      var adjust = 0;
-      var self = this, scrollPos = $(document).scrollTop() + adjust, nextPos = 0, itemPos = 0, changePos = 0;
-      var items = $("article").get();
-
-      for (var i in items) {
-        itemPos = $(items[i]).offset().top;
-          if (itemPos < scrollPos) {
-            changePos = itemPos - adjust;
-          }
-          else {
-            break;
-          }
-      }
-      $(window).scrollTop(changePos <= 126 ? 0 : changePos);
+      $($('.preview article').get().reverse()).each(function(index, article) {
+        var pos = parseInt($(article).offset().top - $(document).scrollTop());
+        
+        if (pos < 20){
+          $(window).scrollTop($(article).offset().top - 20);
+          return false;
+        }
+      });
     },
     hideUpdateNotification: function() {
       $(".notification").hide();

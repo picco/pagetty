@@ -8,9 +8,7 @@
   background: #fafafa;
 }
 .app .wrapper {
-  min-width: 600px;
-  max-width: 1000px;
-  margin: 0 auto;
+  x-min-width: 1280px;
 }
 .app img.u {
   display: none;
@@ -156,12 +154,17 @@ nav span {
 /* LIST --------------------------------------------------------------------- */
 
 .list {
-  position: relative;
+  position: fixed;
+  float: left;
+  width: 500px;
+  height: 100%;
+  x-box-shadow: 0 0 5px #ddd;
+  padding: 0 6px;
 }
 .list header {
   position: relative;
   background: #fff;
-  box-shadow: 0 0 10px #ddd;
+  box-shadow: 0 0 5px #ddd;
   border-bottom: 1px solid #eee;
 }
 .list header .inner {
@@ -205,7 +208,7 @@ nav span {
 /* ARTICLE ------------------------------------------------------------------ */
 
 article {
-  box-shadow: 0 0 10px #ddd;
+  box-shadow: 0 0 5px #ddd;
   margin: 0;
   clear: both;
 }
@@ -215,10 +218,12 @@ article h2 {
   line-height: 27px;
 }
 article .inner {
-  display: none;
   overflow: hidden;
   padding: 20px;
   background: #fff;
+}
+.list article .inner {
+  display: none;  
 }
 article h2 a {
   color: #333;
@@ -242,7 +247,7 @@ article .title {
   padding: 20px 20px 10px 20px;
   background: #fff;
   border-bottom: 1px solid #eee;
-  cursor: pointer;
+  cursor: pointer;    
 }
 article .meta {
   height: 28px;
@@ -367,13 +372,13 @@ article .list-name {
   text-transform: uppercase;
   margin-right: 3px;
 }
-article.open {
+.list article.open {
   margin: 20px 0;
 }
 article.open .thumb {
   display: none;
 }
-article.open .inner {
+.list article.open .inner {
   display: block;
 }
 article:not(.open) .collapse {
@@ -453,4 +458,33 @@ article.open .actions,
 
 article h2 {
   overflow: hidden;
+}
+
+.preview {
+  margin: 0 0 0 526px;
+}
+.preview article {
+  margin-bottom: 20px;
+  width: 100%;
+}
+.preview article .thumb {
+  display: none;
+}
+.preview article .description {
+  max-width: 700px;
+}
+a.expanded {
+  display: none;
+}
+
+@media (max-width: 1400px) {
+  .list {
+    width: 300px;
+  }
+  .preview {
+    margin-left: 326px;
+  }
+  article .thumb {
+    display: none;
+  }
 }
