@@ -1,3 +1,4 @@
+require('newrelic');
 var broadway = require('broadway');
 var app = new broadway.App();
 
