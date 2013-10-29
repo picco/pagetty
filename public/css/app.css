@@ -99,6 +99,7 @@ nav a {
   overflow: hidden;
   background-repeat: no-repeat;
   background-position: 15px center;
+  background-size: 16px;
   padding: 6px 40px 6px 39px;
   color: #333;
 }
