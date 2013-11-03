@@ -109,14 +109,30 @@ exports.attach = function(options) {
   /**
    * Sort lists for display in navidation.
    */
-  listSchema.statics.sortNavigation = function(lists) {
+  listSchema.statics.sortNavigation = function(lists_in, fresh_counts) {
     var all = [];
     var directories = [];
     var channels = [];
-
-    function sort(a, b) {
-      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    var lists = []; 
+    
+    for (var i in lists_in) {
+      var list = lists_in[i];
+      list.fresh_count = fresh_counts[list._id];
+      lists.push(list);
     }
+    
+    function sort_channels(a, b) {
+      if (a.fresh_count != b.fresh_count) {
+        return b.fresh_count - a.fresh_count;
+      }
+      else {
+        return a.name.toLowerCase().localeCompare(b.name.toLowerCase());        
+      }
+    }
+    
+    function sort_directories(a, b) {
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    }    
 
     for (var i in lists) {
       if (lists[i].type == "all") {
@@ -130,8 +146,8 @@ exports.attach = function(options) {
       }
     }
 
-    directories.sort(sort);
-    channels.sort(sort);
+    directories.sort(sort_directories);
+    channels.sort(sort_channels);
 
     return all.concat(directories).concat(channels);
   }
