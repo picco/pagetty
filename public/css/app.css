@@ -13,8 +13,12 @@
 .app img.u {
   display: none;
 }
-#ascrail2000 {
-  display: none;
+
+.app,
+.app body,
+.app .wrapper,
+.app .content {
+  height: 100%;
 }
 
 /* APP WIDE ------------------------------------------------------------------ */
@@ -34,11 +38,11 @@
   display: block;
   float: left;
   width: 280px;
+  height: 100%;
 }
 .sidebar .inner {
   position: fixed;
-  width: 280px;
-  height: 100%;
+  width: 280px;  
 }
 .sidebar .header {
   margin: 15px;
@@ -159,16 +163,17 @@ nav span {
   float: left;
   width: 500px;
   height: 100%;
-  x-box-shadow: 0 0 5px #ddd;
   padding: 0 6px;
+}
+.list .slidee {
+  box-shadow: 0 0 5px #ddd;
+  background: white;
+  min-height: 100%;
 }
 .list header {
   position: relative;
   background: #fff;
-  box-shadow: 0 0 5px #ddd;
   border-bottom: 1px solid #eee;
-}
-.list header .inner {
 }
 .list h1 {
   font-weight: bold;
@@ -209,9 +214,9 @@ nav span {
 /* ARTICLE ------------------------------------------------------------------ */
 
 article {
-  box-shadow: 0 0 5px #ddd;
   margin: 0;
   clear: both;
+  background: white;  
 }
 article h2 {
   display: inline;
@@ -222,6 +227,9 @@ article .inner {
   overflow: hidden;
   padding: 20px;
   background: #fff;
+}
+article .title:hover {
+  background: #fafafa;
 }
 .list article .inner {
   display: none;  
@@ -462,14 +470,18 @@ article h2 {
 }
 
 .preview {
+  height: 100%;
   margin: 0 0 0 526px;
+  padding: 0 6px;
 }
 .preview article {
-  margin-bottom: 20px;
+  padding: 20px 0;  
   width: 100%;
+  background: inherit;
 }
-.preview article .thumb {
-  display: none;
+.preview article .wrap {
+  box-shadow: 0 0 5px #ddd;
+  background: white;
 }
 .preview article .description {
   max-width: 700px;
