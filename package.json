@@ -12,7 +12,7 @@
     "es": "*",
     "everyauth": "*",
     "express": "*",
-    "feedparser": "*",
+    "feedparser": "0.15.*",
     "forever": "*",
     "gzippo": "*",
     "hbs": "*",
