@@ -52,7 +52,7 @@ exports.attach = function(options) {
 
     app.log("crawlBatch", "starting new batch (check: " + check + ")");
 
-    app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batch_size).execFind(function(err, channels) {
+    app.channel.find({subscriptions: {$gt: 0}, $or: [{items_updated: {$exists: false}}, {items_updated: null}, {items_updated: {$lt: check}}]}).sort({items_updated: 1}).limit(batch_size).exec(function(err, channels) {
       async.mapSeries(channels, function(channel, next) {
         channel.crawl(function() {
           updated_channels++;
@@ -229,7 +229,7 @@ exports.attach = function(options) {
     async.waterfall([
       // Find max score
       function(next) {
-        app.item.find({channel_id: self._id}).sort({score: -1}).limit(1).execFind(function(err, items) {
+        app.item.find({channel_id: self._id}).sort({score: -1}).limit(1).exec(function(err, items) {
           max = items[0] ? parseFloat(items[0].score) : 0;
           next();
         });

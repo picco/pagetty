@@ -135,7 +135,7 @@ exports.attach = function (options) {
           });
         },
         function(next) {
-          app.list.find({user_id: req.session.user._id, directory_id: {$exists: false}}).sort({name: "asc"}).execFind(function(err, lists) {
+          app.list.find({user_id: req.session.user._id, directory_id: {$exists: false}}).sort({name: "asc"}).exec(function(err, lists) {
             if (err) console.log(err);
 
             async.forEach(lists, function(item, iterate) {

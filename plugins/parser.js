@@ -239,7 +239,13 @@ exports.attach = function (options) {
       return null;
     }
     else if (attribute) {
-      var result = $(data).find(selector);
+      try {
+        var result = $(data).find(selector);
+      }
+      catch (e) {
+        return null;
+      }
+      
       var attributes = attribute.split(",");
 
       for (var i in attributes) {
