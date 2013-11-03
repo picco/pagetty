@@ -19,7 +19,7 @@ exports.attach = function (options) {
   app.http = require('http');
   app.https = require('https');
 
-  // Load server plugins.
+  // Load sdferver plugins.
   app.use(require('./middleware.js'));
 
   // Create an Express server.
@@ -33,6 +33,7 @@ exports.attach = function (options) {
 
   // Define partials used by Handlebars.
   hbs.registerPartial('list', fs.readFileSync(app.dir + '/views/list.hbs', 'utf8'));
+  hbs.registerPartial('list_items', fs.readFileSync(app.dir + '/views/list_items.hbs', 'utf8'));  
   hbs.registerPartial('items', fs.readFileSync(app.dir + '/views/items.hbs', 'utf8'));
   hbs.registerPartial('html_rule', fs.readFileSync(app.dir + '/views/html_rule.hbs', 'utf8'));
   hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
@@ -77,7 +78,7 @@ exports.attach = function (options) {
 
   // Set up server middleware and configuration.
   app.server.set('view engine', 'hbs');
-  app.server.set('view cache', false);
+  app.server.set('view cache', true);
   app.server.use(app.middleware.logger);
   //app.server.use(app.middleware.forceHTTPS);
   app.server.use(app.middleware.imagecache);
@@ -141,7 +142,7 @@ exports.attach = function (options) {
             async.forEach(lists, function(item, iterate) {
               if (item.type == "directory") {
                 app.list.find({user_id: req.session.user._id, directory_id: item._id}, function(err, docs) {
-                  item.sublists = app.list.sortNavigation(docs);
+                  item.sublists = app.list.sortNavigation(docs, fresh_counts);
                   user_lists[item._id] = item;
                   iterate();
                 });
@@ -155,12 +156,6 @@ exports.attach = function (options) {
             });
           });
 
-        },
-        function(next) {
-          app.item.getListItems(list, req.session.user, variant, 0, function(err, items) {
-            render.items = items;
-            next();
-          });
         },
         function(next) {
           req.session.user.getDirectories(function(err, dirs) {
@@ -188,7 +183,7 @@ exports.attach = function (options) {
       ], function(err, callback) {
         render.app = "app";
         render.list = list;
-        render.lists = app.list.sortNavigation(_.toArray(user_lists));
+        render.lists = app.list.sortNavigation(_.toArray(user_lists), fresh_counts);
         render.lists_json = JSON.stringify(user_lists);
         render.user = req.session.user;
         render.variant = variant;
@@ -221,7 +216,7 @@ exports.attach = function (options) {
       });
     });
   });
-
+ 
   /**
    * API: Load items from client-side.
    */
@@ -232,28 +227,7 @@ exports.attach = function (options) {
       }
       else {
         app.item.getListItems(list, req.session.user, req.params.variant, req.params.page, function(err, items) {
-          items.length ? res.render("items", {items: items, list: list, variant: req.params.variant, layout: false}) : res.send(404);
-        });
-      }
-    });
-  });
-
-  /**
-   * API: Load items from client-side.
-   */
-  app.server.get("/api/list/:list/:variant", app.middleware.restricted, function(req, res) {
-    app.list.getById(req.params.list, req.params.variant, function(err, list) {
-      if (err || !list) {
-        res.send(500);
-      }
-      else {
-        app.channel.findById(list.channel_id, function(err, channel) {
-          list.channel_url = channel ? channel.url : null;
-          req.session.user.getDirectories(function(err, directories) {
-            app.item.getListItems(list, req.session.user, req.params.variant, 0, function(err, items) {
-              res.render("list", {items: items, list: list, variant: req.params.variant, directories: directories, layout: false});
-            });
-          });
+          items.length ? res.json("items", {items: items}) : res.send(404);
         });
       }
     });
