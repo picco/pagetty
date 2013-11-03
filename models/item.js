@@ -86,29 +86,6 @@ exports.attach = function(options) {
         next();
       }
     }, function(next) {
-      if (list.type != "search") {
-        var now = new Date();
-        var range = new Date();
-
-        switch (variant) {
-          case "day":
-            query.date = fresh_query.date = old_query.date = {$gte: range.setDate(now.getDate() - 1)};
-            break;
-          case "week":
-            query.date = fresh_query.date = old_query.date = {$gte: range.setDate(now.getDate() - 7)};
-            break;
-          case "month":
-            query.date = fresh_query.date = old_query.date = {$gte: range.setDate(now.getDate() - 30)};
-            break;
-          case "year":
-            query.date = fresh_query.date = old_query.date = {$gte: range.setDate(now.getDate() - 365)};
-            break;
-        }
-      }
-
-      next();
-
-    }, function(next) {
       if (variant == "time") {
         async.series([function(next2) {
           self.count(fresh_query, function(err, count) {
@@ -153,8 +130,8 @@ exports.attach = function(options) {
         });
       }
     }], function(err) {
-      self.prepare(items, user, function(items) {
-        callback(null, items);
+      self.prepare(items, user, function(items_prepared) {
+        callback(null, items_prepared);
       });
     });
   }
@@ -167,6 +144,7 @@ exports.attach = function(options) {
     var names = {};
     var links = {};
     var ids = {};
+    var prepared = [];
 
     async.series([
       function(next) {
@@ -182,21 +160,24 @@ exports.attach = function(options) {
           });
         });
       }, function(next) {
-        async.forEach(items, function(item, cb) {
-          item.description = self.sanitizeDescription(item);
-          item.list_name = names[item.channel_id];
-          item.list_link = links[item.channel_id];
-          item.list_id = ids[item.channel_id];
-          item.stamp = item.date.toISOString();
-          item.stamp_unix = item.date.getTime();
-          item.new = item.created > user.low ? "new" : "";
+        async.each(items, function(item, cb) {
+          var p_item = item.toJSON();
+         
+          p_item.description = self.sanitizeDescription(item);
+          p_item.list_name = names[item.channel_id];
+          p_item.list_link = links[item.channel_id];
+          p_item.list_id = ids[item.channel_id];
+          p_item.stamp = item.date.toISOString();
+          p_item.stamp_unix = item.date.getTime();
+          p_item.new = item.created > user.low ? "new" : "";
+          prepared.push(p_item);
           cb();
         }, function(err) {
           next();
         });
       }
     ], function(err) {
-      callback(items);
+      callback(prepared);
     });
   }
 
@@ -275,7 +256,7 @@ exports.attach = function(options) {
     // Add image to the description when appropriate.
 
     if (item.image && !$('<div>' + description + '</div>').find("img").length) {
-      description = '<img src="' + item.image + '" alt="" />' + description;
+      description = '<img class="lazy" data-original="' + item.image + '" src="/images/empty.gif" alt="" />' + description;
     }
     else {
       var links = $(description).find("a").toArray();
@@ -283,7 +264,7 @@ exports.attach = function(options) {
       for (var i = 0; i < links.length; i++) {
         if ($(links[i]).html() == "[link]") {
           var href = app.parser.checkImageURL($(links[i]).attr("href"));
-          if (href) description = '<img src="' +  href + '" alt="" />' + description;
+          if (href) description = '<img class="lazy" data-original="' +  href + '" src="/images/empty.gif" alt="" />' + description;
           break;
         }
       }
@@ -314,6 +295,9 @@ exports.attach = function(options) {
         }
 
         if (name == "a") $(this).attr("target", "_blank");
+        if (name == "img") {
+          $(this).data("original", $(this).attr("src")).attr("src", "/images/empty.gif").addClass("lazy");
+        }
       }
       else {
         $(this).remove();
