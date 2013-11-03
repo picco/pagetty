@@ -1,4 +1,4 @@
-require('newrelic');
+//require('newrelic');
 var cluster = require('cluster');
 
 /*
