@@ -30,7 +30,7 @@ define([],function() {
       this.renderPreviewItems = Handlebars.compile(preview_items_template);
 
       $('nav > ul > li').not('.list-all').not('.directory').sortElements(function(a, b) {
-        var cmp = parseInt($(a).find('span').text()) - parseInt($(b).find('span').text());
+        var cmp = parseInt($(b).find('span').text()) - parseInt($(a).find('span').text());
 
         if (cmp) {
           return cmp;
