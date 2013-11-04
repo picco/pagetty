@@ -33,7 +33,7 @@ exports.attach = function (options) {
 
   // Define partials used by Handlebars.
   hbs.registerPartial('list', fs.readFileSync(app.dir + '/views/list.hbs', 'utf8'));
-  hbs.registerPartial('list_items', fs.readFileSync(app.dir + '/views/list_items.hbs', 'utf8'));  
+  hbs.registerPartial('list_items', fs.readFileSync(app.dir + '/views/list_items.hbs', 'utf8'));
   hbs.registerPartial('items', fs.readFileSync(app.dir + '/views/items.hbs', 'utf8'));
   hbs.registerPartial('html_rule', fs.readFileSync(app.dir + '/views/html_rule.hbs', 'utf8'));
   hbs.registerPartial('rss_rule', fs.readFileSync(app.dir + '/views/rss_rule.hbs', 'utf8'));
@@ -99,6 +99,7 @@ exports.attach = function (options) {
     var self = this;
     var list = null;
     var user_lists = {all: app.list.all()};
+    var user_sublists = {};
     var fresh_counts = {};
     var render = {};
 
@@ -143,6 +144,11 @@ exports.attach = function (options) {
                 app.list.find({user_id: req.session.user._id, directory_id: item._id}, function(err, docs) {
                   item.sublists = app.list.sortNavigation(docs, fresh_counts);
                   user_lists[item._id] = item;
+
+                  for (var i in item.sublists) {
+                    user_sublists[item.sublists[i]._id] = item.sublists[i];
+                  }
+
                   iterate();
                 });
               }
@@ -180,10 +186,19 @@ exports.attach = function (options) {
           }
         }
       ], function(err, callback) {
+        var all_lists = _.clone(user_lists);
+
+        for (var _id in user_sublists) {
+          all_lists[_id] = user_sublists[_id];
+        }
+
+        console.dir(all_lists);
+
+
         render.app = "app";
         render.list = list;
         render.lists = app.list.sortNavigation(_.toArray(user_lists), fresh_counts);
-        render.lists_json = JSON.stringify(user_lists);
+        render.lists_json = JSON.stringify(all_lists);
         render.user = req.session.user;
         render.variant = variant;
         render.fresh_counts = fresh_counts;
@@ -215,7 +230,7 @@ exports.attach = function (options) {
       });
     });
   });
- 
+
   /**
    * API: Load items from client-side.
    */

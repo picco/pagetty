@@ -1,11 +1,11 @@
 {{#if items}}
-  {{#items}}  
+  {{#items}}
     <article class="{{new}} {{_id}}" data-id="{{_id}}" data-stamp="{{stamp_unix}}">
       <div class="title clearfix">
         <div class="new"></div>
         <h2><a href="{{target}}" target="_blank">{{title}}</a></h2>
         <div class="meta">
-          <a class="list-name" target="_blank" href="{{../list.link}}">{{../list.name}}</a> - <span class="timeago" data-stamp="{{stamp}}"></span>
+          <a class="list-name" target="_blank" href="{{list_link}}">{{list_name}}</a> - <span class="timeago" data-stamp="{{stamp}}"></span>
         </div>
         <div class="actions">
           {{#if score}}<a class="action action-primary" target="_blank" href="{{comments}}"><i class="fa-icon-comments"></i> {{score}}</a>{{/if}}

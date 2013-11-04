@@ -3,7 +3,7 @@ exports.attach = function(options) {
   var $ = require("cheerio");
   var _ = require("underscore");
   var async = require("async");
-  var es = require("es")({_index: 'main', _type : 'item'});  
+  var es = require("es")({_index: 'main', _type : 'item'});
   var mongoose = require("mongoose");
 
   var itemSchema = mongoose.Schema({
@@ -24,9 +24,9 @@ exports.attach = function(options) {
    * Index the item to ElasticSearch after saving.
    */
   itemSchema.post('save', function(item) {
-    es.index({_id: item._id}, {title: item.title, description: item.description}, function(err, data) {});    
-  });  
-  
+    es.index({_id: item._id}, {title: item.title, description: item.description}, function(err, data) {});
+  });
+
   /**s
    * Get list items.
    */
@@ -60,15 +60,15 @@ exports.attach = function(options) {
           next();
         });
       }
-      else if (list.type == "search") {       
+      else if (list.type == "search") {
         es.search({query: {query_string: {query: variant}}, from: 0, size: 100}, function(err, data) {
           if (err) {
             next();
           }
           else {
             var ids = _.pluck(data.hits.hits, "_id");
-           
-            app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {           
+
+            app.list.find({user_id: user._id, type: "channel"}, function(err, lists) {
               sort = {created: "desc", date: "desc", relative_score: "desc"};
               query = {channel_id: {$in: _.pluck(lists, "channel_id")}, created: {$lte: user.high}, _id: {$in: ids}};
               fresh_query = {channel_id: {$in: _.pluck(lists, "channel_id")}, $and: [{created: {$lte: user.high}}, {created: {$gt: user.low}}], _id: {$in: ids}};
@@ -162,7 +162,7 @@ exports.attach = function(options) {
       }, function(next) {
         async.each(items, function(item, cb) {
           var p_item = item.toJSON();
-         
+
           p_item.description = self.sanitizeDescription(item);
           p_item.list_name = names[item.channel_id];
           p_item.list_link = links[item.channel_id];
@@ -282,6 +282,7 @@ exports.attach = function(options) {
     $(els).find('a[href*="feeds.feedburner.com"], img[src*="feeds.feedburner.com"]').remove();
 
     $(els).find("*").each(function() {
+
       var name = this[0].name.toLowerCase();
       var allowed_attrs = whitelist[name];
 
@@ -290,7 +291,7 @@ exports.attach = function(options) {
 
         for (var i = 0; i < _.size(attribs); i++) {
           if (_.indexOf(allowed_attrs, attribs[i]) == -1) {
-            $(this).removeAttr(attribs[i])
+            $(this).removeAttr(attribs[i]);
           }
         }
 
@@ -302,6 +303,7 @@ exports.attach = function(options) {
       else {
         $(this).remove();
       }
+
     });
 
     return $(els).html();

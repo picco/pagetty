@@ -7,7 +7,7 @@
         {{else}}
           <h1>{{list.name}}</h1>
         {{/if}}
-  
+
         {{#neq list.type "search"}}
           <div class="variants clearfix">
             {{#eq list.type "channel"}}
@@ -53,7 +53,7 @@
         {{/neq}}
       </div>
     </header>
-  <div class="items"></div>
+  <div class="items"><div class="loading">Loading...</div></div>
 </section>
 <section class="preview">
   <div class="slidee"></div>

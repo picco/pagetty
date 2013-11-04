@@ -42,7 +42,7 @@
 }
 .sidebar .inner {
   position: fixed;
-  width: 280px;  
+  width: 280px;
 }
 .sidebar .header {
   margin: 15px;
@@ -216,7 +216,7 @@ nav span {
 article {
   margin: 0;
   clear: both;
-  background: white;  
+  background: white;
 }
 article h2 {
   display: inline;
@@ -232,7 +232,7 @@ article .title:hover {
   background: #fafafa;
 }
 .list article .inner {
-  display: none;  
+  display: none;
 }
 article h2 a {
   color: #333;
@@ -256,7 +256,7 @@ article .title {
   padding: 20px 20px 10px 20px;
   background: #fff;
   border-bottom: 1px solid #eee;
-  cursor: pointer;    
+  cursor: pointer;
 }
 article .meta {
   height: 28px;
@@ -475,7 +475,7 @@ article h2 {
   padding: 0 6px;
 }
 .preview article {
-  padding: 20px 0;  
+  padding: 20px 0;
   width: 100%;
   background: inherit;
 }
@@ -500,4 +500,8 @@ a.expanded {
   article .thumb {
     display: none;
   }
+}
+
+.loading {
+  margin: 20px;
 }
