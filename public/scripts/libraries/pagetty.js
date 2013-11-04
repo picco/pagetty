@@ -29,6 +29,17 @@ define([],function() {
       this.renderListItems = Handlebars.compile(list_items_template);
       this.renderPreviewItems = Handlebars.compile(preview_items_template);
 
+      $('nav > ul > li').not('.list-all').not('.directory').sortElements(function(a, b) {
+        var cmp = parseInt($(a).find('span').text()) - parseInt($(b).find('span').text());
+
+        if (cmp) {
+          return cmp;
+        }
+        else {
+          return $(a).text().localeCompare($(b).text());
+        }
+      });
+
       // Cancel all in-progress requests before making a new one.
       // http://stackoverflow.com/questions/1802936/stop-all-active-ajax-requests-in-jquery
 
@@ -343,7 +354,9 @@ define([],function() {
     },
     updateFreshCounts: function(counts) {
       var self = this;
-      _.each(this.lists, function(list) { $("nav li.list-" + list._id + " span").text(self.formatFreshCount(counts[list._id])); });
+      _.each(this.lists, function(list) {
+        $("nav li.list-" + list._id + " span").text(self.formatFreshCount(counts[list._id]));
+      });
       $("nav li.list-all span").text(self.formatFreshCount(counts["total"]));
     },
     formatFreshCount: function(number) {

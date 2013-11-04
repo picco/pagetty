@@ -49,15 +49,14 @@
       "/scripts/libraries/pagetty.js?b=" + build,
       "text!/scripts/templates/list.html",
       "text!/scripts/templates/items_list.html",
-      "text!/scripts/templates/items_preview.html",            
+      "text!/scripts/templates/items_preview.html",
       "/bootstrap/bootstrap/js/bootstrap.min.js?b=" + build,
       "/scripts/libraries/underscore.min.js?b=" + build,
-      "/scripts/libraries/jquery.nicescroll.min.js?b=" + build,
-      "/scripts/libraries/jquery.scrollTo.min.js?b=" + build,
+      "/scripts/libraries/jquery.sortElements.js?b=" + build,
       "/scripts/libraries/jquery.history.min.js?b=" + build,
-      "/scripts/libraries/handlebars.js?b=" + build,      
+      "/scripts/libraries/handlebars.js?b=" + build,
       "/scripts/libraries/moment.min.js?b=" + build,
-      "/scripts/libraries/sly.min.js?b=" + build,      
+      "/scripts/libraries/sly.min.js?b=" + build,
     ], function(pagetty, list_template, list_items_template, list_preview_template) {
       pagetty.init("{{list._id}}", {{{lists_json}}}, "{{{variant}}}", {{{new_count}}}, list_template, list_items_template, list_preview_template);
     });

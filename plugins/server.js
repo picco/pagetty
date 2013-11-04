@@ -192,9 +192,6 @@ exports.attach = function (options) {
           all_lists[_id] = user_sublists[_id];
         }
 
-        console.dir(all_lists);
-
-
         render.app = "app";
         render.list = list;
         render.lists = app.list.sortNavigation(_.toArray(user_lists), fresh_counts);
@@ -202,6 +199,7 @@ exports.attach = function (options) {
         render.user = req.session.user;
         render.variant = variant;
         render.fresh_counts = fresh_counts;
+
         res.render("app", render);
       });
     }
