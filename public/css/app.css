@@ -475,7 +475,7 @@ article h2 {
   padding: 0 6px;
 }
 .preview article {
-  padding: 20px 0;
+  padding-top: 20px;
   width: 100%;
   background: inherit;
 }

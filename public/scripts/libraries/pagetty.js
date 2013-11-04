@@ -19,6 +19,8 @@ define([],function() {
         scrollBy: 100,
       }
 
+      this.lists['search'] = {name: 'Search results'};
+
       this.sidebar_slider = new Sly('.sidebar', this.sly_opts).init();
       this.list_slider = new Sly('.list', this.sly_opts).init();
       this.preview_slider = new Sly('.preview', this.sly_opts).init();
@@ -221,7 +223,6 @@ define([],function() {
       }));
 
       $.getJSON('/api/items/' + list_id + '/' + variant + '/0').success(function(data, status, xhr) {
-        console.dir(data);
         $('.list .items').html(self.renderListItems(data));
         $('.preview .slidee').html(self.renderPreviewItems(data));
 
