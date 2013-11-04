@@ -20,6 +20,8 @@ define([],function() {
         scrollBy: 100,
       }
 
+      this.sortNavigation();
+
       this.lists['search'] = {name: 'Search results'};
 
       this.sidebar_slider = new Sly('.sidebar', this.sly_opts).init();
@@ -29,17 +31,6 @@ define([],function() {
       this.renderList = Handlebars.compile(list_template);
       this.renderListItems = Handlebars.compile(list_items_template);
       this.renderPreviewItems = Handlebars.compile(preview_items_template);
-
-      $('nav > ul > li').not('.list-all').not('.directory').sortElements(function(a, b) {
-        var cmp = parseInt($(b).find('span').text()) - parseInt($(a).find('span').text());
-
-        if (cmp) {
-          return cmp;
-        }
-        else {
-          return $(a).text().localeCompare($(b).text());
-        }
-      });
 
       // Cancel all in-progress requests before making a new one.
       // http://stackoverflow.com/questions/1802936/stop-all-active-ajax-requests-in-jquery
@@ -352,13 +343,12 @@ define([],function() {
         self.loadList("all", "time");
         self.hideUpdateNotification();
         self.updateFreshCounts(data);
+        self.sortNavigation();
       });
     },
     updateFreshCounts: function(counts) {
       var self = this;
-      _.each(this.lists, function(list) {
-        $("nav li.list-" + list._id + " span").text(self.formatFreshCount(counts[list._id]));
-      });
+      _.each(this.lists, function(list) {$("nav li.list-" + list._id + " span").text(self.formatFreshCount(counts[list._id]));});
       $("nav li.list-all span").text(self.formatFreshCount(counts["total"]));
     },
     formatFreshCount: function(number) {
@@ -432,6 +422,21 @@ define([],function() {
     },
     hideProgress: function() {
       $('body').css('opacity', '1');
+    },
+    sortNavigation: function() {
+      $('nav > ul > li').not('.list-all').not('.directory').sortElements(this.sortNavigationCmp);
+      $('.directory').sortElements(this.sortNavigationCmp);
+      $('.directory li').sortElements(this.sortNavigationCmp);
+    },
+    sortNavigationCmp: function(a, b) {
+      var cmp = parseInt($(b).find('span').text()) - parseInt($(a).find('span').text());
+
+      if (cmp) {
+        return cmp;
+      }
+      else {
+        return $(a).text().localeCompare($(b).text());
+      }
     }
   }
 
