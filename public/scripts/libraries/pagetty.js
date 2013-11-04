@@ -1,6 +1,6 @@
 define([],function() {
   var Pagetty = {
-    init: function(list_id, lists, variant, new_count, list_template, list_items_template, preview_items_template) {
+    init: function(list_id, lists, variant, new_count, directories, list_template, list_items_template, preview_items_template) {
       var self = this;
 
       this.cache = {};
@@ -11,6 +11,7 @@ define([],function() {
       this.variant = variant;
       this.page = 1;
       this.new_count = new_count;
+      this.directories = directories;
       this.title = "Pagetty Reader";
       this.preview_pos = -1;
 
@@ -230,6 +231,7 @@ define([],function() {
       $("form.search input").val(list_id == "search" ? variant : "");
 
       $(".content").html(self.renderList({
+        directories: self.directories,
         list: self.lists[self.list_id],
       }));
 

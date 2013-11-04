@@ -58,7 +58,7 @@
       "/scripts/libraries/moment.min.js?b=" + build,
       "/scripts/libraries/sly.min.js?b=" + build,
     ], function(pagetty, list_template, list_items_template, list_preview_template) {
-      pagetty.init("{{list._id}}", {{{lists_json}}}, "{{{variant}}}", {{{new_count}}}, list_template, list_items_template, list_preview_template);
+      pagetty.init("{{list._id}}", {{{lists_json}}}, "{{{variant}}}", {{{new_count}}}, {{{directories_json}}}, list_template, list_items_template, list_preview_template);
     });
   </script>
 </div>

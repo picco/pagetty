@@ -196,6 +196,7 @@ exports.attach = function (options) {
         render.list = list;
         render.lists = app.list.sortNavigation(_.toArray(user_lists), fresh_counts);
         render.lists_json = JSON.stringify(all_lists);
+        render.directories_json = JSON.stringify(render.directories);
         render.user = req.session.user;
         render.variant = variant;
         render.fresh_counts = fresh_counts;
