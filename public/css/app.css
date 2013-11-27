@@ -416,15 +416,15 @@ article.open .actions,
 
 /* CONTROLS ----------------------------------------------------------------- */
 
-.controls {
+.side-controls {
   float: right;
   margin: 20px 20px 0 0;
   width: 40px;
 }
-.controls .inner {
+.side-controls .inner {
   position: fixed;
 }
-.controls a {
+.control {
   display: block;
   width: 40px;
   height: 40px;
@@ -437,29 +437,29 @@ article.open .actions,
   text-align: center;
   line-height: 40px;
 }
-.controls a:hover {
+.control:hover {
   background: #ddd;
 }
-.controls a.active {
+.control.active {
   background: #00AEEF;
 }
-.controls a.active i {
+.control.active i {
   background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
 }
-.controls a.big {
+.control.big {
   line-height: 80px;
   height: 80px;
 }
-.controls a.gap {
+.control.gap {
   margin-bottom: 60px;
 }
-.controls a.gap2 {
+.control.gap2 {
   margin-bottom: 110px;
 }
-.controls a.highlighted {
+.control.highlighted {
   background: #5BB75B;
 }
-.controls a.highlighted i {
+.control.highlighted i {
   background-image: url("/bootstrap/img/glyphicons-halflings-white.png");
 }
 
@@ -504,4 +504,66 @@ a.expanded {
 
 .loading {
   margin: 20px;
+}
+
+/* PHONE */
+
+.nav-controls .control {
+  float: right;
+  margin-left: 5px;
+}
+
+@media (min-width: 1001px) {
+  .show-mobile {
+    display: none;
+  }
+}
+
+@media (max-width: 1000px) {
+  .search {
+    display: none;
+  }
+  .hide-mobile {
+    display: none;
+  }
+  .sidebar {
+    float: none;
+    width: auto;
+  }
+  .sidebar .inner {
+    position: inherit;
+    width: auto;
+  }
+  .sidebar .header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    background: #fafafa;
+    margin: 0;
+    z-index: 100;
+  }
+  .sidebar .header .inner {
+    padding: 15px 15px 0 15px;
+  }
+  .trail {
+    background: #ccc;
+    color: white;
+    padding: 10px 15px;
+  }
+  nav {
+    margin-top: 70px;
+  }
+  .sidebar h3 {
+    height: 40px;
+    line-height: 40px;
+  }
+  .side-controls {
+    display: none;
+  }
+  .list {
+    width: auto;
+  }
+  .preview {
+    display: none;
+  }
 }

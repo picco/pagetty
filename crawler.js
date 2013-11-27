@@ -1,21 +1,19 @@
-//require('newrelic');
 var broadway = require('broadway');
 var app = new broadway.App();
 
-// Load root plugin.
 app.use(require('./plugins/main.js'));
+app.use(require('./plugins/crawler.js'));
 
-function crawlBatch(updates) {
+function crawlWhile(updates) {
   if (updates) {
-    app.channel.crawlBatch(function(updates) {crawlBatch(updates)});
+    app.crawler.crawlBatch(function(updates) {crawlWhile(updates)});
   }
   else {
     app.log("crawler.js", "waiting...");
-    setTimeout(function() {crawlBatch(true)}, 30000);
+    setTimeout(function() {crawlWhile(true)}, 30000);
   }
 }
 
-// Crawl launcher
 app.init(function(err) {
   if (err) {
     app.log(err);
@@ -24,12 +22,13 @@ app.init(function(err) {
     app.log("crawler.js", "started");
 
     if (process.argv[2]) {
+      // Launch the crawl process for a single channel.
       app.channel.findById(process.argv[2], function(err, channel) {
         if (err) {
-          throw err;
+          app.err(err);
         }
         else if (channel) {
-          channel.crawl(function() {
+          app.crawler.crawl(channel, function() {
             app.log("crawler.js", "channel crawl complete");
             process.exit();
           });
@@ -41,7 +40,7 @@ app.init(function(err) {
       })
     }
     else {
-      crawlBatch(true);
+      crawlWhile(true);
     }
   }
 });

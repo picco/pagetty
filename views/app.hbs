@@ -2,8 +2,24 @@
   <div class="sidebar clearfix">
     <div class="slidee inner">
       <div class="header clearfix">
-        <h3 class="pull-left">Pagetty Reader</h3>
-        <a href="/add" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
+        <div class="hide-mobile">
+          <h3 class="pull-left">Pagetty Reader</h3>
+          <a href="/add" class="btn btn-small btn-success btn-subscribe pull-right"><i class="icon-plus icon-white"></i> Add content</a>
+        </div>
+        <div class="show-mobile">
+          <div class="inner clearfix">
+            <h3 class="pull-left">Pagetty Reader</h3>
+            <div class="controls nav-controls">
+              <a class="control add" href="#" title="Add content"><i class="icon-plus"></i></a>
+              <a class="control control-search" href="#" title="Search"><i class="icon-search"></i></a>
+              <a class="control user" href="/account" title="My account ({{user.mail}})"><i class="icon-user"></i></a>
+              <a class="control logout" href="/signout" title="Sign out"><i class="icon-off"></i></a>
+            </div>
+          </div>
+          <div class="trail">
+            blaah
+          </div>
+        </div>
       </div>
       <form class="search" method="get">
         <input type="text" name="q" class="input-block-level" placeholder="Search for articles..." value="{{#eq list.type "search"}}{{variant}}{{/eq}}">
@@ -30,13 +46,13 @@
       </nav>
     </div>
   </div>
-  <div class="controls">
+  <div class="controls side-controls">
     <div class="inner">
-      <a class="logout tt" href="/signout" data-placement="left" title="Sign out"><i class="icon-off"></i></a>
-      <a class="user tt" href="/account" data-placement="left" title="My account ({{user.mail}})"><i class="icon-user"></i></a>
-      <a class="tt" data-placement="left" onmouseover="UE.Popin.preload();" title="Give feeedback" href="#" onclick="UE.Popin.show(); return false;"><i class="icon-question-sign"></i></a>
-      <a class="prev" href="#" title="Previous article"><i class="icon-arrow-up"></i></a>
-      <a class="next" href="#" title="Next article"><i class="icon-arrow-down"></i></a>
+      <a class="control logout tt" href="/signout" data-placement="left" title="Sign out"><i class="icon-off"></i></a>
+      <a class="control user tt" href="/account" data-placement="left" title="My account ({{user.mail}})"><i class="icon-user"></i></a>
+      <a class="control tt" data-placement="left" onmouseover="UE.Popin.preload();" title="Give feeedback" href="#" onclick="UE.Popin.show(); return false;"><i class="icon-question-sign"></i></a>
+      <a class="control prev" href="#" title="Previous article"><i class="icon-arrow-up"></i></a>
+      <a class="control next" href="#" title="Next article"><i class="icon-arrow-down"></i></a>
     </div>
   </div>
   <div class="content">

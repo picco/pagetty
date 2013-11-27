@@ -24,7 +24,7 @@ define([],function() {
 
       this.lists['search'] = {name: 'Search results'};
 
-      this.sidebar_slider = new Sly('.sidebar', this.sly_opts).init();
+      //this.sidebar_slider = new Sly('.sidebar', this.sly_opts).init();
       this.list_slider = new Sly('.list', this.sly_opts).init();
       this.preview_slider = new Sly('.preview', this.sly_opts).init();
 
@@ -173,7 +173,7 @@ define([],function() {
       });
 
       $(window).resize(function() {
-        self.sidebar_slider.reload();
+        //self.sidebar_slider.reload();
         self.list_slider.reload();
         self.preview_slider.reload();
       });

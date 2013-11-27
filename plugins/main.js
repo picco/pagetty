@@ -15,14 +15,11 @@ exports.attach = function (options) {
   var winston = require("winston");
   var zlib = require("zlib");
 
-  //mongoose.set('debug', true);
-
   app.dir = fs.realpathSync(__dirname + '/..');
   app.conf = require("config").server;
   app.db = mongoose.createConnection(app.conf.db_url);
 
-  this.use(require('./notify.js'));
-  this.use(require('./parser.js'));
+  this.use(require('./notifications.js'));
   this.use(require('../models/channel.js'));
   this.use(require('../models/item.js'));
   this.use(require('../models/list.js'));

@@ -11,13 +11,13 @@ exports.attach = function(options) {
     title: String,
     target: {type: String, index: true},
     image: String,
-    image_hash: {type: String, index: true},
     comments: String,
     score: Number,
     relative_score: {type: Number, index: true},
     description: String,
     created: {type: Date, index: true},
     date: {type: Date, index: true},
+    crawled: {type: Date, index: true},
   });
 
   /**
@@ -27,7 +27,8 @@ exports.attach = function(options) {
     es.index({_id: item._id}, {title: item.title, description: item.description}, function(err, data) {});
   });
 
-  /**s
+
+  /**
    * Get list items.
    */
   itemSchema.statics.getListItems = function(list, user, variant, page, callback) {
